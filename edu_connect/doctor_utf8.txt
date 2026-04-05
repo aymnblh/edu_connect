@@ -1,0 +1,41 @@
+﻿[ÔêÜ] Flutter (Channel stable, 3.38.5, on Microsoft Windows [version 10.0.26200.8117], locale fr-FR) [484ms]
+    ÔÇó Flutter version 3.38.5 on channel stable at C:\flutter
+    ÔÇó Upstream repository https://github.com/flutter/flutter.git
+    ÔÇó Framework revision f6ff1529fd (4 months ago), 2025-12-11 11:50:07 -0500
+    ÔÇó Engine revision 1527ae0ec5
+    ÔÇó Dart version 3.10.4
+    ÔÇó DevTools version 2.51.1
+    ÔÇó Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, omit-legacy-version-file, enable-lldb-debugging
+
+[ÔêÜ] Windows Version (11 Professionnel 64-bit, 25H2, 2009) [2,0s]
+
+[!] Android toolchain - develop for Android devices (Android SDK version 36.1.0) [524ms]
+    ÔÇó Android SDK at C:\Users\RETEC\AppData\Local\Android\sdk
+    ÔÇó Emulator version 36.3.10.0 (build_id 14472402) (CL:N/A)
+    X cmdline-tools component is missing.
+      Try installing or updating Android Studio.
+      Alternatively, download the tools from https://developer.android.com/studio#command-line-tools-only and make sure to set the ANDROID_HOME environment variable.
+      See https://developer.android.com/studio/command-line for more details.
+    X Android license status unknown.
+      Run `flutter doctor --android-licenses` to accept the SDK licenses.
+      See https://flutter.dev/to/windows-android-setup for more details.
+
+[ÔêÜ] Chrome - develop for the web [252ms]
+    ÔÇó Chrome at C:\Users\RETEC\AppData\Local\Google\Chrome\Application\chrome.exe
+
+[!] Visual Studio - develop Windows apps (Visual Studio Build Tools┬á2019 16.11.52) [251ms]
+    ÔÇó Visual Studio at C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools
+    ÔÇó Visual Studio Build Tools┬á2019 version 16.11.36602.28
+    ÔÇó Windows 10 SDK version 10.0.19041.0
+    X The current Visual Studio installation is incomplete.
+      Please use Visual Studio Installer to complete the installation or reinstall Visual Studio.
+
+[ÔêÜ] Connected device (3 available) [228ms]
+    ÔÇó Windows (desktop) ÔÇó windows ÔÇó windows-x64    ÔÇó Microsoft Windows [version 10.0.26200.8117]
+    ÔÇó Chrome (web)      ÔÇó chrome  ÔÇó web-javascript ÔÇó Google Chrome 146.0.7680.178
+    ÔÇó Edge (web)        ÔÇó edge    ÔÇó web-javascript ÔÇó Microsoft Edge 146.0.3856.97
+
+[ÔêÜ] Network resources [576ms]
+    ÔÇó All expected network resources are available.
+
+! Doctor found issues in 2 categories.

@@ -1,0 +1,26 @@
+﻿Analyzing edu_connect...                                        
+
+warning - Unused import: '../constants/app_constants.dart' - lib\core\repositories\user_repository.dart:2:8 - unused_import
+warning - Unused import: '../../features/notifications/presentation/screens/notifications_screen.dart' - lib\core\routing\app_router.dart:20:8 - unused_import
+warning - Unused import: '../../features/attendance/presentation/screens/class_attendance_history_screen.dart' - lib\core\routing\app_router.dart:21:8 - unused_import
+warning - Unused import: 'package:flutter_animate/flutter_animate.dart' - lib\features\attendance\presentation\screens\class_attendance_history_screen.dart:4:8 - unused_import
+warning - Unused import: '../../../class/data/models/class_model.dart' - lib\features\attendance\presentation\screens\class_attendance_history_screen.dart:8:8 - unused_import
+warning - The value of the local variable 'l10n' isn't used - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:21:11 - unused_local_variable
+warning - The receiver can't be null, so the null-aware operator '?.' is unnecessary - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:59:42 - invalid_null_aware_operator
+warning - The value of the local variable 'l10n' isn't used - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:144:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:226:11 - unused_local_variable
+warning - The value of the field '_ref' isn't used - lib\features\auth\presentation\providers\auth_provider.dart:38:13 - unused_field
+warning - The value of the local variable 'l10n' isn't used - lib\features\auth\presentation\screens\login_screen.dart:72:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\auth\presentation\screens\register_screen.dart:77:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\auth\presentation\screens\splash_screen.dart:11:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\chat\presentation\screens\chat_screen.dart:233:11 - unused_local_variable
+   info - Use 'const' with the constructor to improve performance - lib\features\class\presentation\screens\class_list_screen.dart:224:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\grades\presentation\screens\grade_bulletin_screen.dart:97:62 - prefer_const_constructors
+warning - Dead code - lib\features\grades\presentation\screens\grades_list_screen.dart:76:15 - dead_code
+warning - The value of the local variable 'l10n' isn't used - lib\features\homework\presentation\screens\homework_list_screen.dart:20:11 - unused_local_variable
+warning - The value of the field '_ref' isn't used - lib\features\notifications\presentation\providers\notification_provider.dart:11:13 - unused_field
+warning - The value of the local variable 'l10n' isn't used - lib\features\notifications\presentation\screens\notifications_screen.dart:14:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\notifications\presentation\screens\notifications_screen.dart:86:11 - unused_local_variable
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\remarks\presentation\screens\remarks_list_screen.dart:170:17 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\remarks\presentation\screens\remarks_list_screen.dart:181:17 - deprecated_member_use
+

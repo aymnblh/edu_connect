@@ -1,0 +1,52 @@
+﻿Analyzing edu_connect...                                        
+
+warning - Unused import: '../constants/app_constants.dart' - lib\core\repositories\user_repository.dart:2:8 - unused_import
+warning - Unused import: '../../features/notifications/presentation/screens/notifications_screen.dart' - lib\core\routing\app_router.dart:20:8 - unused_import
+warning - Unused import: '../../features/attendance/presentation/screens/class_attendance_history_screen.dart' - lib\core\routing\app_router.dart:21:8 - unused_import
+warning - Unused import: 'package:flutter_animate/flutter_animate.dart' - lib\features\attendance\presentation\screens\class_attendance_history_screen.dart:4:8 - unused_import
+warning - Unused import: '../../../class/data/models/class_model.dart' - lib\features\attendance\presentation\screens\class_attendance_history_screen.dart:8:8 - unused_import
+warning - The value of the local variable 'l10n' isn't used - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:21:11 - unused_local_variable
+warning - The receiver can't be null, so the null-aware operator '?.' is unnecessary - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:59:42 - invalid_null_aware_operator
+warning - The value of the local variable 'l10n' isn't used - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:144:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:226:11 - unused_local_variable
+warning - The value of the field '_ref' isn't used - lib\features\auth\presentation\providers\auth_provider.dart:38:13 - unused_field
+warning - The value of the local variable 'l10n' isn't used - lib\features\auth\presentation\screens\login_screen.dart:72:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\auth\presentation\screens\register_screen.dart:77:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\auth\presentation\screens\splash_screen.dart:11:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\chat\presentation\screens\chat_screen.dart:233:11 - unused_local_variable
+  error - Target of URI doesn't exist: '../../notifications/presentation/providers/notification_provider.dart' - lib\features\class\presentation\screens\class_list_screen.dart:8:8 - uri_does_not_exist
+  error - Undefined name 'unreadNotificationsCountProvider' - lib\features\class\presentation\screens\class_list_screen.dart:45:49 - undefined_identifier
+   info - Use 'const' with the constructor to improve performance - lib\features\class\presentation\screens\class_list_screen.dart:224:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\grades\presentation\screens\grade_bulletin_screen.dart:97:62 - prefer_const_constructors
+warning - Dead code - lib\features\grades\presentation\screens\grades_list_screen.dart:76:15 - dead_code
+warning - The value of the local variable 'l10n' isn't used - lib\features\homework\presentation\screens\homework_list_screen.dart:20:11 - unused_local_variable
+warning - The value of the field '_ref' isn't used - lib\features\notifications\presentation\providers\notification_provider.dart:11:13 - unused_field
+warning - The value of the local variable 'l10n' isn't used - lib\features\notifications\presentation\screens\notifications_screen.dart:14:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\notifications\presentation\screens\notifications_screen.dart:86:11 - unused_local_variable
+  error - Target of URI doesn't exist: '../../class/data/models/class_model.dart' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:10:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../class/presentation/providers/class_provider.dart' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:11:8 - uri_does_not_exist
+  error - The method 'classDetailProvider' isn't defined for the type 'RemarksListScreen' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:45:47 - undefined_method
+  error - Undefined class 'ClassModel' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:87:66 - undefined_class
+  error - The method 'RemarkModel' isn't defined for the type 'RemarksListScreen' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:96:29 - undefined_method
+  error - Undefined class 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:117:63 - undefined_class
+  error - Undefined class 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:130:3 - undefined_class
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:130:30 - undefined_identifier
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\remarks\presentation\screens\remarks_list_screen.dart:169:17 - deprecated_member_use
+  error - The name 'RemarkType' isn't a type, so it can't be used as a type argument - lib\features\remarks\presentation\screens\remarks_list_screen.dart:179:39 - non_type_as_type_argument
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\remarks\presentation\screens\remarks_list_screen.dart:180:17 - deprecated_member_use
+  error - Invalid constant value - lib\features\remarks\presentation\screens\remarks_list_screen.dart:183:43 - invalid_constant
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:183:43 - undefined_identifier
+  error - Invalid constant value - lib\features\remarks\presentation\screens\remarks_list_screen.dart:184:43 - invalid_constant
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:184:43 - undefined_identifier
+  error - Invalid constant value - lib\features\remarks\presentation\screens\remarks_list_screen.dart:185:43 - invalid_constant
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:185:43 - undefined_identifier
+  error - Undefined class 'RemarkModel' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:236:9 - undefined_class
+  error - The body might complete normally, causing 'null' to be returned, but the return type, 'Color', is a potentially non-nullable type - lib\features\remarks\presentation\screens\remarks_list_screen.dart:242:13 - body_might_complete_normally
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:244:12 - undefined_identifier
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:246:12 - undefined_identifier
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:248:12 - undefined_identifier
+  error - The body might complete normally, causing 'null' to be returned, but the return type, 'IconData', is a potentially non-nullable type - lib\features\remarks\presentation\screens\remarks_list_screen.dart:253:16 - body_might_complete_normally
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:255:12 - undefined_identifier
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:257:12 - undefined_identifier
+  error - Undefined name 'RemarkType' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:259:12 - undefined_identifier
+

@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+  # ─── Reverse Proxy (Traefik) ────────────────────────────────────────────────
+  traefik:
+    image: traefik:v2.11
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    networks:
+      - internal
+      - public
+
+  # ─── Database (PostgreSQL) ──────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-edu_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-edu_connect}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-edu_user} -d ${POSTGRES_DB:-edu_connect}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  # ─── Sovereign Notification Service (ntfy) ──────────────────────────────────
+  ntfy:
+    image: binwiederhier/ntfy:v2.11.0
+    command: ["serve"]
+    restart: always
+    environment:
+      NTFY_BASE_URL: ${NTFY_BASE_URL:-http://ntfy}
+      NTFY_AUTH_DEFAULT_ACCESS: "deny-all" # Internal only security
+    volumes:
+      - ntfy_data:/var/lib/ntfy
+    networks:
+      - internal
+
+  # ─── EduConnect API (FastAPI) ───────────────────────────────────────────────
+  api:
+    build: .
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env # Requires a .env file with secrets in the Cwd
+    volumes:
+      # CRITICAL: RSA keys mounted READ-ONLY for security
+      - ./secrets:/app/secrets:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`${FQDN}`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+      # Global Redirect to HTTPS
+      - "traefik.http.routers.api-http.rule=Host(`${FQDN}`)"
+      - "traefik.http.routers.api-http.entrypoints=web"
+      - "traefik.http.routers.api-http.middlewares=https-redirect"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+    networks:
+      - internal
+      - public
+
+networks:
+  internal: # Database, ntfy, and API communication
+    driver: bridge
+  public: # Traefik and public-facing services
+    driver: bridge
+
+volumes:
+  pgdata:
+  ntfy_data:
+  letsencrypt:

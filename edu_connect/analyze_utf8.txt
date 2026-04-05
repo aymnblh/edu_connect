@@ -1,0 +1,91 @@
+﻿Analyzing edu_connect...                                        
+
+warning - Unused import: '../constants/app_constants.dart' - lib\core\repositories\user_repository.dart:2:8 - unused_import
+warning - Unused import: '../../features/notifications/presentation/screens/notifications_screen.dart' - lib\core\routing\app_router.dart:20:8 - unused_import
+warning - Unused import: '../../features/attendance/presentation/screens/class_attendance_history_screen.dart' - lib\core\routing\app_router.dart:21:8 - unused_import
+  error - Undefined name 'apiServiceProvider' - lib\features\attendance\data\repositories\attendance_repository.dart:54:25 - undefined_identifier
+  error - 1 positional argument expected by 'AttendanceRepository.new', but 0 found - lib\features\attendance\presentation\providers\attendance_provider.dart:6:31 - not_enough_positional_arguments
+  error - The method 'getAttendanceForClass' isn't defined for the type 'AttendanceRepository' - lib\features\attendance\presentation\providers\attendance_provider.dart:11:50 - undefined_method
+warning - Unused import: 'package:flutter_animate/flutter_animate.dart' - lib\features\attendance\presentation\screens\class_attendance_history_screen.dart:4:8 - unused_import
+warning - Unused import: '../../../class/data/models/class_model.dart' - lib\features\attendance\presentation\screens\class_attendance_history_screen.dart:7:8 - unused_import
+  error - Directives must appear before any declarations - lib\features\attendance\presentation\screens\class_attendance_history_screen.dart:15:1 - directive_after_declaration
+warning - The value of the local variable 'l10n' isn't used - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:21:11 - unused_local_variable
+  error - The property 'id' can't be unconditionally accessed because the receiver can be 'null' - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:59:33 - unchecked_use_of_nullable_value
+warning - The receiver can't be null, so the null-aware operator '?.' is unnecessary - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:59:42 - invalid_null_aware_operator
+warning - The value of the local variable 'l10n' isn't used - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:144:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\attendance\presentation\screens\mark_attendance_screen.dart:226:11 - unused_local_variable
+warning - The value of the field '_ref' isn't used - lib\features\auth\presentation\providers\auth_provider.dart:38:13 - unused_field
+warning - The value of the local variable 'l10n' isn't used - lib\features\auth\presentation\screens\login_screen.dart:72:11 - unused_local_variable
+  error - Target of URI doesn't exist: '../../../core/providers/locale_provider.dart' - lib\features\auth\presentation\screens\profile_screen.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'localeProvider' - lib\features\auth\presentation\screens\profile_screen.dart:245:28 - undefined_identifier
+  error - Undefined name 'localeProvider' - lib\features\auth\presentation\screens\profile_screen.dart:254:28 - undefined_identifier
+  error - Undefined name 'localeProvider' - lib\features\auth\presentation\screens\profile_screen.dart:263:28 - undefined_identifier
+warning - The value of the local variable 'l10n' isn't used - lib\features\auth\presentation\screens\register_screen.dart:77:11 - unused_local_variable
+  error - The getter 'teacher' isn't defined for the type 'AppLocalizations' - lib\features\auth\presentation\screens\register_screen.dart:239:57 - undefined_getter
+  error - The getter 'parent' isn't defined for the type 'AppLocalizations' - lib\features\auth\presentation\screens\register_screen.dart:244:63 - undefined_getter
+warning - The value of the local variable 'l10n' isn't used - lib\features\auth\presentation\screens\splash_screen.dart:11:11 - unused_local_variable
+warning - The value of the local variable 'l10n' isn't used - lib\features\chat\presentation\screens\chat_screen.dart:233:11 - unused_local_variable
+  error - The name 'UserModel' isn't a type, so it can't be used as a type argument - lib\features\class\data\models\class_model.dart:8:14 - non_type_as_type_argument
+  error - Undefined name 'UserModel' - lib\features\class\data\models\class_model.dart:29:28 - undefined_identifier
+  error - Target of URI doesn't exist: '../../core/services/api_service.dart' - lib\features\class\data\repositories\class_repository.dart:2:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../data/models/class_model.dart' - lib\features\class\data\repositories\class_repository.dart:3:8 - uri_does_not_exist
+  error - Undefined class 'ApiService' - lib\features\class\data\repositories\class_repository.dart:6:9 - undefined_class
+  error - Undefined name 'ApiService' - lib\features\class\data\repositories\class_repository.dart:6:27 - undefined_identifier
+  error - The name 'ClassModel' isn't a type, so it can't be used as a type argument - lib\features\class\data\repositories\class_repository.dart:8:10 - non_type_as_type_argument
+  error - Undefined name 'ClassModel' - lib\features\class\data\repositories\class_repository.dart:10:12 - undefined_identifier
+  error - The name 'ClassModel' isn't a type, so it can't be used as a type argument - lib\features\class\data\repositories\class_repository.dart:13:10 - non_type_as_type_argument
+  error - Undefined name 'ClassModel' - lib\features\class\data\repositories\class_repository.dart:15:12 - undefined_identifier
+  error - The name 'ClassModel' isn't a type, so it can't be used as a type argument - lib\features\class\data\repositories\class_repository.dart:18:15 - non_type_as_type_argument
+  error - Undefined name 'ClassModel' - lib\features\class\data\repositories\class_repository.dart:20:28 - undefined_identifier
+  error - The name 'ClassModel' isn't a type, so it can't be used as a type argument - lib\features\class\data\repositories\class_repository.dart:23:10 - non_type_as_type_argument
+  error - Undefined name 'ClassModel' - lib\features\class\data\repositories\class_repository.dart:25:12 - undefined_identifier
+  error - The method 'getClassesForUser' isn't defined for the type 'ClassRepository' - lib\features\class\presentation\providers\class_provider.dart:19:12 - undefined_method
+  error - The getter 'classIds' isn't defined for the type 'UserModel' - lib\features\class\presentation\providers\class_provider.dart:19:35 - undefined_getter
+  error - The method 'getClassById' isn't defined for the type 'ClassRepository' - lib\features\class\presentation\providers\class_provider.dart:29:45 - undefined_method
+  error - The named parameter 'teacherId' isn't defined - lib\features\class\presentation\providers\class_provider.dart:47:9 - undefined_named_parameter
+  error - The named parameter 'teacherName' isn't defined - lib\features\class\presentation\providers\class_provider.dart:48:9 - undefined_named_parameter
+  error - The named parameter 'description' isn't defined - lib\features\class\presentation\providers\class_provider.dart:50:9 - undefined_named_parameter
+  error - 1 positional argument expected by 'joinClass', but 0 found - lib\features\class\presentation\providers\class_provider.dart:66:44 - not_enough_positional_arguments
+  error - The named parameter 'userId' isn't defined - lib\features\class\presentation\providers\class_provider.dart:66:44 - undefined_named_parameter
+  error - The named parameter 'joinCode' isn't defined - lib\features\class\presentation\providers\class_provider.dart:66:60 - undefined_named_parameter
+  error - Undefined name 'unreadNotificationsCountProvider' - lib\features\class\presentation\screens\class_list_screen.dart:44:49 - undefined_identifier
+  error - The getter 'memberCount' isn't defined for the type 'ClassModel' - lib\features\class\presentation\screens\class_list_screen.dart:188:41 - undefined_getter
+  error - The getter 'description' isn't defined for the type 'ClassModel' - lib\features\class\presentation\screens\class_list_screen.dart:200:30 - undefined_getter
+  error - The getter 'description' isn't defined for the type 'ClassModel' - lib\features\class\presentation\screens\class_list_screen.dart:201:30 - undefined_getter
+  error - The getter 'description' isn't defined for the type 'ClassModel' - lib\features\class\presentation\screens\class_list_screen.dart:204:30 - undefined_getter
+   info - Use 'const' with the constructor to improve performance - lib\features\class\presentation\screens\class_list_screen.dart:224:19 - prefer_const_constructors
+  error - The getter 'joinCode' isn't defined for the type 'AppLocalizations' - lib\features\class\presentation\screens\join_class_screen.dart:145:39 - undefined_getter
+  error - The named parameter 'label' is required, but there's no corresponding argument - lib\features\class\presentation\screens\join_class_screen.dart:160:28 - missing_required_argument
+  error - Expected an identifier - lib\features\class\presentation\screens\join_class_screen.dart:171:29 - missing_identifier
+  error - Expected to find ':' - lib\features\class\presentation\screens\join_class_screen.dart:171:29 - expected_token
+  error - Expected to find ')' - lib\features\class\presentation\screens\join_class_screen.dart:172:27 - expected_token
+  error - Expected an identifier - lib\features\class\presentation\screens\join_class_screen.dart:175:19 - missing_identifier
+  error - Expected to find ']' - lib\features\class\presentation\screens\join_class_screen.dart:175:19 - expected_token
+  error - The named parameter 'score' is required, but there's no corresponding argument - lib\features\grades\presentation\providers\grades_provider.dart:36:19 - missing_required_argument
+  error - The named parameter 'value' isn't defined - lib\features\grades\presentation\providers\grades_provider.dart:41:9 - undefined_named_parameter
+   info - Use 'const' with the constructor to improve performance - lib\features\grades\presentation\screens\grade_bulletin_screen.dart:97:62 - prefer_const_constructors
+warning - Dead code - lib\features\grades\presentation\screens\grades_list_screen.dart:76:15 - dead_code
+warning - The value of the local variable 'l10n' isn't used - lib\features\homework\presentation\screens\homework_list_screen.dart:20:11 - unused_local_variable
+  error - Target of URI doesn't exist: '../../../../core/api/api_service.dart' - lib\features\notifications\data\repositories\notification_repository.dart:1:8 - uri_does_not_exist
+  error - Undefined class 'ApiService' - lib\features\notifications\data\repositories\notification_repository.dart:6:9 - undefined_class
+  error - Undefined name 'apiServiceProvider' - lib\features\notifications\data\repositories\notification_repository.dart:27:25 - undefined_identifier
+  error - Target of URI doesn't exist: '../data/repositories/notification_repository.dart' - lib\features\notifications\presentation\providers\notification_provider.dart:2:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../data/models/notification_model.dart' - lib\features\notifications\presentation\providers\notification_provider.dart:3:8 - uri_does_not_exist
+  error - The name 'NotificationModel' isn't a type, so it can't be used as a type argument - lib\features\notifications\presentation\providers\notification_provider.dart:5:51 - non_type_as_type_argument
+  error - Undefined name 'notificationRepositoryProvider' - lib\features\notifications\presentation\providers\notification_provider.dart:6:20 - undefined_identifier
+  error - The name 'NotificationModel' isn't a type, so it can't be used as a type argument - lib\features\notifications\presentation\providers\notification_provider.dart:9:66 - non_type_as_type_argument
+  error - Undefined class 'NotificationRepository' - lib\features\notifications\presentation\providers\notification_provider.dart:10:9 - undefined_class
+warning - The value of the field '_ref' isn't used - lib\features\notifications\presentation\providers\notification_provider.dart:11:13 - unused_field
+  error - The name 'NotificationModel' isn't a type, so it can't be used as a type argument - lib\features\notifications\presentation\providers\notification_provider.dart:32:65 - non_type_as_type_argument
+  error - Undefined name 'notificationRepositoryProvider' - lib\features\notifications\presentation\providers\notification_provider.dart:33:26 - undefined_identifier
+  error - The property 'isRead' can't be unconditionally accessed because the receiver can be 'null' - lib\features\notifications\presentation\providers\notification_provider.dart:39:40 - unchecked_use_of_nullable_value
+  error - Target of URI doesn't exist: '../data/models/notification_model.dart' - lib\features\notifications\presentation\screens\notifications_screen.dart:7:8 - uri_does_not_exist
+warning - The value of the local variable 'l10n' isn't used - lib\features\notifications\presentation\screens\notifications_screen.dart:14:11 - unused_local_variable
+  error - Undefined class 'NotificationModel' - lib\features\notifications\presentation\screens\notifications_screen.dart:63:9 - undefined_class
+warning - The value of the local variable 'l10n' isn't used - lib\features\notifications\presentation\screens\notifications_screen.dart:86:11 - unused_local_variable
+  error - The method 'classRemarksProvider' isn't defined for the type 'RemarksListScreen' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:22:36 - undefined_method
+  error - Undefined class 'ClassModel' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:83:66 - undefined_class
+  error - Undefined name 'remarksNotifierProvider' - lib\features\remarks\presentation\screens\remarks_list_screen.dart:102:26 - undefined_identifier
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\remarks\presentation\screens\remarks_list_screen.dart:165:17 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\remarks\presentation\screens\remarks_list_screen.dart:176:17 - deprecated_member_use
+

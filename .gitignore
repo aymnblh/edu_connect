@@ -1,0 +1,42 @@
+# EduConnect Global Ignore
+
+# 1. Backend Secrets & Local Data
+edu_connect_backend/.env
+edu_connect_backend/.env.*
+!edu_connect_backend/.env.production.example
+edu_connect_backend/secrets/
+edu_connect_backend/pgdata/
+edu_connect_backend/ntfy_data/
+edu_connect_backend/backups/
+edu_connect_backend/letsencrypt/
+edu_connect_backend/__pycache__/
+edu_connect_backend/*.pyc
+
+# 2. Flutter / Dart
+edu_connect/.dart_tool/
+edu_connect/.packages
+edu_connect/.pub-cache/
+edu_connect/.pub/
+edu_connect/build/
+edu_connect/ios/
+edu_connect/android/app/key.jks
+edu_connect/android/key.properties
+edu_connect/*.keystore
+# Ignore sensitive config if any (e.g. firebase)
+edu_connect/lib/firebase_options.dart
+
+# 3. Environment/OS
+.DS_Store
+Thumbs.db
+node_modules/
+dist/
+.venv/
+env/
+venv/
+lib/
+bin/
+include/
+
+# 4. Logs
+*.log
+analyze_out.txt

@@ -1,0 +1,23 @@
+﻿{
+  "status": "success",
+  "result": [
+    {
+      "name": "projects/edu-connct/androidApps/1:449267222184:android:83d98a8797cd7636c2e49d",
+      "platform": "ANDROID",
+      "appId": "1:449267222184:android:83d98a8797cd7636c2e49d",
+      "namespace": "com.educonnect.edu_connect",
+      "apiKeyId": "e9723f75-94fb-4823-b7ff-6ef65a603fd5",
+      "state": "ACTIVE",
+      "expireTime": "1970-01-01T00:00:00Z"
+    },
+    {
+      "name": "projects/edu-connct/iosApps/1:449267222184:ios:3ba491532c6677d9c2e49d",
+      "platform": "IOS",
+      "appId": "1:449267222184:ios:3ba491532c6677d9c2e49d",
+      "namespace": "com.educonnect.eduConnect",
+      "apiKeyId": "1a9ac4fc-f604-4393-934f-37dd6efdfdc2",
+      "state": "ACTIVE",
+      "expireTime": "1970-01-01T00:00:00Z"
+    }
+  ]
+}
