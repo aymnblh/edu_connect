@@ -1,0 +1,127 @@
+# Déploiement gratuit pour test
+
+Ce guide sert à partager une version de test avec une école ou quelques personnes.
+Ce n'est pas une configuration de production finale.
+
+## Choix recommandé
+
+- API FastAPI + PostgreSQL + Redis: Render Free.
+- Frontend React/Vite: Vercel Hobby.
+- Swagger API: `https://<ton-api>.onrender.com/docs`.
+
+Références vérifiées le 2 juin 2026:
+
+- Render propose des web services gratuits, mais ils dorment après 15 minutes sans trafic et redémarrent à la prochaine requête.
+- Render donne 750 heures gratuites par workspace et par mois pour les web services gratuits.
+- Render Blueprints permet de créer un service, une base Postgres, un cache Key Value et des variables générées.
+- Vercel Hobby est gratuit pour les projets personnels/non commerciaux avec des limites d'usage.
+- Supabase Free reste une alternative Postgres gratuite: 500 MB de base par projet, pause après une semaine d'inactivité.
+
+## 1. Préparer les clés JWT
+
+Depuis `edu_connect_backend`:
+
+```powershell
+python manage.py generate-keys --output render-secrets
+```
+
+Ensuite, garde ces deux fichiers localement:
+
+- `edu_connect_backend/render-secrets/private_key.pem`
+- `edu_connect_backend/render-secrets/public_key.pem`
+
+Le dossier `render-secrets/` est ignoré par Git.
+
+## 2. Déployer l'API sur Render
+
+1. Va sur Render, puis `New` -> `Blueprint`.
+2. Choisis le repo GitHub `aymnblh/edu_connect`.
+3. Render lit le fichier `render.yaml`.
+4. Quand Render demande les variables `sync: false`, colle:
+   - `PRIVATE_KEY`: contenu complet de `private_key.pem`
+   - `PUBLIC_KEY`: contenu complet de `public_key.pem`
+   - `CORS_ORIGINS`: mets temporairement l'URL prévue du frontend, par exemple `https://edu-connect-web.vercel.app`
+5. Lance le déploiement.
+
+Après le déploiement, note l'URL API:
+
+```text
+https://<ton-service>.onrender.com
+```
+
+Teste:
+
+```text
+https://<ton-service>.onrender.com/health
+https://<ton-service>.onrender.com/docs
+```
+
+## 3. Déployer le frontend sur Vercel
+
+1. Va sur Vercel, puis `Add New Project`.
+2. Importe le repo GitHub.
+3. Root Directory: `edu_connect_web`.
+4. Framework: Vite.
+5. Build Command: `npm run build`.
+6. Output Directory: `dist`.
+7. Ajoute la variable d'environnement:
+
+```text
+VITE_API_BASE_URL=https://<ton-service>.onrender.com
+```
+
+8. Déploie.
+
+Après le déploiement, note l'URL frontend:
+
+```text
+https://<ton-frontend>.vercel.app
+```
+
+## 4. Corriger CORS après avoir l'URL Vercel
+
+Dans Render, ouvre le service `educonnect-api`, puis `Environment`.
+
+Mets:
+
+```text
+CORS_ORIGINS=https://<ton-frontend>.vercel.app
+```
+
+Si tu veux aussi tester en local:
+
+```text
+CORS_ORIGINS=https://<ton-frontend>.vercel.app,http://localhost:5173,http://127.0.0.1:5173
+```
+
+Sauvegarde et redéploie l'API.
+
+## 5. Créer des données de test
+
+Quand l'API est en ligne, il faut créer au moins:
+
+- un compte directeur,
+- une école active,
+- une classe,
+- un enseignant,
+- des élèves,
+- quelques notes avec coefficients.
+
+Pour une démo rapide, le script local `edu_connect_backend/scripts/seed_demo_presentation_data.py` peut servir de base, mais il doit être lancé contre une base de test seulement.
+
+## Limites du gratuit
+
+- Render Free peut être lent au premier chargement parce que le service dort après inactivité.
+- La base gratuite est suffisante pour un test, pas pour une vraie école en production.
+- Pas de SLA, pas de sauvegardes sérieuses garanties sur les plans gratuits.
+- Ne mets pas de vraies données sensibles d'élèves pendant la phase gratuite.
+
+## Checklist
+
+- [ ] API Render accessible sur `/health`.
+- [ ] Swagger accessible sur `/docs`.
+- [ ] Frontend Vercel construit sans erreur.
+- [ ] `VITE_API_BASE_URL` pointe vers Render.
+- [ ] `CORS_ORIGINS` contient l'URL Vercel exacte.
+- [ ] Données de démonstration créées.
+- [ ] Aucun fichier `.env` ou clé privée n'est commité.

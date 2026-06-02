@@ -1,4 +1,5 @@
 import os
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -54,6 +55,13 @@ class Settings(BaseSettings):
     public_key: str = ""
     previous_public_key: str | None = None
 
+    @field_validator("database_url")
+    @classmethod
+    def normalize_async_database_url(cls, value: str) -> str:
+        if value.startswith("postgresql://"):
+            return value.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return value
+
     @property
     def is_production(self) -> bool:
         return self.app_env.lower() in {"prod", "production"}
@@ -96,6 +104,13 @@ class Settings(BaseSettings):
 
     def _load_keys(self):
         """Load RSA keys from disk once. Fail fast if missing."""
+        if self.private_key and self.public_key:
+            self.private_key = self.private_key.replace("\\n", "\n")
+            self.public_key = self.public_key.replace("\\n", "\n")
+            if self.previous_public_key:
+                self.previous_public_key = self.previous_public_key.replace("\\n", "\n")
+            return
+
         if not os.path.exists(self.private_key_path) or not os.path.exists(self.public_key_path):
             raise RuntimeError(
                 f"FATAL: RSA keys missing at {self.private_key_path} or {self.public_key_path}. "

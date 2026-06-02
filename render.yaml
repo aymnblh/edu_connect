@@ -1,0 +1,69 @@
+services:
+  - type: web
+    name: educonnect-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    rootDir: edu_connect_backend
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: staging
+      - key: DATABASE_URL
+        fromDatabase:
+          name: educonnect-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: educonnect-cache
+          property: connectionString
+      - key: PRIVATE_KEY
+        sync: false
+      - key: PUBLIC_KEY
+        sync: false
+      - key: PREVIOUS_PUBLIC_KEY
+        value: ""
+      - key: SERVER_FINGERPRINT_SALT
+        generateValue: true
+      - key: PLATFORM_SECRET
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: RS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: "30"
+      - key: MAX_ACTIVE_SESSION_FAMILIES
+        value: "5"
+      - key: CREATE_TABLES_ON_STARTUP
+        value: "false"
+      - key: CORS_ORIGINS
+        sync: false
+      - key: NTFY_BASE_URL
+        value: ""
+      - key: NTFY_AUTH_TOKEN
+        value: ""
+      - key: NTFY_TOPIC_PREFIX
+        value: educonnect
+      - key: MEDIA_STORAGE_PATH
+        value: media/attachments
+      - key: MEDIA_MALWARE_SCAN_ENABLED
+        value: "false"
+      - key: MEDIA_MALWARE_SCAN_REQUIRED
+        value: "false"
+
+  - type: keyvalue
+    name: educonnect-cache
+    plan: free
+    region: frankfurt
+    ipAllowList: []
+
+databases:
+  - name: educonnect-db
+    plan: free
+    region: frankfurt
+    databaseName: edu_connect
+    user: edu_app

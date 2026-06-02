@@ -7,6 +7,7 @@ edu_connect_backend/.env.*
 !edu_connect_backend/.env.production.example
 !edu_connect_backend/.env.staging.example
 edu_connect_backend/secrets/
+edu_connect_backend/render-secrets/
 edu_connect_backend/pgdata/
 edu_connect_backend/ntfy_data/
 edu_connect_backend/backups/
@@ -41,6 +42,7 @@ Thumbs.db
 node_modules/
 dist/
 artifacts/
+outputs/
 .venv/
 env/
 venv/
