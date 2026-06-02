@@ -464,18 +464,24 @@ export default function DirectorDashboard() {
 
   const acceptAttendanceMutation = useMutation({
     mutationFn: async ({ item, justification }: { item: PendingAttendance; justification: string }) => {
-      await api.patch(`/classes/${item.class_id}/attendance/${item.id}/justify`, {
+      const res = await api.patch(`/classes/${item.class_id}/attendance/${item.id}/justify`, {
         justification,
         ...(item.justification_attachment_url ? { attachment_url: item.justification_attachment_url } : {}),
       });
-      return item;
+      return { item, attendance: res.data as { is_justified?: boolean } };
     },
-    onSuccess: (item) => {
+    onSuccess: ({ item, attendance }) => {
       setApprovalDrafts((current) => {
         const next = { ...current };
         delete next[item.id];
         return next;
       });
+      if (attendance.is_justified) {
+        queryClient.setQueryData<PendingAttendance[]>(
+          ['director-pending-attendance'],
+          (current) => current?.filter((pending) => pending.id !== item.id) ?? [],
+        );
+      }
       queryClient.invalidateQueries({ queryKey: ['director-pending-attendance'] });
       queryClient.invalidateQueries({ queryKey: ['director-analytics'] });
       addToast(t('director.toast.justificationApproved'), 'success');

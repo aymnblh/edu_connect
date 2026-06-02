@@ -2639,8 +2639,8 @@ body {
   resize: vertical;
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-sm);
-  background: rgba(10, 13, 22, 0.72);
-  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--text-primary);
   padding: 10px 12px;
   font: inherit;
   font-size: 13px;
