@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     clamav_host: str = "clamav"
     clamav_port: int = 3310
     clamav_timeout_seconds: float = 15.0
+    demo_seed_on_startup: bool = False
+    demo_seed_reset_on_startup: bool = False
 
     # In-memory keys (loaded at startup)
     private_key: str = ""

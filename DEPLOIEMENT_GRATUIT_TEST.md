@@ -98,15 +98,25 @@ Sauvegarde et redéploie l'API.
 
 ## 5. Créer plusieurs comptes de test
 
-Quand l'API est en ligne, la base Render est vide. Pour tester tous les espaces, lance le seed complet depuis Render.
+Quand l'API est en ligne, la base Render est vide. Pour tester tous les espaces sans Render Shell, active le seed automatique au démarrage.
 
-Dans Render -> service `educonnect-api` -> `Shell`:
+Dans Render -> service `educonnect-api` -> `Environment`, mets temporairement:
 
-```bash
-python scripts/seed_demo_presentation_data.py --force --reset-demo
+```text
+DEMO_SEED_ON_STARTUP=true
+DEMO_SEED_RESET_ON_STARTUP=true
 ```
 
-Le script crée une école démo, des classes, des matières, des enseignants, des élèves, des parents liés, des notes, des absences, des messages et les comptes ci-dessous.
+Ensuite redéploie l'API. Au démarrage, l'API crée directement dans PostgreSQL une école démo, des classes, des matières, des enseignants, des élèves, des parents liés, des notes, des absences, des messages et les comptes ci-dessous.
+
+Après le premier démarrage réussi, remets:
+
+```text
+DEMO_SEED_ON_STARTUP=false
+DEMO_SEED_RESET_ON_STARTUP=false
+```
+
+Puis redéploie une dernière fois. Ça évite de recréer la démo à chaque redéploiement.
 
 Mot de passe pour tous les comptes:
 
@@ -130,7 +140,7 @@ Demo2026!
 | Parent 5 | `parent.leila@demo.educonnect.dz` |
 | Parent 6 | `parent.rachid@demo.educonnect.dz` |
 
-Si tu veux seulement débloquer la connexion SuperAdmin sans créer toutes les données, ouvre le service API sur Render, puis `Shell`, et lance:
+Si tu as accès au Shell et que tu veux seulement débloquer la connexion SuperAdmin sans créer toutes les données, tu peux lancer:
 
 ```bash
 SUPERADMIN_EMAIL=system.admin@demo.educonnect.dz \

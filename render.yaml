@@ -54,6 +54,10 @@ services:
         value: "false"
       - key: MEDIA_MALWARE_SCAN_REQUIRED
         value: "false"
+      - key: DEMO_SEED_ON_STARTUP
+        value: "false"
+      - key: DEMO_SEED_RESET_ON_STARTUP
+        value: "false"
 
   - type: keyvalue
     name: educonnect-cache

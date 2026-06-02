@@ -18,6 +18,15 @@ async def lifespan(app: FastAPI):
     if not settings.is_production and settings.create_tables_on_startup:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+    if settings.demo_seed_on_startup:
+        from scripts.seed_demo_presentation_data import seed_demo_data
+
+        report = await seed_demo_data(
+            reset_demo=settings.demo_seed_reset_on_startup,
+            accounts_output=None,
+            force=True,
+        )
+        print(report)
     await manager.startup()
     try:
         yield
