@@ -1,50 +1,73 @@
-# --- Configuration (Externalized to .env) ---
-BACKUP_SERVER="${BACKUP_REMOTE_HOST:-user@backup-vps}"
-BACKUP_PATH="${BACKUP_REMOTE_PATH:-/backups/educonnect/}"
-NTFY_URL="${NTFY_BASE_URL:-http://ntfy}"
+#!/usr/bin/env bash
+set -euo pipefail
 
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-BACKUP_DIR="./backups/$TIMESTAMP"
-mkdir -p "$BACKUP_DIR"
+# Creates a consistent EduConnect backup from the Docker production stack.
+# Usage:
+#   ENV_FILE=.env.production ./scripts/backup_educonnect.sh
 
-echo "--- Starting EduConnect Backup ($TIMESTAMP) ---"
+ENV_FILE="${ENV_FILE:-.env.production}"
+COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
+LOCAL_BACKUP_DIR="${BACKUP_LOCAL_DIR:-./backups}"
+REMOTE_HOST="${BACKUP_REMOTE_HOST:-}"
+REMOTE_PATH="${BACKUP_REMOTE_PATH:-}"
+RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-35}"
 
-# 1. Database Backup (PostgreSQL)
-echo "[1/4] Dumping PostgreSQL database..."
-pg_dump -U edu_user edu_connect > "$BACKUP_DIR/db_dump.sql" 2>/dev/null 
-
-if [ $? -ne 0 ]; then
-    echo "ERROR: PostgreSQL dump failed."
-    curl -H "Title: Backup Failed" -H "Priority: urgent" -H "Tags: warning,skull" \
-         -d "PostgreSQL dump error on $TIMESTAMP. Check logs." \
-         "$NTFY_URL/educonnect_alerts"
-    exit 1
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing env file: $ENV_FILE" >&2
+  exit 1
 fi
 
-# 2. Secret Keys & ntfy Data
-echo "[2/4] Archiving RSA keys and ntfy data..."
-[ -d "./secrets" ] && cp -r ./secrets "$BACKUP_DIR/secrets_backup"
-[ -d "./ntfy_data" ] && cp -r ./ntfy_data "$BACKUP_DIR/ntfy_data_backup"
+set -a
+source "$ENV_FILE"
+set +a
 
-# 3. Compression & Retention (Local)
-echo "[3/4] Compressing archive and applying 30-day retention..."
-ARCHIVE="./backups/educonnect_backup_$TIMESTAMP.tar.gz"
-tar -czf "$ARCHIVE" -C "./backups" "$TIMESTAMP"
-rm -rf "$BACKUP_DIR"
+: "${POSTGRES_SUPERUSER:?POSTGRES_SUPERUSER is required}"
+: "${POSTGRES_DB:?POSTGRES_DB is required}"
 
-# Retention (Keep 30 days)
-find ./backups -name "educonnect_backup_*.tar.gz" -mtime +30 -delete
+timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+work_dir="${LOCAL_BACKUP_DIR}/${timestamp}"
+archive="${LOCAL_BACKUP_DIR}/educonnect-${timestamp}.tar.gz"
 
-# 4. Sovereign Remote Sync (rsync)
-echo "[4/4] Syncing to remote VPS via rsync..."
-rsync -az --delete ./backups/ "$BACKUP_SERVER:$BACKUP_PATH"
+mkdir -p "$work_dir"
 
-if [ $? -eq 0 ]; then
-    echo "--- Backup Success: Local & Remote ($TIMESTAMP) ---"
+echo "Starting EduConnect backup: $timestamp"
+
+echo "[1/5] Dumping PostgreSQL database"
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T db \
+  pg_dump -U "$POSTGRES_SUPERUSER" -d "$POSTGRES_DB" --format=custom --no-owner --no-acl \
+  > "${work_dir}/database.dump"
+database_dump_sha256="$(sha256sum "${work_dir}/database.dump" | awk '{print $1}')"
+
+echo "[2/5] Copying private media and operational state"
+mkdir -p "${work_dir}/volumes"
+for path in private_media secrets letsencrypt ntfy_data; do
+  if [[ -d "$path" ]]; then
+    cp -a "$path" "${work_dir}/volumes/${path}"
+  fi
+done
+
+echo "[3/5] Writing manifest"
+cat > "${work_dir}/manifest.txt" <<EOF
+timestamp=${timestamp}
+database=${POSTGRES_DB}
+database_dump_sha256=${database_dump_sha256}
+app_env=${APP_ENV:-}
+fqdn=${FQDN:-}
+alembic_current=$(docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T api alembic current 2>/dev/null || true)
+EOF
+
+echo "[4/5] Compressing backup"
+tar -czf "$archive" -C "$LOCAL_BACKUP_DIR" "$timestamp"
+rm -rf "$work_dir"
+
+echo "[5/5] Applying local retention (${RETENTION_DAYS} days)"
+find "$LOCAL_BACKUP_DIR" -name "educonnect-*.tar.gz" -mtime +"$RETENTION_DAYS" -delete
+
+if [[ -n "$REMOTE_HOST" && -n "$REMOTE_PATH" ]]; then
+  echo "Syncing backups to ${REMOTE_HOST}:${REMOTE_PATH}"
+  rsync -az --delete "$LOCAL_BACKUP_DIR/" "${REMOTE_HOST}:${REMOTE_PATH}"
 else
-    echo "ERROR: Remote sync failed."
-    curl -H "Title: Backup Sync Failed" -H "Priority: high" -H "Tags: cloud,warning" \
-         -d "Rsync to $BACKUP_SERVER failed. Data is safe locally, but remote sync incomplete." \
-         "$NTFY_URL/educonnect_alerts"
-    exit 1
+  echo "Remote backup sync skipped; BACKUP_REMOTE_HOST or BACKUP_REMOTE_PATH is empty."
 fi
+
+echo "Backup complete: $archive"

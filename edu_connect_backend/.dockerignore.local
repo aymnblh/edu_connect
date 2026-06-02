@@ -1,0 +1,33 @@
+# .dockerignore pour le build local uniquement
+# Inclut les secrets RSA nécessaires au démarrage de l'API
+# NE PAS utiliser en production (les secrets doivent être montés en volume)
+
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# secrets/ intentionnellement NON exclu pour le build local
+letsencrypt/
+backups/
+pgdata/
+ntfy_data/
+
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+
+.venv/
+venv/
+env/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+*.log
+analyze_out.txt
+
+.git/
+.gitignore

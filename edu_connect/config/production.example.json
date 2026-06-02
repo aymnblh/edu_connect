@@ -1,0 +1,7 @@
+{
+  "APP_ENV": "production",
+  "API_BASE_URL": "https://api.educonnect.dz",
+  "WS_BASE_URL": "wss://api.educonnect.dz",
+  "NTFY_BASE_URL": "https://ntfy.educonnect.dz",
+  "NTFY_WS_BASE_URL": "wss://ntfy.educonnect.dz"
+}

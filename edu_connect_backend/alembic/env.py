@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -14,9 +15,14 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from app.database import Base
+from app.db.base import Base
 from app import models  # Ensure all models are loaded
 target_metadata = Base.metadata
+
+
+def get_database_url() -> str:
+    url = os.getenv("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
+    return url.replace("postgresql+asyncpg://", "postgresql+psycopg2://", 1)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -36,7 +42,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -55,8 +61,10 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    section = config.get_section(config.config_ini_section, {}).copy()
+    section["sqlalchemy.url"] = get_database_url()
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        section,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

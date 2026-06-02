@@ -1,97 +1,88 @@
-# edu_connect_backend
+# EduConnect Backend
 
-## Stack
-- **FastAPI** (Python 3.12)
-- **PostgreSQL 16** (via asyncpg + SQLAlchemy 2.0 async)
-- **WebSockets** for real-time chat
-- **Firebase Admin SDK** — only for token verification (Auth stays on Firebase)
-- **Docker + Docker Compose** — ready to deploy on any VPS
+Private FastAPI backend for the EduConnect B2B school SaaS.
 
----
+## Architecture
 
-## Project Structure
+- FastAPI
+- PostgreSQL 16 with SQLAlchemy async
+- Alembic migrations
+- Local JWT auth with RSA keys
+- Tenant isolation by `school_id`
+- WebSockets for real-time messaging
+- ntfy for local/private push notifications
 
-```
-edu_connect_backend/
-├── app/
-│   ├── main.py           # FastAPI app + routers
-│   ├── config.py         # Settings (env vars)
-│   ├── database.py       # Async SQLAlchemy engine
-│   ├── models.py         # ORM models (ALL tables)
-│   ├── schemas.py        # Pydantic request/response schemas
-│   ├── auth.py           # Firebase JWT middleware
-│   ├── ws_manager.py     # WebSocket connection manager
-│   └── routers/
-│       ├── users.py
-│       ├── classes.py
-│       ├── chat.py       # REST history + WebSocket
-│       ├── grades.py
-│       ├── homework.py
-│       ├── attendance.py
-│       ├── payments.py
-│       └── remarks.py
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── .env.example
-```
+## Local Start
 
----
-
-## Quick Start (VPS)
-
-### 1. Clone & configure
 ```bash
-git clone <your-repo>
-cd edu_connect_backend
-cp .env.example .env
-# Edit .env with your database URL and add your Firebase credentials
+cp .env.example .env.local
+python manage.py generate-keys
+docker compose -f docker-compose.local.yml up --build
 ```
 
-### 2. Add Firebase credentials
-Download your Firebase **Service Account JSON** from Firebase Console:
-> Project Settings → Service Accounts → Generate New Private Key
+API: `http://localhost:8000`
+Docs: `http://localhost:8000/docs`
+ntfy: `http://localhost:8080`
+Liveness: `http://localhost:8000/health`
+Readiness: `http://localhost:8000/health/ready`
 
-Save it as `firebase-credentials.json` in the project root (**never commit this file!**).
+## Required Environment
 
-### 3. Deploy with Docker
+- `DATABASE_URL`
+- `PRIVATE_KEY_PATH`
+- `PUBLIC_KEY_PATH`
+- `SERVER_FINGERPRINT_SALT`
+- `PLATFORM_SECRET`
+- `NTFY_BASE_URL`
+- `NTFY_TOPIC_PREFIX`
+
+## Auth Flow
+
+1. User logs in with email and password against `POST /auth/login`.
+2. Backend verifies the local password hash.
+3. Backend returns an access token and a refresh token.
+4. Mobile/web calls protected APIs with `Authorization: Bearer <access_token>`.
+5. Refresh token rotation is handled by `POST /auth/refresh`.
+
+## Product Modules
+
+- Schools and activation
+- Users, students, classes, and teacher assignments
+- Attendance, grades, homework, remarks
+- Direct messages and class announcements
+- Schedule and sessions
+- Tuition invoices, payments, and receipts
+- In-app notifications and ntfy push
+
+No Firebase service account, Firebase Auth, Firestore, or cloud database is required.
+
+## Production Start
+
 ```bash
-docker compose up -d --build
+cp .env.production.example .env.production
+python manage.py generate-keys --output secrets/
+docker compose --env-file .env.production -f docker-compose.yml up --build -d
 ```
 
-The API will be available at `http://YOUR_SERVER_IP:8000`
-Interactive docs at `http://YOUR_SERVER_IP:8000/docs`
+Before running production, replace every placeholder in `.env.production`, set `APP_ENV=production`, and keep `.env.production` plus `secrets/` out of source control and Docker build context.
 
----
+Operational backup, restore, rollback, observability, staging, and incident response procedures live in `../OPERATIONS_RUNBOOK.md`.
 
-## Key API Endpoints
+Production helper scripts:
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/users/` | Register user profile (after Firebase signup) |
-| GET | `/users/me` | Get own profile |
-| POST | `/classes/` | Create class (teacher) |
-| POST | `/classes/join` | Join class by code (parent) |
-| GET | `/classes/{id}/messages` | Chat history |
-| WS | `/classes/{id}/ws` | Real-time WebSocket chat |
-| POST | `/classes/{id}/grades/` | Add grade |
-| POST | `/classes/{id}/homework/` | Add homework |
-| POST | `/classes/{id}/attendance/` | Mark attendance |
-| PATCH | `/classes/{id}/attendance/{att_id}/justify` | Parent justify absence |
-| POST | `/classes/{id}/payments/` | Add payment |
-| POST | `/classes/{id}/remarks/` | Add remark |
-
-## Authentication Flow
-
+```bash
+python scripts/check_production_posture.py
+python scripts/rehearse_key_rotation.py
+ENV_FILE=.env.production ./scripts/backup_educonnect.sh
+STAGING_ENV_FILE=.env.staging BACKUP_ARCHIVE=./backups/educonnect-YYYYMMDDTHHMMSSZ.tar.gz ./scripts/restore_drill.sh
+./scripts/verify_deployment.sh
 ```
-Flutter App                Firebase                  EduConnect API
-    │                          │                          │
-    │──── login(email,pass) ──▶│                          │
-    │◀──── idToken ────────────│                          │
-    │                          │                          │
-    │──── GET /users/me ──────────────────────────────────▶│
-    │     Authorization: Bearer <idToken>                  │
-    │                          │───verify_id_token()──▶   │
-    │                          │◀── uid ───────────────   │
-    │◀──── UserProfile ───────────────────────────────────│
+
+## Verification
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m compileall app alembic tests
+alembic heads
+python -m pytest
 ```

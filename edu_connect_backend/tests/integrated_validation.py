@@ -24,8 +24,15 @@ def run_test_and_server():
         env=env
     )
     
-    # Wait for server to be ready
-    time.sleep(15)
+    # Wait for server to be ready and fail fast if it exits.
+    for _ in range(30):
+        if process.poll() is not None:
+            break
+        try:
+            requests.get(f"{BASE_URL}/health", timeout=1)
+            break
+        except requests.exceptions.RequestException:
+            time.sleep(1)
     
     try:
         # 2. Register a new school
@@ -88,8 +95,8 @@ def run_test_and_server():
         # Print server output in case of error
         out, err = process.communicate(timeout=1)
         print("--- Server Output ---")
-        print(out.decode())
-        print(err.decode())
+        print(out.decode(errors="replace"))
+        print(err.decode(errors="replace"))
     finally:
         # Stop Server
         print("Stopping server...")

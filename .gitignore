@@ -3,7 +3,9 @@
 # 1. Backend Secrets & Local Data
 edu_connect_backend/.env
 edu_connect_backend/.env.*
+!edu_connect_backend/.env.example
 !edu_connect_backend/.env.production.example
+!edu_connect_backend/.env.staging.example
 edu_connect_backend/secrets/
 edu_connect_backend/pgdata/
 edu_connect_backend/ntfy_data/
@@ -11,32 +13,52 @@ edu_connect_backend/backups/
 edu_connect_backend/letsencrypt/
 edu_connect_backend/__pycache__/
 edu_connect_backend/*.pyc
+edu_connect_backend/tests/.test_keys/
 
 # 2. Flutter / Dart
 edu_connect/.dart_tool/
+edu_connect/.idea/
 edu_connect/.packages
 edu_connect/.pub-cache/
 edu_connect/.pub/
 edu_connect/build/
+edu_connect/android/.kotlin/
 edu_connect/ios/
 edu_connect/android/app/key.jks
+edu_connect/android/app/*.jks
 edu_connect/android/key.properties
 edu_connect/*.keystore
-# Ignore sensitive config if any (e.g. firebase)
-edu_connect/lib/firebase_options.dart
+edu_connect/**/*.keystore
+# Ignore generated/mobile-local config if any
 
 # 3. Environment/OS
+edu_connect_web/.env
+edu_connect_web/.env.*
+!edu_connect_web/.env.example
+!edu_connect_web/.env.production.example
 .DS_Store
 Thumbs.db
 node_modules/
 dist/
+artifacts/
 .venv/
 env/
 venv/
-lib/
-bin/
-include/
+.pytest_cache/
+/lib/
+/bin/
+/include/
 
 # 4. Logs
 *.log
 analyze_out.txt
+
+# 5. Private Launch Evidence
+STAGING_MIGRATION_EVIDENCE.md
+LEGAL_REVIEW_SIGNOFF.md
+INCIDENT_RESPONSE_CONTACTS.md
+STAGING_PARITY_EVIDENCE.md
+
+# 6. Per-release Generated Artifacts
+RELEASE_MANIFEST.md
+DEMO_PRESENTATION_ACCOUNTS.md

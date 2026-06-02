@@ -26,5 +26,5 @@ RUN chmod +x scripts/*.sh 2>/dev/null || true
 
 EXPOSE 8000
 
-# Production uvicorn: 4 workers, proxy headers enabled for Traefik
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# Run migrations, then start Uvicorn behind Traefik.
+CMD ["sh", "scripts/start.sh"]

@@ -39,6 +39,11 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
+# Production environment files. Keep example files in git.
+/config/production.json
+/config/staging.json
+/config/*.local.json
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile

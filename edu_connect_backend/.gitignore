@@ -1,6 +1,11 @@
-firebase-credentials.json
 .env
+.env.*
+!.env.example
+!.env.*.example
 __pycache__/
 *.pyc
+.pytest_cache/
+.test_keys/
+tests/.test_keys/
 .venv/
 venv/

@@ -1,0 +1,69 @@
+# ── Local development stack — no Traefik, HTTP only ─────────────────────────
+# Usage: docker compose -f docker-compose.local.yml up --build
+
+services:
+  # ─── Database (PostgreSQL) ─────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: edu_user
+      POSTGRES_PASSWORD: edu_password
+      POSTGRES_DB: edu_connect
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_local:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edu_user -d edu_connect"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis (WebSocket pub/sub) ───────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  ntfy:
+    image: binwiederhier/ntfy:v2.11.0
+    command: ["serve", "--listen-http=:80"]
+    restart: always
+    environment:
+      NTFY_BASE_URL: "http://ntfy"
+      NTFY_AUTH_DEFAULT_ACCESS: "read-write"
+    ports:
+      - "8080:80"
+    volumes:
+      - ntfy_data_local:/var/lib/ntfy
+
+  # ─── EduConnect API (FastAPI) ──────────────────────────────────────────────
+  api:
+    build: .
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env.local
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./secrets:/app/secrets:ro
+      - ./media:/app/media
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+volumes:
+  pgdata_local:
+  ntfy_data_local:
