@@ -96,18 +96,41 @@ CORS_ORIGINS=https://<ton-frontend>.vercel.app,http://localhost:5173,http://127.
 
 Sauvegarde et redéploie l'API.
 
-## 5. Créer des données de test
+## 5. Créer plusieurs comptes de test
 
-Quand l'API est en ligne, la base Render est vide. Il faut donc créer au moins:
+Quand l'API est en ligne, la base Render est vide. Pour tester tous les espaces, lance le seed complet depuis Render.
 
-- un compte directeur,
-- une école active,
-- une classe,
-- un enseignant,
-- des élèves,
-- quelques notes avec coefficients.
+Dans Render -> service `educonnect-api` -> `Shell`:
 
-Pour débloquer immédiatement la connexion SuperAdmin, ouvre le service API sur Render, puis `Shell`, et lance:
+```bash
+python scripts/seed_demo_presentation_data.py --force --reset-demo
+```
+
+Le script crée une école démo, des classes, des matières, des enseignants, des élèves, des parents liés, des notes, des absences, des messages et les comptes ci-dessous.
+
+Mot de passe pour tous les comptes:
+
+```text
+Demo2026!
+```
+
+| Espace | Email |
+| --- | --- |
+| SuperAdmin | `system.admin@demo.educonnect.dz` |
+| Directeur | `director@demo.educonnect.dz` |
+| Secrétaire | `secretary@demo.educonnect.dz` |
+| Enseignant maths | `teacher.math@demo.educonnect.dz` |
+| Enseignant français | `teacher.french@demo.educonnect.dz` |
+| Enseignant sciences | `teacher.science@demo.educonnect.dz` |
+| Enseignant anglais | `teacher.english@demo.educonnect.dz` |
+| Parent 1 | `parent.nadia@demo.educonnect.dz` |
+| Parent 2 | `parent.karim@demo.educonnect.dz` |
+| Parent 3 | `parent.salma@demo.educonnect.dz` |
+| Parent 4 | `parent.amine@demo.educonnect.dz` |
+| Parent 5 | `parent.leila@demo.educonnect.dz` |
+| Parent 6 | `parent.rachid@demo.educonnect.dz` |
+
+Si tu veux seulement débloquer la connexion SuperAdmin sans créer toutes les données, ouvre le service API sur Render, puis `Shell`, et lance:
 
 ```bash
 SUPERADMIN_EMAIL=system.admin@demo.educonnect.dz \
@@ -116,14 +139,20 @@ SUPERADMIN_NAME='Admin Demo' \
 python create_superadmin.py
 ```
 
-Tu peux ensuite te connecter sur le frontend avec:
+Pour tester toute l'application, préfère le seed complet.
 
-```text
-system.admin@demo.educonnect.dz
-Demo2026!
-```
+Le seed complet couvre:
 
-Pour une démo rapide, le script local `edu_connect_backend/scripts/seed_demo_presentation_data.py` peut servir de base, mais il doit être lancé contre une base de test seulement.
+- un compte directeur,
+- un compte secrétaire,
+- une école active,
+- une classe,
+- plusieurs enseignants,
+- des élèves,
+- plusieurs parents liés,
+- quelques notes avec coefficients.
+
+Attention: `--reset-demo` supprime et recrée uniquement l'école de démo `EduConnect Demo Academy`. Ne lance pas ce seed sur une vraie base contenant des données réelles.
 
 ## Dépannage login après déploiement
 

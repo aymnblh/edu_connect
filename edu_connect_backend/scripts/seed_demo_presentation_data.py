@@ -653,8 +653,14 @@ def demo_accounts() -> list[DemoAccount]:
         DemoAccount("secretary", f"secretary@{DEMO_DOMAIN}", DEMO_PASSWORD, "secretary", "Administrative workflows."),
         DemoAccount("teacher_math", f"teacher.math@{DEMO_DOMAIN}", DEMO_PASSWORD, "teacher", "Grades, attendance, homework, class messaging."),
         DemoAccount("teacher_french", f"teacher.french@{DEMO_DOMAIN}", DEMO_PASSWORD, "teacher", "Second teacher profile."),
+        DemoAccount("teacher_science", f"teacher.science@{DEMO_DOMAIN}", DEMO_PASSWORD, "teacher", "Science teacher assigned to demo classes."),
+        DemoAccount("teacher_english", f"teacher.english@{DEMO_DOMAIN}", DEMO_PASSWORD, "teacher", "English teacher assigned to demo classes."),
         DemoAccount("parent_nadia", f"parent.nadia@{DEMO_DOMAIN}", DEMO_PASSWORD, "parent", "Parent with linked child and private messages."),
         DemoAccount("parent_karim", f"parent.karim@{DEMO_DOMAIN}", DEMO_PASSWORD, "parent", "Parent view with invoices and attendance."),
+        DemoAccount("parent_salma", f"parent.salma@{DEMO_DOMAIN}", DEMO_PASSWORD, "parent", "Parent linked to an additional demo student."),
+        DemoAccount("parent_amine", f"parent.amine@{DEMO_DOMAIN}", DEMO_PASSWORD, "parent", "Parent linked to an additional demo student."),
+        DemoAccount("parent_leila", f"parent.leila@{DEMO_DOMAIN}", DEMO_PASSWORD, "parent", "Parent linked to an additional demo student."),
+        DemoAccount("parent_rachid", f"parent.rachid@{DEMO_DOMAIN}", DEMO_PASSWORD, "parent", "Parent linked to an additional demo student."),
     ]
 
 
