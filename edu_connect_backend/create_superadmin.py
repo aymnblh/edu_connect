@@ -1,76 +1,65 @@
-"""
-Script de création d'un compte SuperAdmin pour EduConnect.
-Utilisation :
-    python create_superadmin.py
-
-Le compte créé pourra se connecter avec email + mot de passe
-via l'application Flutter et accéder au tableau de bord SuperAdmin.
-"""
+from __future__ import annotations
 
 import asyncio
+import os
 import uuid
-import sys
-from passlib.context import CryptContext
+from datetime import datetime, timezone
 
-# ── Configuration ─────────────────────────────────────────────────────────────
-SUPERADMIN_EMAIL    = "admin@educonnect.local"
-SUPERADMIN_NAME     = "Super Administrateur"
-SUPERADMIN_PASSWORD = "EduAdmin2024!"   # ← Changez ce mot de passe
+from sqlalchemy import select
 
-# ─────────────────────────────────────────────────────────────────────────────
+from app.core.rls import set_request_rls_context
+from app.core.security import get_password_hash
+from app.db.database import AsyncSessionLocal
+from app.models import User, UserRole
 
-async def main():
-    # Import after setting up path
-    from app.database import AsyncSessionLocal, engine, Base
-    from app.models import User, UserRole
-    from sqlalchemy import select
 
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+TERMS_VERSION = "privacy-terms-2026-05-13"
 
-    # Ensure tables exist
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+
+def required_env(name: str) -> str:
+    value = os.getenv(name, "").strip()
+    if not value:
+        raise RuntimeError(f"{name} is required.")
+    return value
+
+
+async def main() -> int:
+    email = required_env("SUPERADMIN_EMAIL").lower()
+    password = required_env("SUPERADMIN_PASSWORD")
+    full_name = os.getenv("SUPERADMIN_NAME", "Super Administrateur").strip() or "Super Administrateur"
 
     async with AsyncSessionLocal() as db:
-        # Check if superadmin already exists
-        result = await db.execute(select(User).where(User.email == SUPERADMIN_EMAIL))
+        await set_request_rls_context(db, is_system_admin=True)
+
+        result = await db.execute(select(User).where(User.email == email))
         existing = result.scalar_one_or_none()
 
         if existing:
-            if existing.role == UserRole.system_admin:
-                print(f"\n✅ Le superadmin '{SUPERADMIN_EMAIL}' existe déjà.")
-                print(f"   Role : {existing.role.value}")
-                print(f"   ID   : {existing.id}")
-            else:
-                existing.role = UserRole.system_admin
-                existing.password_hash = pwd_context.hash(SUPERADMIN_PASSWORD)
-                await db.commit()
-                print(f"\n✅ Utilisateur mis à jour en superadmin : {SUPERADMIN_EMAIL}")
-            return
+            existing.full_name = full_name
+            existing.role = UserRole.system_admin
+            existing.school_id = None
+            existing.password_hash = get_password_hash(password)
+            existing.terms_accepted_at = existing.terms_accepted_at or datetime.now(timezone.utc)
+            existing.terms_version = existing.terms_version or TERMS_VERSION
+            await db.commit()
+            print(f"Updated superadmin: {email}")
+            return 0
 
-        # Create new superadmin
-        new_admin = User(
+        user = User(
             id=str(uuid.uuid4()),
-            email=SUPERADMIN_EMAIL,
-            full_name=SUPERADMIN_NAME,
-            role=UserRole.system_admin,
-            password_hash=pwd_context.hash(SUPERADMIN_PASSWORD),
             school_id=None,
+            email=email,
+            full_name=full_name,
+            role=UserRole.system_admin,
+            password_hash=get_password_hash(password),
+            terms_accepted_at=datetime.now(timezone.utc),
+            terms_version=TERMS_VERSION,
         )
-        db.add(new_admin)
+        db.add(user)
         await db.commit()
-        await db.refresh(new_admin)
-
-        print("\n" + "="*55)
-        print("  ✅ Compte SuperAdmin créé avec succès !")
-        print("="*55)
-        print(f"  Email    : {SUPERADMIN_EMAIL}")
-        print(f"  Mot de p.: {SUPERADMIN_PASSWORD}")
-        print(f"  ID       : {new_admin.id}")
-        print("="*55)
-        print("\n⚠️  Changez le mot de passe après la première connexion !")
-        print()
+        print(f"Created superadmin: {email}")
+        return 0
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    raise SystemExit(asyncio.run(main()))

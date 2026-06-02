@@ -98,7 +98,7 @@ Sauvegarde et redéploie l'API.
 
 ## 5. Créer des données de test
 
-Quand l'API est en ligne, il faut créer au moins:
+Quand l'API est en ligne, la base Render est vide. Il faut donc créer au moins:
 
 - un compte directeur,
 - une école active,
@@ -107,7 +107,35 @@ Quand l'API est en ligne, il faut créer au moins:
 - des élèves,
 - quelques notes avec coefficients.
 
+Pour débloquer immédiatement la connexion SuperAdmin, ouvre le service API sur Render, puis `Shell`, et lance:
+
+```bash
+SUPERADMIN_EMAIL=system.admin@demo.educonnect.dz \
+SUPERADMIN_PASSWORD='Demo2026!' \
+SUPERADMIN_NAME='Admin Demo' \
+python create_superadmin.py
+```
+
+Tu peux ensuite te connecter sur le frontend avec:
+
+```text
+system.admin@demo.educonnect.dz
+Demo2026!
+```
+
 Pour une démo rapide, le script local `edu_connect_backend/scripts/seed_demo_presentation_data.py` peut servir de base, mais il doit être lancé contre une base de test seulement.
+
+## Dépannage login après déploiement
+
+Si le frontend affiche seulement `Erreur de connexion`:
+
+1. Ouvre l'API Render: `https://<ton-api>.onrender.com/health`.
+2. Ouvre Swagger: `https://<ton-api>.onrender.com/docs`.
+3. Vérifie dans Vercel que `VITE_API_BASE_URL` vaut exactement l'URL Render, par exemple `https://educonnect-api.onrender.com`.
+4. Vérifie dans Render que `CORS_ORIGINS` contient exactement l'URL Vercel, par exemple `https://educonnect-web.vercel.app`.
+5. Si le Network du navigateur montre `401`, le compte n'existe pas ou le mot de passe est faux.
+6. Si le Network montre `CORS` ou aucune réponse, c'est `CORS_ORIGINS` ou `VITE_API_BASE_URL`.
+7. Si le Network montre `500`, regarde les logs Render: souvent la base, les clés RSA, ou les migrations.
 
 ## Limites du gratuit
 
