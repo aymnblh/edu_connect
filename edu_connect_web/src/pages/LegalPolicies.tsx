@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useWorkspace } from '../contexts/useWorkspace';
 import { type Locale, useLocale } from '../lib/i18n';
 
 const supportEmail = 'privacy@waseledu.dz';
@@ -515,7 +516,14 @@ const policyCopy: Record<Locale, PolicyCopy> = {
 
 export default function LegalPolicies() {
   const { locale, setLocale, t } = useLocale();
+  const { isAuthenticated, routeForActiveRole } = useWorkspace();
+  const location = useLocation();
   const content = policyCopy[locale] ?? policyCopy.fr;
+  const origin = (location.state as { from?: string } | null)?.from;
+  const safeOrigin = origin?.startsWith('/') && !origin.startsWith('//') && origin !== '/policies'
+    ? origin
+    : null;
+  const backTarget = isAuthenticated ? safeOrigin ?? routeForActiveRole() : '/login';
   const lastUpdated = lastUpdatedAt.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'long',
@@ -526,7 +534,7 @@ export default function LegalPolicies() {
     <main className="policy-page">
       <div className="policy-shell">
         <div className="policy-topbar">
-          <Link to="/login" className="policy-back">
+          <Link to={backTarget} className="policy-back">
             {content.back}
           </Link>
           <label className="policy-language">

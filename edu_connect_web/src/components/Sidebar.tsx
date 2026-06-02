@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -27,6 +27,7 @@ interface SidebarProps {
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { activeRole } = useWorkspace();
   const { t } = useLocale();
   const user = (() => {
@@ -77,6 +78,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
 
   const links = getLinks();
   const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
+  const currentPath = `${location.pathname}${location.search}${location.hash}`;
 
   const handleNavClick = () => {
     if (setSidebarOpen) setSidebarOpen(false);
@@ -128,6 +130,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             <NavLink
               key={link.to}
               to={link.to}
+              state={link.to === '/policies' ? { from: currentPath } : undefined}
               className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
               title={collapsed ? link.label : undefined}
               onClick={handleNavClick}
