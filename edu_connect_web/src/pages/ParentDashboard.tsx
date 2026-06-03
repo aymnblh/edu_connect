@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Award,
+  Calendar,
   CalendarCheck,
   ClipboardList,
   HeartHandshake,
@@ -69,6 +70,19 @@ interface Homework {
   created_at: string;
 }
 
+interface ScheduleExam {
+  id: string;
+  class_id: string;
+  course_id?: string | null;
+  course_name: string;
+  exam_date: string;
+  start_time: string;
+  end_time: string;
+  room?: string | null;
+  description?: string | null;
+  created_at: string;
+}
+
 interface ClassMessage {
   id: string;
   class_id: string;
@@ -92,7 +106,10 @@ function localeToIntl(locale: Locale) {
 }
 
 function formatDate(value: string, locale: Locale): string {
-  const parsed = new Date(value);
+  const plainDateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const parsed = plainDateMatch
+    ? new Date(Number(plainDateMatch[1]), Number(plainDateMatch[2]) - 1, Number(plainDateMatch[3]))
+    : new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
   return new Intl.DateTimeFormat(localeToIntl(locale), { day: '2-digit', month: 'short' }).format(parsed);
 }
@@ -100,6 +117,14 @@ function formatDate(value: string, locale: Locale): string {
 function formatTime(value: string, locale: Locale): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return '';
+  return new Intl.DateTimeFormat(localeToIntl(locale), { hour: '2-digit', minute: '2-digit' }).format(parsed);
+}
+
+function formatClock(value: string, locale: Locale): string {
+  const [hours, minutes] = value.split(':').map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return value;
+  const parsed = new Date();
+  parsed.setHours(hours, minutes, 0, 0);
   return new Intl.DateTimeFormat(localeToIntl(locale), { hour: '2-digit', minute: '2-digit' }).format(parsed);
 }
 
@@ -153,7 +178,7 @@ function dedupeMessages(messages: ClassMessage[]): ClassMessage[] {
 export default function ParentDashboard() {
   const { t, locale } = useLocale();
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
-  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'attendance' | 'message'>('grades');
+  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'message'>('grades');
   const [typedMessage, setTypedMessage] = useState('');
   const [liveMessages, setLiveMessages] = useState<ClassMessage[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -218,6 +243,15 @@ export default function ParentDashboard() {
     },
   });
 
+  const examsQuery = useQuery<ScheduleExam[]>({
+    queryKey: ['parent', 'schedule-exams', activeChild?.classId],
+    enabled: Boolean(activeChild?.classId),
+    queryFn: async () => {
+      const response = await api.get(`/schedule/class/${activeChild?.classId}/exams`);
+      return response.data;
+    },
+  });
+
   const messagesQuery = useQuery<ClassMessage[]>({
     queryKey: ['parent', 'messages', activeChild?.classId],
     enabled: Boolean(activeChild?.classId),
@@ -230,11 +264,14 @@ export default function ParentDashboard() {
   const grades = gradesQuery.data ?? [];
   const attendance = attendanceQuery.data ?? [];
   const homework = homeworkQuery.data ?? [];
+  const exams = examsQuery.data ?? [];
   const messages = useMemo(
     () => dedupeMessages([...(messagesQuery.data ?? []), ...liveMessages.filter((message) => message.class_id === activeChild?.classId)]),
     [activeChild?.classId, liveMessages, messagesQuery.data],
   );
   const average = weightedAverage(grades);
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const upcomingExamsCount = exams.filter((item) => item.exam_date >= todayIso).length;
 
   const chartData = grades
     .slice()
@@ -311,6 +348,7 @@ export default function ParentDashboard() {
     classesQuery.error ||
     (activeSubTab === 'grades' ? gradesQuery.error : null) ||
     (activeSubTab === 'homework' ? homeworkQuery.error : null) ||
+    (activeSubTab === 'schedule' ? examsQuery.error : null) ||
     (activeSubTab === 'attendance' ? attendanceQuery.error : null) ||
     (activeSubTab === 'message' ? messagesQuery.error : null);
 
@@ -335,6 +373,7 @@ export default function ParentDashboard() {
               void classesQuery.refetch();
               void gradesQuery.refetch();
               void homeworkQuery.refetch();
+              void examsQuery.refetch();
               void attendanceQuery.refetch();
               void messagesQuery.refetch();
             }}
@@ -403,6 +442,14 @@ export default function ParentDashboard() {
                 aria-selected={activeSubTab === 'homework'}
               >
                 <ClipboardList size={14} /> {t('parent.tabHomework')}
+              </button>
+              <button
+                onClick={() => setActiveSubTab('schedule')}
+                className={`tab-button ${activeSubTab === 'schedule' ? 'tab-button--active' : ''}`}
+                role="tab"
+                aria-selected={activeSubTab === 'schedule'}
+              >
+                <Calendar size={14} /> {t('parent.tabSchedule')}
               </button>
               <button
                 onClick={() => setActiveSubTab('attendance')}
@@ -515,6 +562,51 @@ export default function ParentDashboard() {
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            )}
+
+            {activeChild.classId && activeSubTab === 'schedule' && (
+              <div className="animate-fade-in" role="tabpanel">
+                <div className="dashboard-toolbar">
+                  <div>
+                    <h3 className="dashboard-section-title dashboard-section-title--plain">{t('parent.scheduleTitle')}</h3>
+                    <p className="dashboard-section-copy">
+                      {t('parent.scheduleCopy', { className: activeChild.className })}
+                    </p>
+                  </div>
+                  <span className="badge badge-success">
+                    {t('parent.scheduleExamCount', { count: upcomingExamsCount })}
+                  </span>
+                </div>
+
+                <div className="dashboard-list homework-parent-list">
+                  {examsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                  {!examsQuery.isLoading && exams.length === 0 && (
+                    <p className="empty-list-copy">{t('parent.emptyScheduleExams')}</p>
+                  )}
+                  {exams.map((exam) => (
+                    <div key={exam.id} className="homework-announcement-card homework-announcement-card--parent exam-schedule-card">
+                      <div className="homework-announcement-header">
+                        <span className="badge badge-compact badge-success">{formatDate(exam.exam_date, locale)}</span>
+                        <span className="homework-due-date">
+                          {formatClock(exam.start_time, locale)} - {formatClock(exam.end_time, locale)}
+                        </span>
+                      </div>
+                      <h4>{exam.course_name}</h4>
+                      <p>{t('parent.scheduleExamFor', { className: activeChild.className })}</p>
+                      {exam.room && (
+                        <div className="homework-preparation-note">
+                          {t('parent.scheduleRoom')}: {exam.room}
+                        </div>
+                      )}
+                      {exam.description && (
+                        <div className="homework-preparation-note">
+                          {t('parent.scheduleInstructions')}: {exam.description}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

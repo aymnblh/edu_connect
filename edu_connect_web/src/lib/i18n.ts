@@ -1684,6 +1684,126 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'لا يوجد أي موعد في الجدول حاليا.',
     en: 'No schedule slot is available.',
   },
+  'teacher.examPlannerTitle': {
+    fr: 'Planifier un examen',
+    ar: 'برمجة اختبار',
+    en: 'Schedule an exam',
+  },
+  'teacher.examPlannerCopy': {
+    fr: '{className} - Ajoutez la matière, la date et le créneau horaire.',
+    ar: '{className} - أضيفوا المادة والتاريخ والفترة الزمنية.',
+    en: '{className} - Add the course, date, and time range.',
+  },
+  'teacher.examUpcomingCount': {
+    fr: '{count} examens à venir',
+    ar: '{count} اختبارات قادمة',
+    en: '{count} upcoming exams',
+  },
+  'teacher.examClass': {
+    fr: 'Classe',
+    ar: 'القسم',
+    en: 'Class',
+  },
+  'teacher.examCourse': {
+    fr: 'Module',
+    ar: 'المادة',
+    en: 'Course',
+  },
+  'teacher.examManualSubject': {
+    fr: 'Saisie manuelle du module',
+    ar: 'إدخال المادة يدويا',
+    en: 'Manual course entry',
+  },
+  'teacher.examSubject': {
+    fr: 'Nom du module',
+    ar: 'اسم المادة',
+    en: 'Course name',
+  },
+  'teacher.examDate': {
+    fr: "Date de l'examen",
+    ar: 'تاريخ الاختبار',
+    en: 'Exam date',
+  },
+  'teacher.examStartTime': {
+    fr: 'Heure de début',
+    ar: 'وقت البداية',
+    en: 'Start time',
+  },
+  'teacher.examEndTime': {
+    fr: 'Heure de fin',
+    ar: 'وقت النهاية',
+    en: 'End time',
+  },
+  'teacher.examRoom': {
+    fr: 'Salle',
+    ar: 'القاعة',
+    en: 'Room',
+  },
+  'teacher.examRoomPlaceholder': {
+    fr: 'Ex. Salle 204',
+    ar: 'مثال: القاعة 204',
+    en: 'e.g. Room 204',
+  },
+  'teacher.examDescription': {
+    fr: 'Consignes',
+    ar: 'تعليمات',
+    en: 'Instructions',
+  },
+  'teacher.examDescriptionPlaceholder': {
+    fr: 'Ex. calculatrice autorisée, réviser les chapitres 1 et 2...',
+    ar: 'مثال: يسمح بالآلة الحاسبة، مراجعة الفصلين 1 و2...',
+    en: 'Example: calculator allowed, revise chapters 1 and 2...',
+  },
+  'teacher.examPublish': {
+    fr: "Ajouter l'examen au planning",
+    ar: 'إضافة الاختبار إلى الجدول',
+    en: 'Add exam to schedule',
+  },
+  'teacher.examNotificationHint': {
+    fr: 'Les parents liés à cette classe recevront une notification.',
+    ar: 'سيتلقى أولياء هذا القسم إشعارا.',
+    en: 'Parents linked to this class will receive a notification.',
+  },
+  'teacher.examPlannedTitle': {
+    fr: 'Examens planifiés',
+    ar: 'الاختبارات المبرمجة',
+    en: 'Scheduled exams',
+  },
+  'teacher.emptyExams': {
+    fr: 'Aucun examen planifié pour cette classe.',
+    ar: 'لا يوجد اختبار مبرمج لهذا القسم.',
+    en: 'No exam is scheduled for this class.',
+  },
+  'teacher.examScheduledFor': {
+    fr: 'Planning de {className}',
+    ar: 'جدول {className}',
+    en: '{className} schedule',
+  },
+  'teacher.examToastSaved': {
+    fr: 'Examen ajouté au planning et envoyé aux parents.',
+    ar: 'تمت إضافة الاختبار إلى الجدول وإرساله إلى الأولياء.',
+    en: 'Exam added to the schedule and sent to parents.',
+  },
+  'teacher.examSubjectRequired': {
+    fr: 'Indiquez le module concerné.',
+    ar: 'أدخلوا المادة المعنية.',
+    en: 'Enter the related course.',
+  },
+  'teacher.examDateRequired': {
+    fr: "Indiquez la date de l'examen.",
+    ar: 'أدخلوا تاريخ الاختبار.',
+    en: 'Enter the exam date.',
+  },
+  'teacher.examTimeRequired': {
+    fr: 'Indiquez les heures de début et de fin.',
+    ar: 'أدخلوا وقت البداية والنهاية.',
+    en: 'Enter the start and end times.',
+  },
+  'teacher.examTimeRange': {
+    fr: "L'heure de fin doit être après l'heure de début.",
+    ar: 'يجب أن يكون وقت النهاية بعد وقت البداية.',
+    en: 'End time must be after start time.',
+  },
   'teacher.emptyMessages': {
     fr: 'Aucun message dans cette classe.',
     ar: 'لا توجد رسائل في هذا القسم.',
@@ -1733,6 +1853,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'Devoirs et examens',
     ar: 'الواجبات والاختبارات',
     en: 'Homework and exams',
+  },
+  'parent.tabSchedule': {
+    fr: 'Planning',
+    ar: 'الجدول',
+    en: 'Schedule',
   },
   'parent.tabAttendance': {
     fr: 'Absences et retards',
@@ -1958,6 +2083,41 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'Aucun devoir ou examen publié pour le moment.',
     ar: 'لا توجد واجبات أو اختبارات منشورة حاليا.',
     en: 'No homework or exam has been published yet.',
+  },
+  'parent.scheduleTitle': {
+    fr: 'Planning des examens',
+    ar: 'جدول الاختبارات',
+    en: 'Exam schedule',
+  },
+  'parent.scheduleCopy': {
+    fr: 'Examens planifiés pour {className}.',
+    ar: 'الاختبارات المبرمجة لقسم {className}.',
+    en: 'Scheduled exams for {className}.',
+  },
+  'parent.scheduleExamCount': {
+    fr: '{count} examens à venir',
+    ar: '{count} اختبارات قادمة',
+    en: '{count} upcoming exams',
+  },
+  'parent.emptyScheduleExams': {
+    fr: 'Aucun examen planifié pour le moment.',
+    ar: 'لا يوجد اختبار مبرمج حاليا.',
+    en: 'No exam is scheduled yet.',
+  },
+  'parent.scheduleExamFor': {
+    fr: 'Planning de {className}',
+    ar: 'جدول {className}',
+    en: '{className} schedule',
+  },
+  'parent.scheduleRoom': {
+    fr: 'Salle',
+    ar: 'القاعة',
+    en: 'Room',
+  },
+  'parent.scheduleInstructions': {
+    fr: 'Consignes',
+    ar: 'تعليمات',
+    en: 'Instructions',
   },
   'parent.emptyMessages': {
     fr: 'Aucun message dans cette classe.',

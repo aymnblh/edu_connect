@@ -62,3 +62,29 @@ class SessionCancellation(Base):
     cancelled_by_user: Mapped["User"] = relationship("User")
 
 
+class ScheduleExam(Base):
+    """
+    A one-off exam event planned for a class on a precise date and time range.
+    Created by an assigned teacher or by the school administration.
+    """
+    __tablename__ = "schedule_exams"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    school_id: Mapped[str] = mapped_column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=False, index=True)
+    class_id: Mapped[str] = mapped_column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False, index=True)
+    course_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("courses.id", ondelete="SET NULL"), nullable=True, index=True)
+    course_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    exam_date: Mapped[str] = mapped_column(String(10), nullable=False)
+    start_time: Mapped[str] = mapped_column(String(5), nullable=False)
+    end_time: Mapped[str] = mapped_column(String(5), nullable=False)
+    room: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_by: Mapped[str] = mapped_column(String(128), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    cls: Mapped["Class"] = relationship("Class")
+    course: Mapped["Course"] = relationship("Course")
+    created_by_user: Mapped["User"] = relationship("User")
+
+

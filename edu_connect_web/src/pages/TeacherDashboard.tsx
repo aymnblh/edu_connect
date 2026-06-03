@@ -79,6 +79,19 @@ interface ScheduleSlot {
   room?: string | null;
 }
 
+interface ScheduleExam {
+  id: string;
+  class_id: string;
+  course_id?: string | null;
+  course_name: string;
+  exam_date: string;
+  start_time: string;
+  end_time: string;
+  room?: string | null;
+  description?: string | null;
+  created_at: string;
+}
+
 interface ClassMessage {
   id: string;
   class_id: string;
@@ -111,7 +124,10 @@ function formatTime(value: string, locale: Locale): string {
 }
 
 function formatDate(value: string, locale: Locale): string {
-  const parsed = new Date(value);
+  const plainDateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const parsed = plainDateMatch
+    ? new Date(Number(plainDateMatch[1]), Number(plainDateMatch[2]) - 1, Number(plainDateMatch[3]))
+    : new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
   return new Intl.DateTimeFormat(localeToIntl(locale), { day: '2-digit', month: 'short' }).format(parsed);
 }
@@ -173,6 +189,15 @@ export default function TeacherDashboard() {
     lessonContent: '',
     homeworkContent: '',
     dueDate: defaultDueDate(),
+  });
+  const [examForm, setExamForm] = useState({
+    courseId: '',
+    subject: '',
+    examDate: defaultDueDate(),
+    startTime: '08:00',
+    endTime: '10:00',
+    room: '',
+    description: '',
   });
   const [typedMessage, setTypedMessage] = useState('');
   const [liveMessages, setLiveMessages] = useState<ClassMessage[]>([]);
@@ -252,6 +277,15 @@ export default function TeacherDashboard() {
     },
   });
 
+  const examsQuery = useQuery<ScheduleExam[]>({
+    queryKey: ['teacher', 'schedule-exams', selectedClass?.id],
+    enabled: Boolean(selectedClass?.id),
+    queryFn: async () => {
+      const response = await api.get(`/schedule/class/${selectedClass?.id}/exams`);
+      return response.data;
+    },
+  });
+
   const students = useMemo(
     () => studentsQuery.data ?? selectedClass?.members ?? [],
     [selectedClass?.members, studentsQuery.data],
@@ -259,6 +293,7 @@ export default function TeacherDashboard() {
   const classCourses = useMemo(() => classCoursesQuery.data ?? [], [classCoursesQuery.data]);
   const grades = useMemo(() => gradesQuery.data ?? [], [gradesQuery.data]);
   const homework = useMemo(() => homeworkQuery.data ?? [], [homeworkQuery.data]);
+  const exams = useMemo(() => examsQuery.data ?? [], [examsQuery.data]);
   const schedule = scheduleQuery.data ?? [];
   const messages = useMemo(
     () => dedupeMessages([...(messagesQuery.data ?? []), ...liveMessages.filter((message) => message.class_id === selectedClass?.id)]),
@@ -266,11 +301,14 @@ export default function TeacherDashboard() {
   );
   const selectedCourse = classCourses.find((course) => course.course_id === gradeForm.courseId);
   const selectedHomeworkCourse = classCourses.find((course) => course.course_id === homeworkForm.courseId);
+  const selectedExamCourse = classCourses.find((course) => course.course_id === examForm.courseId);
   const pendingGradesCount = grades.filter((grade) => !grade.is_approved).length;
   const upcomingHomeworkCount = homework.filter((item) => {
     const dueDate = new Date(item.due_date);
     return Number.isNaN(dueDate.getTime()) || dueDate >= new Date(new Date().toDateString());
   }).length;
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const upcomingExamsCount = exams.filter((item) => item.exam_date >= todayIso).length;
 
   useEffect(() => {
     const studentSignature = students.map((student) => student.id).join('|');
@@ -308,6 +346,29 @@ export default function TeacherDashboard() {
     if (!courseSignature && !selectedClass?.subject) return;
 
     setHomeworkForm((current) => {
+      const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
+      const fallbackCourse = classCourses[0];
+      const nextCourseId = currentCourse?.course_id ?? fallbackCourse?.course_id ?? '';
+      const defaultSubject = currentCourse?.course_name ?? fallbackCourse?.course_name ?? current.subject.trim();
+      const nextSubject = defaultSubject || selectedClass?.subject || '';
+
+      if (current.courseId === nextCourseId && current.subject === nextSubject) {
+        return current;
+      }
+
+      return {
+        ...current,
+        courseId: nextCourseId,
+        subject: nextSubject,
+      };
+    });
+  }, [classCourses, selectedClass?.subject]);
+
+  useEffect(() => {
+    const courseSignature = classCourses.map((course) => course.course_id).join('|');
+    if (!courseSignature && !selectedClass?.subject) return;
+
+    setExamForm((current) => {
       const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
       const fallbackCourse = classCourses[0];
       const nextCourseId = currentCourse?.course_id ?? fallbackCourse?.course_id ?? '';
@@ -436,6 +497,43 @@ export default function TeacherDashboard() {
     },
   });
 
+  const publishExamMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedClass) throw new Error(t('teacher.classNotFound'));
+      const subject = (selectedExamCourse?.course_name || examForm.subject).trim();
+      if (!subject) throw new Error(t('teacher.examSubjectRequired'));
+      if (!examForm.examDate) throw new Error(t('teacher.examDateRequired'));
+      if (!examForm.startTime || !examForm.endTime) throw new Error(t('teacher.examTimeRequired'));
+      if (examForm.startTime >= examForm.endTime) throw new Error(t('teacher.examTimeRange'));
+
+      await api.post('/schedule/exams', {
+        class_id: selectedClass.id,
+        course_id: selectedExamCourse?.course_id ?? null,
+        course_name: subject,
+        exam_date: examForm.examDate,
+        start_time: examForm.startTime,
+        end_time: examForm.endTime,
+        room: examForm.room.trim() || null,
+        description: examForm.description.trim() || null,
+      });
+    },
+    onSuccess: () => {
+      addToast(t('teacher.examToastSaved'), 'success');
+      setExamForm((current) => ({
+        ...current,
+        examDate: defaultDueDate(),
+        startTime: '08:00',
+        endTime: '10:00',
+        room: '',
+        description: '',
+      }));
+      void queryClient.invalidateQueries({ queryKey: ['teacher', 'schedule-exams', selectedClass?.id] });
+    },
+    onError: (error) => {
+      addToast(error instanceof Error ? error.message : t('auth.connectionError'), 'error');
+    },
+  });
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -496,6 +594,15 @@ export default function TeacherDashboard() {
       homeworkContent: '',
       dueDate: defaultDueDate(),
     });
+    setExamForm({
+      courseId: '',
+      subject: '',
+      examDate: defaultDueDate(),
+      startTime: '08:00',
+      endTime: '10:00',
+      room: '',
+      description: '',
+    });
   };
 
   const toggleAttendance = (student: Student, status: 'present' | 'absent') => {
@@ -513,6 +620,11 @@ export default function TeacherDashboard() {
   const handleHomeworkSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     publishHomeworkMutation.mutate();
+  };
+
+  const handleExamSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    publishExamMutation.mutate();
   };
 
   const handleSendMessage = (event: React.FormEvent) => {
@@ -533,7 +645,7 @@ export default function TeacherDashboard() {
   const loadError =
     classesQuery.error ||
     studentsQuery.error ||
-    (activeTab === 'schedule' ? scheduleQuery.error : null) ||
+    (activeTab === 'schedule' ? scheduleQuery.error || classCoursesQuery.error || examsQuery.error : null) ||
     (activeTab === 'chat' ? messagesQuery.error : null) ||
     (activeTab === 'grades' ? classCoursesQuery.error || gradesQuery.error : null) ||
     (activeTab === 'homework' ? classCoursesQuery.error || homeworkQuery.error : null);
@@ -1101,6 +1213,186 @@ export default function TeacherDashboard() {
                     })}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {selectedClass && (
+              <div className="teacher-exam-planner">
+                <div className="dashboard-toolbar">
+                  <div>
+                    <h3 className="dashboard-section-title dashboard-section-title--plain">{t('teacher.examPlannerTitle')}</h3>
+                    <p className="dashboard-section-copy">
+                      {t('teacher.examPlannerCopy', { className: selectedClass.name })}
+                    </p>
+                  </div>
+                  <span className="badge badge-success">
+                    {t('teacher.examUpcomingCount', { count: upcomingExamsCount })}
+                  </span>
+                </div>
+
+                <div className="teacher-homework-entry-grid teacher-exam-entry-grid">
+                  <form className="stacked-form teacher-homework-form teacher-exam-form" onSubmit={handleExamSubmit}>
+                    <div className="teacher-homework-form-row">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="exam-class">{t('teacher.examClass')}</label>
+                        <select
+                          id="exam-class"
+                          className="form-input"
+                          value={selectedClass.id}
+                          onChange={(event) => {
+                            const nextClass = classes.find((schoolClass) => schoolClass.id === event.target.value);
+                            if (nextClass) selectClass(nextClass);
+                          }}
+                        >
+                          {classes.map((schoolClass) => (
+                            <option key={schoolClass.id} value={schoolClass.id}>{schoolClass.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="exam-course">{t('teacher.examCourse')}</label>
+                        <select
+                          id="exam-course"
+                          className="form-input"
+                          value={examForm.courseId}
+                          onChange={(event) => {
+                            const course = classCourses.find((candidate) => candidate.course_id === event.target.value);
+                            setExamForm((current) => ({
+                              ...current,
+                              courseId: event.target.value,
+                              subject: course?.course_name || current.subject,
+                            }));
+                          }}
+                        >
+                          <option value="">{t('teacher.examManualSubject')}</option>
+                          {classCourses.map((course) => (
+                            <option key={course.course_id} value={course.course_id}>
+                              {course.course_name || t('teacher.examCourse')}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="exam-subject">{t('teacher.examSubject')}</label>
+                      <input
+                        id="exam-subject"
+                        className="form-input"
+                        type="text"
+                        value={selectedExamCourse?.course_name || examForm.subject}
+                        onChange={(event) => setExamForm((current) => ({ ...current, subject: event.target.value }))}
+                        readOnly={Boolean(selectedExamCourse)}
+                        required
+                      />
+                    </div>
+
+                    <div className="teacher-homework-form-row">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="exam-date">{t('teacher.examDate')}</label>
+                        <input
+                          id="exam-date"
+                          className="form-input"
+                          type="date"
+                          value={examForm.examDate}
+                          onChange={(event) => setExamForm((current) => ({ ...current, examDate: event.target.value }))}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="exam-room">{t('teacher.examRoom')}</label>
+                        <input
+                          id="exam-room"
+                          className="form-input"
+                          type="text"
+                          value={examForm.room}
+                          onChange={(event) => setExamForm((current) => ({ ...current, room: event.target.value }))}
+                          placeholder={t('teacher.examRoomPlaceholder')}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="teacher-homework-form-row">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="exam-start-time">{t('teacher.examStartTime')}</label>
+                        <input
+                          id="exam-start-time"
+                          className="form-input"
+                          type="time"
+                          value={examForm.startTime}
+                          onChange={(event) => setExamForm((current) => ({ ...current, startTime: event.target.value }))}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="exam-end-time">{t('teacher.examEndTime')}</label>
+                        <input
+                          id="exam-end-time"
+                          className="form-input"
+                          type="time"
+                          value={examForm.endTime}
+                          onChange={(event) => setExamForm((current) => ({ ...current, endTime: event.target.value }))}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="exam-description">{t('teacher.examDescription')}</label>
+                      <textarea
+                        id="exam-description"
+                        className="form-input teacher-homework-textarea"
+                        value={examForm.description}
+                        onChange={(event) => setExamForm((current) => ({ ...current, description: event.target.value }))}
+                        placeholder={t('teacher.examDescriptionPlaceholder')}
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-full"
+                      disabled={publishExamMutation.isPending}
+                    >
+                      <Calendar size={16} /> {t('teacher.examPublish')}
+                    </button>
+                    <p className="dashboard-section-copy teacher-homework-note">{t('teacher.examNotificationHint')}</p>
+                  </form>
+
+                  <div>
+                    <h3 className="dashboard-section-title">{t('teacher.examPlannedTitle')}</h3>
+                    <div className="dashboard-list teacher-homework-list teacher-exam-list">
+                      {examsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                      {!examsQuery.isLoading && exams.length === 0 && (
+                        <p className="empty-list-copy">{t('teacher.emptyExams')}</p>
+                      )}
+                      {exams.map((exam) => (
+                        <div key={exam.id} className="homework-announcement-card exam-schedule-card">
+                          <div className="homework-announcement-header">
+                            <span className="badge badge-compact badge-success">{formatDate(exam.exam_date, locale)}</span>
+                            <span className="homework-due-date">
+                              {formatClock(exam.start_time, locale)} - {formatClock(exam.end_time, locale)}
+                            </span>
+                          </div>
+                          <h4>{exam.course_name}</h4>
+                          <p>{t('teacher.examScheduledFor', { className: selectedClass.name })}</p>
+                          {exam.room && (
+                            <div className="homework-preparation-note">
+                              {t('teacher.examRoom')}: {exam.room}
+                            </div>
+                          )}
+                          {exam.description && (
+                            <div className="homework-preparation-note">
+                              {t('teacher.examDescription')}: {exam.description}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

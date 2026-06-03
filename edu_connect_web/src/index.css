@@ -2119,6 +2119,12 @@ body {
   align-items: start;
 }
 
+.teacher-exam-planner {
+  margin-top: 28px;
+  padding-top: 26px;
+  border-top: 1px solid var(--surface-border);
+}
+
 .teacher-homework-form {
   padding: 18px;
   border: 1px solid var(--surface-border);
@@ -2165,6 +2171,10 @@ body {
 
 .homework-announcement-card--parent {
   background: rgba(255, 255, 255, 0.035);
+}
+
+.exam-schedule-card {
+  border-color: rgba(20, 184, 166, 0.22);
 }
 
 .homework-announcement-header {

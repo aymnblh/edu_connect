@@ -1,38 +1,32 @@
 """
 Schedule / Planning Router
 ==========================
-Manages the weekly timetable (ScheduleSlot) and session cancellations.
-
-Authorization:
-  - Principal / Secretary  → full CRUD on schedule slots
-  - Teacher                → can cancel their own sessions only
-  - Parent                 → read-only access to their children's schedules
-  - All authenticated      → GET endpoints (filtered by role)
-
-Notifications:
-  - Slot created     → parents of the class are notified
-  - Slot updated     → parents notified
-  - Slot deleted     → parents notified
-  - Session cancelled → parents notified with date + reason
+Manages the weekly timetable, one-off exam events, and session cancellations.
 """
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel, field_validator, model_validator
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from pydantic import BaseModel, field_validator
 
+from app.core.access import assert_class_read_access, assert_class_write_access
+from app.core.security import get_current_user
 from app.db.database import get_db
 from app.models import (
-    ScheduleSlot, SessionCancellation,
-    Class, ClassMember, Student, StudentParent,
-    User, UserRole
+    Class,
+    ClassCourse,
+    ClassMember,
+    ScheduleExam,
+    ScheduleSlot,
+    SessionCancellation,
+    StudentParent,
+    User,
+    UserRole,
 )
-from app.core.access import assert_class_read_access
-from app.core.security import get_current_user
 from app.utils.notifications import create_notification
 
 router = APIRouter(prefix="/schedule", tags=["Schedule / Planning"])
@@ -40,31 +34,57 @@ router = APIRouter(prefix="/schedule", tags=["Schedule / Planning"])
 DAY_NAMES_FR = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
 
 
-# ─── Pydantic Schemas ─────────────────────────────────────────────────────────
+def _valid_time_string(value: str) -> str:
+    parts = value.split(":")
+    if len(parts) != 2 or not all(part.isdigit() for part in parts):
+        raise ValueError("Le format de l'heure doit etre HH:MM")
+    hours, minutes = (int(part) for part in parts)
+    if not (0 <= hours <= 23 and 0 <= minutes <= 59):
+        raise ValueError("Le format de l'heure doit etre HH:MM")
+    return f"{hours:02d}:{minutes:02d}"
+
+
+def _valid_date_string(value: str) -> str:
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+    except ValueError:
+        raise ValueError("Le format de la date doit etre YYYY-MM-DD")
+    return value
+
+
+def _date_label(value: str) -> str:
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").strftime("%d/%m/%Y")
+    except ValueError:
+        return value
+
 
 class SlotCreate(BaseModel):
     class_id: str
     course_name: str
     teacher_id: str
-    day_of_week: int          # 0=Mon … 6=Sun
-    start_time: str           # "HH:MM"
-    end_time: str             # "HH:MM"
+    day_of_week: int
+    start_time: str
+    end_time: str
     room: Optional[str] = None
 
     @field_validator("day_of_week")
     @classmethod
-    def valid_day(cls, v: int) -> int:
-        if not (0 <= v <= 6):
-            raise ValueError("day_of_week doit être entre 0 (Lundi) et 6 (Dimanche)")
-        return v
+    def valid_day(cls, value: int) -> int:
+        if not (0 <= value <= 6):
+            raise ValueError("day_of_week doit etre entre 0 (Lundi) et 6 (Dimanche)")
+        return value
 
     @field_validator("start_time", "end_time")
     @classmethod
-    def valid_time(cls, v: str) -> str:
-        parts = v.split(":")
-        if len(parts) != 2 or not all(p.isdigit() for p in parts):
-            raise ValueError("Le format de l'heure doit être HH:MM")
-        return v
+    def valid_time(cls, value: str) -> str:
+        return _valid_time_string(value)
+
+    @model_validator(mode="after")
+    def valid_time_range(self):
+        if self.start_time >= self.end_time:
+            raise ValueError("L'heure de fin doit etre apres l'heure de debut")
+        return self
 
 
 class SlotUpdate(BaseModel):
@@ -75,19 +95,27 @@ class SlotUpdate(BaseModel):
     end_time: Optional[str] = None
     room: Optional[str] = None
 
+    @field_validator("day_of_week")
+    @classmethod
+    def valid_optional_day(cls, value: Optional[int]) -> Optional[int]:
+        if value is not None and not (0 <= value <= 6):
+            raise ValueError("day_of_week doit etre entre 0 (Lundi) et 6 (Dimanche)")
+        return value
+
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def valid_optional_time(cls, value: Optional[str]) -> Optional[str]:
+        return _valid_time_string(value) if value else value
+
 
 class CancellationCreate(BaseModel):
-    cancelled_date: str       # "YYYY-MM-DD"
+    cancelled_date: str
     reason: Optional[str] = None
 
     @field_validator("cancelled_date")
     @classmethod
-    def valid_date(cls, v: str) -> str:
-        try:
-            datetime.strptime(v, "%Y-%m-%d")
-        except ValueError:
-            raise ValueError("Le format de la date doit être YYYY-MM-DD")
-        return v
+    def valid_date(cls, value: str) -> str:
+        return _valid_date_string(value)
 
 
 class CancellationOut(BaseModel):
@@ -121,7 +149,66 @@ class SlotOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
+class ExamCreate(BaseModel):
+    class_id: str
+    course_id: Optional[str] = None
+    course_name: str
+    exam_date: str
+    start_time: str
+    end_time: str
+    room: Optional[str] = None
+    description: Optional[str] = None
+
+    @field_validator("course_name")
+    @classmethod
+    def valid_course_name(cls, value: str) -> str:
+        normalized = " ".join(value.strip().split())
+        if not normalized:
+            raise ValueError("Le module est obligatoire")
+        return normalized
+
+    @field_validator("exam_date")
+    @classmethod
+    def valid_exam_date(cls, value: str) -> str:
+        return _valid_date_string(value)
+
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def valid_exam_time(cls, value: str) -> str:
+        return _valid_time_string(value)
+
+    @field_validator("room", "description")
+    @classmethod
+    def normalize_optional_text(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        normalized = " ".join(value.strip().split())
+        return normalized or None
+
+    @model_validator(mode="after")
+    def valid_exam_time_range(self):
+        if self.start_time >= self.end_time:
+            raise ValueError("L'heure de fin doit etre apres l'heure de debut")
+        return self
+
+
+class ExamOut(BaseModel):
+    id: str
+    school_id: str
+    class_id: str
+    course_id: Optional[str] = None
+    course_name: str
+    exam_date: str
+    start_time: str
+    end_time: str
+    room: Optional[str] = None
+    description: Optional[str] = None
+    created_by: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
 
 async def _notify_class_parents(
     db: AsyncSession,
@@ -130,8 +217,7 @@ async def _notify_class_parents(
     title: str,
     content: str,
     notif_type: str = "INFO",
-):
-    """Send an in-app notification to all parents of students in a class."""
+) -> None:
     parents_res = await db.execute(
         select(User)
         .join(StudentParent, StudentParent.parent_id == User.id)
@@ -146,7 +232,14 @@ async def _notify_class_parents(
     )
     parents = parents_res.scalars().all()
     for parent in parents:
-        await create_notification(db, user_id=parent.id, title=title, content=content, type=notif_type, school_id=school_id)
+        await create_notification(
+            db,
+            user_id=parent.id,
+            title=title,
+            content=content,
+            type=notif_type,
+            school_id=school_id,
+        )
 
 
 def _build_slot_out(slot: ScheduleSlot) -> SlotOut:
@@ -179,6 +272,24 @@ def _build_slot_out(slot: ScheduleSlot) -> SlotOut:
     )
 
 
+def _build_exam_out(exam: ScheduleExam) -> ExamOut:
+    return ExamOut(
+        id=exam.id,
+        school_id=exam.school_id,
+        class_id=exam.class_id,
+        course_id=exam.course_id,
+        course_name=exam.course_name,
+        exam_date=exam.exam_date,
+        start_time=exam.start_time,
+        end_time=exam.end_time,
+        room=exam.room,
+        description=exam.description,
+        created_by=exam.created_by,
+        created_at=exam.created_at,
+        updated_at=exam.updated_at,
+    )
+
+
 async def _load_slot(db: AsyncSession, slot_id: str, *, school_id: str | None = None) -> ScheduleSlot:
     stmt = select(ScheduleSlot).where(ScheduleSlot.id == slot_id)
     if school_id:
@@ -192,11 +303,9 @@ async def _load_slot(db: AsyncSession, slot_id: str, *, school_id: str | None = 
     )
     slot = res.scalar_one_or_none()
     if not slot:
-        raise HTTPException(status_code=404, detail="Créneau introuvable.")
+        raise HTTPException(status_code=404, detail="Creneau introuvable.")
     return slot
 
-
-# ─── Endpoints ────────────────────────────────────────────────────────────────
 
 @router.post("/", response_model=SlotOut, status_code=status.HTTP_201_CREATED)
 async def create_slot(
@@ -204,11 +313,10 @@ async def create_slot(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Principal/Secretary only: Add a slot to the weekly timetable."""
+    """Principal/Secretary only: add a slot to the weekly timetable."""
     if current_user.role not in [UserRole.principal, UserRole.secretary]:
-        raise HTTPException(status_code=403, detail="Seule la direction peut gérer le planning.")
+        raise HTTPException(status_code=403, detail="Seule la direction peut gerer le planning.")
 
-    # Verify class belongs to user's school
     cls_res = await db.execute(
         select(Class).where(
             Class.id == payload.class_id,
@@ -217,9 +325,8 @@ async def create_slot(
     )
     cls = cls_res.scalar_one_or_none()
     if not cls or cls.school_id != current_user.school_id:
-        raise HTTPException(status_code=404, detail="Classe introuvable dans cet établissement.")
+        raise HTTPException(status_code=404, detail="Classe introuvable dans cet etablissement.")
 
-    # Verify teacher exists and belongs to this school
     teacher_res = await db.execute(
         select(User).where(
             User.id == payload.teacher_id,
@@ -229,7 +336,7 @@ async def create_slot(
     )
     teacher = teacher_res.scalar_one_or_none()
     if not teacher or teacher.school_id != current_user.school_id:
-        raise HTTPException(status_code=404, detail="Enseignant introuvable dans cet établissement.")
+        raise HTTPException(status_code=404, detail="Enseignant introuvable dans cet etablissement.")
 
     slot = ScheduleSlot(
         id=str(uuid.uuid4()),
@@ -246,15 +353,17 @@ async def create_slot(
     db.add(slot)
     await db.commit()
 
-    # Notify parents
     day = DAY_NAMES_FR[payload.day_of_week]
     await _notify_class_parents(
-        db, payload.class_id, current_user.school_id,
-        title="Nouveau créneau ajouté",
+        db,
+        payload.class_id,
+        current_user.school_id,
+        title="Nouveau creneau ajoute",
         content=(
-            f"La direction a ajouté un cours de {payload.course_name} "
-            f"le {day} de {payload.start_time} à {payload.end_time}"
-            + (f" (salle {payload.room})" if payload.room else "") + "."
+            f"La direction a ajoute un cours de {payload.course_name} "
+            f"le {day} de {payload.start_time} a {payload.end_time}"
+            + (f" (salle {payload.room})" if payload.room else "")
+            + "."
         ),
         notif_type="INFO",
     )
@@ -270,11 +379,6 @@ async def get_class_schedule(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Get the full weekly timetable for a class, sorted by day then start_time.
-    - Principal / Secretary / Teacher : direct access
-    - Parent : only if their child is in this class
-    """
     cls = await assert_class_read_access(class_id, current_user, db)
 
     slots_res = await db.execute(
@@ -287,7 +391,80 @@ async def get_class_schedule(
         .order_by(ScheduleSlot.day_of_week, ScheduleSlot.start_time)
     )
     slots = slots_res.scalars().all()
-    return [_build_slot_out(s) for s in slots]
+    return [_build_slot_out(slot) for slot in slots]
+
+
+@router.post("/exams", response_model=ExamOut, status_code=status.HTTP_201_CREATED)
+async def create_exam(
+    payload: ExamCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Teacher/Admin: plan a one-off exam for a class and notify parents."""
+    cls = await assert_class_write_access(payload.class_id, current_user, db)
+
+    if payload.course_id:
+        course_res = await db.execute(
+            select(ClassCourse).where(
+                ClassCourse.school_id == cls.school_id,
+                ClassCourse.class_id == payload.class_id,
+                ClassCourse.course_id == payload.course_id,
+            )
+        )
+        if not course_res.scalar_one_or_none():
+            raise HTTPException(status_code=404, detail="Module introuvable pour cette classe.")
+
+    exam = ScheduleExam(
+        id=str(uuid.uuid4()),
+        school_id=cls.school_id,
+        class_id=payload.class_id,
+        course_id=payload.course_id,
+        course_name=payload.course_name,
+        exam_date=payload.exam_date,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+        room=payload.room,
+        description=payload.description,
+        created_by=current_user.id,
+    )
+    db.add(exam)
+    await db.flush()
+
+    details = (
+        f"Un examen de {payload.course_name} est planifie le {_date_label(payload.exam_date)} "
+        f"de {payload.start_time} a {payload.end_time}"
+        + (f" en salle {payload.room}" if payload.room else "")
+        + "."
+    )
+    if payload.description:
+        details = f"{details} {payload.description}"
+    await _notify_class_parents(
+        db,
+        payload.class_id,
+        cls.school_id,
+        title=f"Examen planifie - {payload.course_name}",
+        content=details,
+        notif_type="INFO",
+    )
+    await db.commit()
+    await db.refresh(exam)
+    return _build_exam_out(exam)
+
+
+@router.get("/class/{class_id}/exams", response_model=list[ExamOut])
+async def list_class_exams(
+    class_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    cls = await assert_class_read_access(class_id, current_user, db)
+
+    exams_res = await db.execute(
+        select(ScheduleExam)
+        .where(ScheduleExam.school_id == cls.school_id, ScheduleExam.class_id == class_id)
+        .order_by(ScheduleExam.exam_date.asc(), ScheduleExam.start_time.asc())
+    )
+    return [_build_exam_out(exam) for exam in exams_res.scalars().all()]
 
 
 @router.put("/{slot_id}", response_model=SlotOut)
@@ -297,17 +474,22 @@ async def update_slot(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Principal/Secretary only: Modify an existing slot. Notifies parents."""
+    """Principal/Secretary only: modify an existing slot and notify parents."""
     if current_user.role not in [UserRole.principal, UserRole.secretary]:
         raise HTTPException(status_code=403, detail="Seule la direction peut modifier le planning.")
 
     slot = await _load_slot(db, slot_id, school_id=current_user.school_id)
     if slot.school_id != current_user.school_id:
-        raise HTTPException(status_code=403, detail="Accès refusé.")
+        raise HTTPException(status_code=403, detail="Acces refuse.")
+
+    next_start_time = payload.start_time or slot.start_time
+    next_end_time = payload.end_time or slot.end_time
+    if next_start_time >= next_end_time:
+        raise HTTPException(status_code=422, detail="L'heure de fin doit etre apres l'heure de debut.")
 
     changes: list[str] = []
     if payload.course_name and payload.course_name != slot.course_name:
-        changes.append(f"matière : {slot.course_name} → {payload.course_name}")
+        changes.append(f"matiere : {slot.course_name} -> {payload.course_name}")
         slot.course_name = payload.course_name
     if payload.teacher_id and payload.teacher_id != slot.teacher_id:
         teacher_res = await db.execute(
@@ -320,15 +502,15 @@ async def update_slot(
         if not teacher_res.scalar_one_or_none():
             raise HTTPException(status_code=404, detail="Enseignant introuvable dans cet etablissement.")
         slot.teacher_id = payload.teacher_id
-        changes.append("enseignant modifié")
+        changes.append("enseignant modifie")
     if payload.day_of_week is not None and payload.day_of_week != slot.day_of_week:
-        changes.append(f"jour : {DAY_NAMES_FR[slot.day_of_week]} → {DAY_NAMES_FR[payload.day_of_week]}")
+        changes.append(f"jour : {DAY_NAMES_FR[slot.day_of_week]} -> {DAY_NAMES_FR[payload.day_of_week]}")
         slot.day_of_week = payload.day_of_week
     if payload.start_time and payload.start_time != slot.start_time:
-        changes.append(f"heure début : {slot.start_time} → {payload.start_time}")
+        changes.append(f"heure debut : {slot.start_time} -> {payload.start_time}")
         slot.start_time = payload.start_time
     if payload.end_time and payload.end_time != slot.end_time:
-        changes.append(f"heure fin : {slot.end_time} → {payload.end_time}")
+        changes.append(f"heure fin : {slot.end_time} -> {payload.end_time}")
         slot.end_time = payload.end_time
     if payload.room is not None:
         slot.room = payload.room
@@ -338,10 +520,12 @@ async def update_slot(
 
     if changes:
         await _notify_class_parents(
-            db, slot.class_id, slot.school_id,
-            title="📅 Planning modifié",
+            db,
+            slot.class_id,
+            slot.school_id,
+            title="Planning modifie",
             content=(
-                f"Le cours de {slot.course_name} a été modifié par la direction. "
+                f"Le cours de {slot.course_name} a ete modifie par la direction. "
                 f"Changements : {', '.join(changes)}."
             ),
             notif_type="WARNING",
@@ -358,33 +542,36 @@ async def delete_slot(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Principal/Secretary only: Remove a slot from the timetable. Notifies parents."""
+    """Principal/Secretary only: remove a slot from the timetable."""
     if current_user.role not in [UserRole.principal, UserRole.secretary]:
-        raise HTTPException(status_code=403, detail="Seule la direction peut supprimer un créneau.")
+        raise HTTPException(status_code=403, detail="Seule la direction peut supprimer un creneau.")
 
     slot = await _load_slot(db, slot_id, school_id=current_user.school_id)
     if slot.school_id != current_user.school_id:
-        raise HTTPException(status_code=403, detail="Accès refusé.")
+        raise HTTPException(status_code=403, detail="Acces refuse.")
 
     class_id = slot.class_id
     course_name = slot.course_name
     day_name = DAY_NAMES_FR[slot.day_of_week]
     start_time = slot.start_time
+    school_id = slot.school_id
 
     await db.delete(slot)
     await db.commit()
 
     await _notify_class_parents(
-        db, class_id, slot.school_id,
-        title="❌ Créneau supprimé",
+        db,
+        class_id,
+        school_id,
+        title="Creneau supprime",
         content=(
-            f"Le cours de {course_name} du {day_name} à {start_time} "
-            f"a été retiré du planning par la direction."
+            f"Le cours de {course_name} du {day_name} a {start_time} "
+            f"a ete retire du planning par la direction."
         ),
         notif_type="WARNING",
     )
     await db.commit()
-    return {"status": "success", "message": "Créneau supprimé."}
+    return {"status": "success", "message": "Creneau supprime."}
 
 
 @router.post("/{slot_id}/cancel", response_model=CancellationOut, status_code=201)
@@ -394,26 +581,17 @@ async def cancel_session(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Teacher cancels a specific session date for their slot.
-    Principal/Secretary can cancel any slot in their school.
-    Notifies all parents of the class automatically.
-    """
+    """Teacher or administration: cancel one session date and notify parents."""
     slot = await _load_slot(db, slot_id, school_id=current_user.school_id)
     if slot.school_id != current_user.school_id:
-        raise HTTPException(status_code=403, detail="Accès refusé.")
+        raise HTTPException(status_code=403, detail="Acces refuse.")
 
-    # Teacher must own this slot
     if current_user.role == UserRole.teacher:
         if slot.teacher_id != current_user.id:
-            raise HTTPException(
-                status_code=403,
-                detail="Vous ne pouvez annuler que vos propres séances."
-            )
+            raise HTTPException(status_code=403, detail="Vous ne pouvez annuler que vos propres seances.")
     elif current_user.role not in [UserRole.principal, UserRole.secretary]:
-        raise HTTPException(status_code=403, detail="Non autorisé.")
+        raise HTTPException(status_code=403, detail="Non autorise.")
 
-    # Prevent duplicate cancellation for same slot + date
     existing_res = await db.execute(
         select(SessionCancellation).where(
             SessionCancellation.school_id == slot.school_id,
@@ -422,10 +600,7 @@ async def cancel_session(
         )
     )
     if existing_res.scalar_one_or_none():
-        raise HTTPException(
-            status_code=409,
-            detail=f"La séance du {payload.cancelled_date} est déjà annulée."
-        )
+        raise HTTPException(status_code=409, detail=f"La seance du {payload.cancelled_date} est deja annulee.")
 
     cancellation = SessionCancellation(
         id=str(uuid.uuid4()),
@@ -438,15 +613,16 @@ async def cancel_session(
     db.add(cancellation)
     await db.commit()
 
-    # Notify parents
     reason_text = f" Motif : {payload.reason}." if payload.reason else ""
     day_name = DAY_NAMES_FR[slot.day_of_week]
     await _notify_class_parents(
-        db, slot.class_id, slot.school_id,
-        title=f"⚠️ Cours annulé — {slot.course_name}",
+        db,
+        slot.class_id,
+        slot.school_id,
+        title=f"Cours annule - {slot.course_name}",
         content=(
-            f"Le cours de {slot.course_name} prévu le {payload.cancelled_date} "
-            f"({day_name} {slot.start_time}–{slot.end_time}) est annulé.{reason_text}"
+            f"Le cours de {slot.course_name} prevu le {payload.cancelled_date} "
+            f"({day_name} {slot.start_time}-{slot.end_time}) est annule.{reason_text}"
         ),
         notif_type="WARNING",
     )
@@ -472,7 +648,7 @@ async def list_cancellations(
     """List all cancellations for a specific slot."""
     slot = await _load_slot(db, slot_id, school_id=current_user.school_id)
     if slot.school_id != current_user.school_id:
-        raise HTTPException(status_code=403, detail="Accès refusé.")
+        raise HTTPException(status_code=403, detail="Acces refuse.")
 
     res = await db.execute(
         select(SessionCancellation)
