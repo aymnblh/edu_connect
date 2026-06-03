@@ -136,6 +136,7 @@ class Homework(Base):
     school_id: Mapped[str] = mapped_column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), index=True)
     class_id: Mapped[str] = mapped_column(String(36), ForeignKey("classes.id", ondelete="CASCADE"))
     course_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("courses.id", ondelete="CASCADE"), nullable=True)
+    kind: Mapped[str] = mapped_column(String(20), default="homework")
     subject: Mapped[str] = mapped_column(String(255))
     lesson_content: Mapped[str | None] = mapped_column(Text, nullable=True)
     homework_content: Mapped[str] = mapped_column(Text, nullable=False)

@@ -85,6 +85,7 @@ class LessonEntryOut(LessonEntryCreate):
 # ─── Homework ─────────────────────────────────────────────────────────────────
 
 class HomeworkCreate(BaseModel):
+    kind: str = Field(default="homework", pattern="^(homework|assignment|exam)$")
     subject: str
     lesson_content: str | None = None
     homework_content: str

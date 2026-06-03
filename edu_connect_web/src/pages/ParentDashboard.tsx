@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Award,
   CalendarCheck,
+  ClipboardList,
   HeartHandshake,
   MessageSquare,
   NotebookText,
@@ -53,6 +54,19 @@ interface Attendance {
   note?: string | null;
   is_justified: boolean;
   justification_text?: string | null;
+}
+
+type HomeworkKind = 'homework' | 'assignment' | 'exam';
+
+interface Homework {
+  id: string;
+  class_id: string;
+  kind?: HomeworkKind | string;
+  subject: string;
+  lesson_content?: string | null;
+  homework_content: string;
+  due_date: string;
+  created_at: string;
 }
 
 interface ClassMessage {
@@ -122,6 +136,10 @@ function weightedAverage(grades: Grade[]): number | null {
   return coefficientTotal > 0 ? weightedTotal / coefficientTotal : null;
 }
 
+function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
+  return value === 'assignment' || value === 'exam' ? value : 'homework';
+}
+
 function dedupeMessages(messages: ClassMessage[]): ClassMessage[] {
   const byId = new Map<string, ClassMessage>();
   for (const message of messages) {
@@ -135,7 +153,7 @@ function dedupeMessages(messages: ClassMessage[]): ClassMessage[] {
 export default function ParentDashboard() {
   const { t, locale } = useLocale();
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
-  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'attendance' | 'message'>('grades');
+  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'attendance' | 'message'>('grades');
   const [typedMessage, setTypedMessage] = useState('');
   const [liveMessages, setLiveMessages] = useState<ClassMessage[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -191,6 +209,15 @@ export default function ParentDashboard() {
     },
   });
 
+  const homeworkQuery = useQuery<Homework[]>({
+    queryKey: ['parent', 'homework', activeChild?.classId],
+    enabled: Boolean(activeChild?.classId),
+    queryFn: async () => {
+      const response = await api.get(`/classes/${activeChild?.classId}/homework/`);
+      return response.data;
+    },
+  });
+
   const messagesQuery = useQuery<ClassMessage[]>({
     queryKey: ['parent', 'messages', activeChild?.classId],
     enabled: Boolean(activeChild?.classId),
@@ -202,6 +229,7 @@ export default function ParentDashboard() {
 
   const grades = gradesQuery.data ?? [];
   const attendance = attendanceQuery.data ?? [];
+  const homework = homeworkQuery.data ?? [];
   const messages = useMemo(
     () => dedupeMessages([...(messagesQuery.data ?? []), ...liveMessages.filter((message) => message.class_id === activeChild?.classId)]),
     [activeChild?.classId, liveMessages, messagesQuery.data],
@@ -278,7 +306,13 @@ export default function ParentDashboard() {
   };
 
   const isLoading = childrenQuery.isLoading || classesQuery.isLoading;
-  const loadError = childrenQuery.error || classesQuery.error || gradesQuery.error || attendanceQuery.error || messagesQuery.error;
+  const loadError =
+    childrenQuery.error ||
+    classesQuery.error ||
+    (activeSubTab === 'grades' ? gradesQuery.error : null) ||
+    (activeSubTab === 'homework' ? homeworkQuery.error : null) ||
+    (activeSubTab === 'attendance' ? attendanceQuery.error : null) ||
+    (activeSubTab === 'message' ? messagesQuery.error : null);
 
   return (
     <div className="container animate-fade-in">
@@ -300,6 +334,7 @@ export default function ParentDashboard() {
               void childrenQuery.refetch();
               void classesQuery.refetch();
               void gradesQuery.refetch();
+              void homeworkQuery.refetch();
               void attendanceQuery.refetch();
               void messagesQuery.refetch();
             }}
@@ -360,6 +395,14 @@ export default function ParentDashboard() {
                 aria-selected={activeSubTab === 'grades'}
               >
                 <NotebookText size={14} /> {t('parent.tabGrades')}
+              </button>
+              <button
+                onClick={() => setActiveSubTab('homework')}
+                className={`tab-button ${activeSubTab === 'homework' ? 'tab-button--active' : ''}`}
+                role="tab"
+                aria-selected={activeSubTab === 'homework'}
+              >
+                <ClipboardList size={14} /> {t('parent.tabHomework')}
               </button>
               <button
                 onClick={() => setActiveSubTab('attendance')}
@@ -429,6 +472,49 @@ export default function ParentDashboard() {
                       );
                     })}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeChild.classId && activeSubTab === 'homework' && (
+              <div className="animate-fade-in" role="tabpanel">
+                <div className="dashboard-toolbar">
+                  <div>
+                    <h3 className="dashboard-section-title dashboard-section-title--plain">{t('parent.homeworkTitle')}</h3>
+                    <p className="dashboard-section-copy">
+                      {t('parent.homeworkCopy', { className: activeChild.className })}
+                    </p>
+                  </div>
+                  <span className="badge badge-success">
+                    {t('parent.homeworkCount', { count: homework.length })}
+                  </span>
+                </div>
+
+                <div className="dashboard-list homework-parent-list">
+                  {homeworkQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                  {!homeworkQuery.isLoading && homework.length === 0 && (
+                    <p className="empty-list-copy">{t('parent.emptyHomework')}</p>
+                  )}
+                  {homework.map((item) => {
+                    const kind = normalizeHomeworkKind(item.kind);
+                    return (
+                      <div key={item.id} className="homework-announcement-card homework-announcement-card--parent">
+                        <div className="homework-announcement-header">
+                          <span className="badge badge-compact badge-success">{t(`parent.homeworkKind.${kind}`)}</span>
+                          <span className="homework-due-date">
+                            {t('parent.homeworkDueOn', { date: formatDate(item.due_date, locale) })}
+                          </span>
+                        </div>
+                        <h4>{item.subject}</h4>
+                        <p>{item.homework_content}</p>
+                        {item.lesson_content && (
+                          <div className="homework-preparation-note">
+                            {t('parent.homeworkPreparation')}: {item.lesson_content}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

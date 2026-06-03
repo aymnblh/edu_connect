@@ -1249,6 +1249,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'الدرجات',
     en: 'Grades',
   },
+  'teacher.tabHomework': {
+    fr: 'Devoirs et examens',
+    ar: 'الواجبات والاختبارات',
+    en: 'Homework and exams',
+  },
   'teacher.tabSchedule': {
     fr: 'Emploi du temps',
     ar: 'جدول الحصص',
@@ -1423,6 +1428,126 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'La note doit être comprise entre 0 et le barème.',
     ar: 'يجب أن تكون الدرجة بين 0 والسلم.',
     en: 'Score must be between 0 and the max score.',
+  },
+  'teacher.homeworkTitle': {
+    fr: 'Annonces de devoirs et examens',
+    ar: 'إعلانات الواجبات والاختبارات',
+    en: 'Homework and exam announcements',
+  },
+  'teacher.homeworkCopy': {
+    fr: '{className} - Publiez les devoirs à préparer, les dates de remise et les examens.',
+    ar: '{className} - انشروا الواجبات للتحضير ومواعيد التسليم والاختبارات.',
+    en: '{className} - Publish preparation work, due dates, and exams.',
+  },
+  'teacher.homeworkUpcomingCount': {
+    fr: '{count} à venir',
+    ar: '{count} قادمة',
+    en: '{count} upcoming',
+  },
+  'teacher.homeworkKind': {
+    fr: "Type d'annonce",
+    ar: 'نوع الإعلان',
+    en: 'Announcement type',
+  },
+  'teacher.homeworkKind.homework': {
+    fr: 'Devoir maison',
+    ar: 'واجب منزلي',
+    en: 'Homework',
+  },
+  'teacher.homeworkKind.assignment': {
+    fr: 'Devoir',
+    ar: 'واجب',
+    en: 'Assignment',
+  },
+  'teacher.homeworkKind.exam': {
+    fr: 'Examen',
+    ar: 'اختبار',
+    en: 'Exam',
+  },
+  'teacher.homeworkDueDate': {
+    fr: 'Date de remise / examen',
+    ar: 'تاريخ التسليم / الاختبار',
+    en: 'Due / exam date',
+  },
+  'teacher.homeworkCourse': {
+    fr: 'Module',
+    ar: 'المادة',
+    en: 'Course',
+  },
+  'teacher.homeworkManualSubject': {
+    fr: 'Saisie manuelle du module',
+    ar: 'إدخال المادة يدويا',
+    en: 'Manual course entry',
+  },
+  'teacher.homeworkSubject': {
+    fr: 'Nom du module',
+    ar: 'اسم المادة',
+    en: 'Course name',
+  },
+  'teacher.homeworkPreparation': {
+    fr: 'Préparation',
+    ar: 'التحضير',
+    en: 'Preparation',
+  },
+  'teacher.homeworkPreparationPlaceholder': {
+    fr: 'Ex. relire la leçon, préparer les exercices, réviser le chapitre...',
+    ar: 'مثال: مراجعة الدرس، تحضير التمارين، مراجعة الفصل...',
+    en: 'Example: review the lesson, prepare exercises, revise the chapter...',
+  },
+  'teacher.homeworkContent': {
+    fr: 'Consignes à envoyer aux parents',
+    ar: 'التعليمات المرسلة للأولياء',
+    en: 'Instructions to send to parents',
+  },
+  'teacher.homeworkContentPlaceholder': {
+    fr: 'Décrivez le devoir, les exercices, les pages, ou le programme de révision.',
+    ar: 'اكتبوا الواجب أو التمارين أو الصفحات أو برنامج المراجعة.',
+    en: 'Describe the task, exercises, pages, or revision plan.',
+  },
+  'teacher.homeworkPublish': {
+    fr: "Publier l'annonce",
+    ar: 'نشر الإعلان',
+    en: 'Publish announcement',
+  },
+  'teacher.homeworkNotificationHint': {
+    fr: 'Les parents liés aux élèves de cette classe recevront une notification.',
+    ar: 'سيتلقى أولياء التلاميذ المرتبطون بهذا القسم إشعارا.',
+    en: 'Parents linked to this class will receive a notification.',
+  },
+  'teacher.latestHomework': {
+    fr: 'Annonces publiées',
+    ar: 'الإعلانات المنشورة',
+    en: 'Published announcements',
+  },
+  'teacher.emptyHomework': {
+    fr: 'Aucun devoir ou examen publié pour cette classe.',
+    ar: 'لا توجد واجبات أو اختبارات منشورة لهذا القسم.',
+    en: 'No homework or exam has been published for this class.',
+  },
+  'teacher.homeworkDueOn': {
+    fr: 'Pour le {date}',
+    ar: 'ليوم {date}',
+    en: 'For {date}',
+  },
+  'teacher.homeworkToastSaved': {
+    fr: 'Annonce publiée et envoyée aux parents.',
+    ar: 'تم نشر الإعلان وإرساله إلى الأولياء.',
+    en: 'Announcement published and sent to parents.',
+  },
+  'teacher.homeworkSubjectRequired': {
+    fr: 'Indiquez le module concerné.',
+    ar: 'أدخلوا المادة المعنية.',
+    en: 'Enter the related course.',
+  },
+  'teacher.homeworkContentRequired': {
+    fr: 'Ajoutez les consignes du devoir ou de l’examen.',
+    ar: 'أضيفوا تعليمات الواجب أو الاختبار.',
+    en: 'Add the homework or exam instructions.',
+  },
+  'teacher.homeworkDueDateRequired': {
+    fr: 'Indiquez la date de remise ou d’examen.',
+    ar: 'أدخلوا تاريخ التسليم أو الاختبار.',
+    en: 'Enter the due or exam date.',
   },
   'teacher.studentName': {
     fr: "Nom de l'élève",
@@ -1604,6 +1729,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'الدرجات والكشوف',
     en: 'Grades and reports',
   },
+  'parent.tabHomework': {
+    fr: 'Devoirs et examens',
+    ar: 'الواجبات والاختبارات',
+    en: 'Homework and exams',
+  },
   'parent.tabAttendance': {
     fr: 'Absences et retards',
     ar: 'الغيابات والتأخرات',
@@ -1783,6 +1913,51 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'Aucune note publiée.',
     ar: 'لا توجد درجات منشورة.',
     en: 'No published grades.',
+  },
+  'parent.homeworkTitle': {
+    fr: 'Devoirs et examens',
+    ar: 'الواجبات والاختبارات',
+    en: 'Homework and exams',
+  },
+  'parent.homeworkCopy': {
+    fr: 'Annonces pédagogiques publiées pour {className}.',
+    ar: 'الإعلانات التعليمية المنشورة لقسم {className}.',
+    en: 'Academic announcements published for {className}.',
+  },
+  'parent.homeworkCount': {
+    fr: '{count} annonces',
+    ar: '{count} إعلانات',
+    en: '{count} announcements',
+  },
+  'parent.homeworkKind.homework': {
+    fr: 'Devoir maison',
+    ar: 'واجب منزلي',
+    en: 'Homework',
+  },
+  'parent.homeworkKind.assignment': {
+    fr: 'Devoir',
+    ar: 'واجب',
+    en: 'Assignment',
+  },
+  'parent.homeworkKind.exam': {
+    fr: 'Examen',
+    ar: 'اختبار',
+    en: 'Exam',
+  },
+  'parent.homeworkDueOn': {
+    fr: 'Pour le {date}',
+    ar: 'ليوم {date}',
+    en: 'For {date}',
+  },
+  'parent.homeworkPreparation': {
+    fr: 'Préparation',
+    ar: 'التحضير',
+    en: 'Preparation',
+  },
+  'parent.emptyHomework': {
+    fr: 'Aucun devoir ou examen publié pour le moment.',
+    ar: 'لا توجد واجبات أو اختبارات منشورة حاليا.',
+    en: 'No homework or exam has been published yet.',
   },
   'parent.emptyMessages': {
     fr: 'Aucun message dans cette classe.',

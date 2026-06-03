@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BookOpen,
   Calendar,
+  ClipboardList,
   MessageSquare,
   NotebookText,
   RefreshCw,
@@ -51,6 +52,19 @@ interface Grade {
   approved_at?: string | null;
   date: string;
   comment?: string | null;
+}
+
+type HomeworkKind = 'homework' | 'assignment' | 'exam';
+
+interface Homework {
+  id: string;
+  class_id: string;
+  kind?: HomeworkKind | string;
+  subject: string;
+  lesson_content?: string | null;
+  homework_content: string;
+  due_date: string;
+  created_at: string;
 }
 
 interface ScheduleSlot {
@@ -116,6 +130,20 @@ function gradeOnTwenty(grade: Grade): number {
   return (grade.score / grade.max_score) * 20;
 }
 
+function defaultDueDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 7);
+  return date.toISOString().slice(0, 10);
+}
+
+function dueDateToIso(value: string): string {
+  return `${value}T12:00:00.000Z`;
+}
+
+function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
+  return value === 'assignment' || value === 'exam' ? value : 'homework';
+}
+
 function dedupeMessages(messages: ClassMessage[]): ClassMessage[] {
   const byId = new Map<string, ClassMessage>();
   for (const message of messages) {
@@ -127,7 +155,7 @@ function dedupeMessages(messages: ClassMessage[]): ClassMessage[] {
 }
 
 export default function TeacherDashboard() {
-  const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'schedule' | 'chat'>('classes');
+  const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'homework' | 'schedule' | 'chat'>('classes');
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [attendanceState, setAttendanceState] = useState<Record<string, 'present' | 'absent'>>({});
   const [gradeForm, setGradeForm] = useState({
@@ -137,6 +165,14 @@ export default function TeacherDashboard() {
     score: '',
     maxScore: '20',
     comment: '',
+  });
+  const [homeworkForm, setHomeworkForm] = useState({
+    kind: 'homework' as HomeworkKind,
+    courseId: '',
+    subject: '',
+    lessonContent: '',
+    homeworkContent: '',
+    dueDate: defaultDueDate(),
   });
   const [typedMessage, setTypedMessage] = useState('');
   const [liveMessages, setLiveMessages] = useState<ClassMessage[]>([]);
@@ -207,19 +243,34 @@ export default function TeacherDashboard() {
     },
   });
 
+  const homeworkQuery = useQuery<Homework[]>({
+    queryKey: ['teacher', 'homework', selectedClass?.id],
+    enabled: Boolean(selectedClass?.id),
+    queryFn: async () => {
+      const response = await api.get(`/classes/${selectedClass?.id}/homework/`);
+      return response.data;
+    },
+  });
+
   const students = useMemo(
     () => studentsQuery.data ?? selectedClass?.members ?? [],
     [selectedClass?.members, studentsQuery.data],
   );
   const classCourses = useMemo(() => classCoursesQuery.data ?? [], [classCoursesQuery.data]);
   const grades = useMemo(() => gradesQuery.data ?? [], [gradesQuery.data]);
+  const homework = useMemo(() => homeworkQuery.data ?? [], [homeworkQuery.data]);
   const schedule = scheduleQuery.data ?? [];
   const messages = useMemo(
     () => dedupeMessages([...(messagesQuery.data ?? []), ...liveMessages.filter((message) => message.class_id === selectedClass?.id)]),
     [liveMessages, messagesQuery.data, selectedClass?.id],
   );
   const selectedCourse = classCourses.find((course) => course.course_id === gradeForm.courseId);
+  const selectedHomeworkCourse = classCourses.find((course) => course.course_id === homeworkForm.courseId);
   const pendingGradesCount = grades.filter((grade) => !grade.is_approved).length;
+  const upcomingHomeworkCount = homework.filter((item) => {
+    const dueDate = new Date(item.due_date);
+    return Number.isNaN(dueDate.getTime()) || dueDate >= new Date(new Date().toDateString());
+  }).length;
 
   useEffect(() => {
     const studentSignature = students.map((student) => student.id).join('|');
@@ -251,6 +302,29 @@ export default function TeacherDashboard() {
       };
     });
   }, [classCourses, selectedClass?.subject, students]);
+
+  useEffect(() => {
+    const courseSignature = classCourses.map((course) => course.course_id).join('|');
+    if (!courseSignature && !selectedClass?.subject) return;
+
+    setHomeworkForm((current) => {
+      const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
+      const fallbackCourse = classCourses[0];
+      const nextCourseId = currentCourse?.course_id ?? fallbackCourse?.course_id ?? '';
+      const defaultSubject = currentCourse?.course_name ?? fallbackCourse?.course_name ?? current.subject.trim();
+      const nextSubject = defaultSubject || selectedClass?.subject || '';
+
+      if (current.courseId === nextCourseId && current.subject === nextSubject) {
+        return current;
+      }
+
+      return {
+        ...current,
+        courseId: nextCourseId,
+        subject: nextSubject,
+      };
+    });
+  }, [classCourses, selectedClass?.subject]);
 
   const addToast = useCallback((message: string, type: Toast['type']) => {
     const id = ++toastId;
@@ -330,6 +404,38 @@ export default function TeacherDashboard() {
     },
   });
 
+  const publishHomeworkMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedClass) throw new Error(t('teacher.classNotFound'));
+      const subject = (selectedHomeworkCourse?.course_name || homeworkForm.subject).trim();
+      const content = homeworkForm.homeworkContent.trim();
+      if (!subject) throw new Error(t('teacher.homeworkSubjectRequired'));
+      if (!content) throw new Error(t('teacher.homeworkContentRequired'));
+      if (!homeworkForm.dueDate) throw new Error(t('teacher.homeworkDueDateRequired'));
+
+      await api.post(`/classes/${selectedClass.id}/homework/`, {
+        kind: homeworkForm.kind,
+        subject,
+        lesson_content: homeworkForm.lessonContent.trim() || null,
+        homework_content: content,
+        due_date: dueDateToIso(homeworkForm.dueDate),
+      });
+    },
+    onSuccess: () => {
+      addToast(t('teacher.homeworkToastSaved'), 'success');
+      setHomeworkForm((current) => ({
+        ...current,
+        lessonContent: '',
+        homeworkContent: '',
+        dueDate: defaultDueDate(),
+      }));
+      void queryClient.invalidateQueries({ queryKey: ['teacher', 'homework', selectedClass?.id] });
+    },
+    onError: (error) => {
+      addToast(error instanceof Error ? error.message : t('auth.connectionError'), 'error');
+    },
+  });
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -382,6 +488,14 @@ export default function TeacherDashboard() {
       maxScore: '20',
       comment: '',
     });
+    setHomeworkForm({
+      kind: 'homework',
+      courseId: '',
+      subject: '',
+      lessonContent: '',
+      homeworkContent: '',
+      dueDate: defaultDueDate(),
+    });
   };
 
   const toggleAttendance = (student: Student, status: 'present' | 'absent') => {
@@ -394,6 +508,11 @@ export default function TeacherDashboard() {
   const handleGradeSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     addGradeMutation.mutate();
+  };
+
+  const handleHomeworkSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    publishHomeworkMutation.mutate();
   };
 
   const handleSendMessage = (event: React.FormEvent) => {
@@ -416,7 +535,8 @@ export default function TeacherDashboard() {
     studentsQuery.error ||
     (activeTab === 'schedule' ? scheduleQuery.error : null) ||
     (activeTab === 'chat' ? messagesQuery.error : null) ||
-    (activeTab === 'grades' ? classCoursesQuery.error || gradesQuery.error : null);
+    (activeTab === 'grades' ? classCoursesQuery.error || gradesQuery.error : null) ||
+    (activeTab === 'homework' ? classCoursesQuery.error || homeworkQuery.error : null);
 
   return (
     <div className="container animate-fade-in">
@@ -459,6 +579,14 @@ export default function TeacherDashboard() {
           aria-selected={activeTab === 'grades'}
         >
           <NotebookText size={16} /> {t('teacher.tabGrades')}
+        </button>
+        <button
+          onClick={() => setActiveTab('homework')}
+          className={`tab-button ${activeTab === 'homework' ? 'tab-button--active' : ''}`}
+          role="tab"
+          aria-selected={activeTab === 'homework'}
+        >
+          <ClipboardList size={16} /> {t('teacher.tabHomework')}
         </button>
         <button
           onClick={() => setActiveTab('schedule')}
@@ -753,6 +881,180 @@ export default function TeacherDashboard() {
                               {grade.is_approved ? t('teacher.gradeApproved') : t('teacher.gradePending')}
                             </span>
                           </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && selectedClass && activeTab === 'homework' && (
+          <div className="animate-fade-in dashboard-split dashboard-split--teacher-homework" role="tabpanel">
+            <div className="dashboard-side">
+              <h3 className="dashboard-section-title">{t('teacher.assignedClasses')}</h3>
+              <div className="dashboard-list">
+                {classes.map((schoolClass) => (
+                  <button
+                    type="button"
+                    key={schoolClass.id}
+                    onClick={() => selectClass(schoolClass)}
+                    className={`class-card class-card-button ${selectedClass.id === schoolClass.id ? 'class-card--active' : ''}`}
+                    aria-label={t('teacher.selectClassAria', {
+                      name: schoolClass.name,
+                      subject: schoolClass.subject || t('teacher.class'),
+                    })}
+                  >
+                    <h4 className="class-card-title">{schoolClass.name}</h4>
+                    <p className="class-card-subtitle">{schoolClass.subject || t('teacher.class')}</p>
+                    <div className="class-card-meta">
+                      <span>{t('teacher.studentsCount', { count: schoolClass.members?.length ?? 0 })}</span>
+                      <span className="class-card-metric">{schoolClass.subject || '-'}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="dashboard-toolbar">
+                <div>
+                  <h3 className="dashboard-section-title dashboard-section-title--plain">{t('teacher.homeworkTitle')}</h3>
+                  <p className="dashboard-section-copy">{t('teacher.homeworkCopy', { className: selectedClass.name })}</p>
+                </div>
+                <span className="badge badge-success">
+                  {t('teacher.homeworkUpcomingCount', { count: upcomingHomeworkCount })}
+                </span>
+              </div>
+
+              <div className="teacher-homework-entry-grid">
+                <form className="stacked-form teacher-homework-form" onSubmit={handleHomeworkSubmit}>
+                  <div className="teacher-homework-form-row">
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="homework-kind">{t('teacher.homeworkKind')}</label>
+                      <select
+                        id="homework-kind"
+                        className="form-input"
+                        value={homeworkForm.kind}
+                        onChange={(event) =>
+                          setHomeworkForm((current) => ({ ...current, kind: event.target.value as HomeworkKind }))
+                        }
+                      >
+                        <option value="homework">{t('teacher.homeworkKind.homework')}</option>
+                        <option value="assignment">{t('teacher.homeworkKind.assignment')}</option>
+                        <option value="exam">{t('teacher.homeworkKind.exam')}</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="homework-due-date">{t('teacher.homeworkDueDate')}</label>
+                      <input
+                        id="homework-due-date"
+                        className="form-input"
+                        type="date"
+                        value={homeworkForm.dueDate}
+                        onChange={(event) => setHomeworkForm((current) => ({ ...current, dueDate: event.target.value }))}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="homework-course">{t('teacher.homeworkCourse')}</label>
+                    <select
+                      id="homework-course"
+                      className="form-input"
+                      value={homeworkForm.courseId}
+                      onChange={(event) => {
+                        const course = classCourses.find((candidate) => candidate.course_id === event.target.value);
+                        setHomeworkForm((current) => ({
+                          ...current,
+                          courseId: event.target.value,
+                          subject: course?.course_name || current.subject,
+                        }));
+                      }}
+                    >
+                      <option value="">{t('teacher.homeworkManualSubject')}</option>
+                      {classCourses.map((course) => (
+                        <option key={course.course_id} value={course.course_id}>
+                          {course.course_name || t('teacher.homeworkCourse')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="homework-subject">{t('teacher.homeworkSubject')}</label>
+                    <input
+                      id="homework-subject"
+                      className="form-input"
+                      type="text"
+                      value={selectedHomeworkCourse?.course_name || homeworkForm.subject}
+                      onChange={(event) => setHomeworkForm((current) => ({ ...current, subject: event.target.value }))}
+                      readOnly={Boolean(selectedHomeworkCourse)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="homework-preparation">{t('teacher.homeworkPreparation')}</label>
+                    <textarea
+                      id="homework-preparation"
+                      className="form-input teacher-homework-textarea"
+                      value={homeworkForm.lessonContent}
+                      onChange={(event) => setHomeworkForm((current) => ({ ...current, lessonContent: event.target.value }))}
+                      placeholder={t('teacher.homeworkPreparationPlaceholder')}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="homework-content">{t('teacher.homeworkContent')}</label>
+                    <textarea
+                      id="homework-content"
+                      className="form-input teacher-homework-textarea teacher-homework-textarea--large"
+                      value={homeworkForm.homeworkContent}
+                      onChange={(event) => setHomeworkForm((current) => ({ ...current, homeworkContent: event.target.value }))}
+                      placeholder={t('teacher.homeworkContentPlaceholder')}
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-full"
+                    disabled={publishHomeworkMutation.isPending}
+                  >
+                    <ClipboardList size={16} /> {t('teacher.homeworkPublish')}
+                  </button>
+                  <p className="dashboard-section-copy teacher-homework-note">{t('teacher.homeworkNotificationHint')}</p>
+                </form>
+
+                <div>
+                  <h3 className="dashboard-section-title">{t('teacher.latestHomework')}</h3>
+                  <div className="dashboard-list teacher-homework-list">
+                    {homeworkQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                    {!homeworkQuery.isLoading && homework.length === 0 && (
+                      <p className="empty-list-copy">{t('teacher.emptyHomework')}</p>
+                    )}
+                    {homework.map((item) => {
+                      const kind = normalizeHomeworkKind(item.kind);
+                      return (
+                        <div key={item.id} className="homework-announcement-card">
+                          <div className="homework-announcement-header">
+                            <span className="badge badge-compact badge-success">{t(`teacher.homeworkKind.${kind}`)}</span>
+                            <span className="homework-due-date">
+                              {t('teacher.homeworkDueOn', { date: formatDate(item.due_date, locale) })}
+                            </span>
+                          </div>
+                          <h4>{item.subject}</h4>
+                          <p>{item.homework_content}</p>
+                          {item.lesson_content && (
+                            <div className="homework-preparation-note">
+                              {t('teacher.homeworkPreparation')}: {item.lesson_content}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
