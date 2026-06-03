@@ -4,6 +4,7 @@ import {
   BookOpen,
   Calendar,
   MessageSquare,
+  NotebookText,
   RefreshCw,
   Send,
   UserCheck,
@@ -24,6 +25,32 @@ interface SchoolClass {
   name: string;
   subject?: string | null;
   members?: Student[];
+}
+
+interface ClassCourse {
+  class_id: string;
+  course_id: string;
+  teacher_id: string;
+  coefficient: number;
+  course_name?: string | null;
+  teacher_name?: string | null;
+}
+
+interface Grade {
+  id: string;
+  class_id: string;
+  student_id: string;
+  student_name: string;
+  course_id?: string | null;
+  subject: string;
+  score: number;
+  max_score: number;
+  coefficient?: number;
+  normalized_score?: number;
+  is_approved: boolean;
+  approved_at?: string | null;
+  date: string;
+  comment?: string | null;
 }
 
 interface ScheduleSlot {
@@ -69,12 +96,24 @@ function formatTime(value: string, locale: Locale): string {
   return new Intl.DateTimeFormat(localeToIntl(locale), { hour: '2-digit', minute: '2-digit' }).format(parsed);
 }
 
+function formatDate(value: string, locale: Locale): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return new Intl.DateTimeFormat(localeToIntl(locale), { day: '2-digit', month: 'short' }).format(parsed);
+}
+
 function formatClock(value: string, locale: Locale): string {
   const [hours, minutes] = value.split(':').map(Number);
   if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return value;
   const parsed = new Date();
   parsed.setHours(hours, minutes, 0, 0);
   return new Intl.DateTimeFormat(localeToIntl(locale), { hour: '2-digit', minute: '2-digit' }).format(parsed);
+}
+
+function gradeOnTwenty(grade: Grade): number {
+  if (typeof grade.normalized_score === 'number') return grade.normalized_score;
+  if (!grade.max_score) return grade.score;
+  return (grade.score / grade.max_score) * 20;
 }
 
 function dedupeMessages(messages: ClassMessage[]): ClassMessage[] {
@@ -88,9 +127,17 @@ function dedupeMessages(messages: ClassMessage[]): ClassMessage[] {
 }
 
 export default function TeacherDashboard() {
-  const [activeTab, setActiveTab] = useState<'classes' | 'schedule' | 'chat'>('classes');
+  const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'schedule' | 'chat'>('classes');
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [attendanceState, setAttendanceState] = useState<Record<string, 'present' | 'absent'>>({});
+  const [gradeForm, setGradeForm] = useState({
+    studentId: '',
+    courseId: '',
+    subject: '',
+    score: '',
+    maxScore: '20',
+    comment: '',
+  });
   const [typedMessage, setTypedMessage] = useState('');
   const [liveMessages, setLiveMessages] = useState<ClassMessage[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -142,12 +189,68 @@ export default function TeacherDashboard() {
     },
   });
 
-  const students = studentsQuery.data ?? selectedClass?.members ?? [];
+  const classCoursesQuery = useQuery<ClassCourse[]>({
+    queryKey: ['teacher', 'courses', selectedClass?.id],
+    enabled: Boolean(selectedClass?.id),
+    queryFn: async () => {
+      const response = await api.get(`/classes/${selectedClass?.id}/courses`);
+      return response.data;
+    },
+  });
+
+  const gradesQuery = useQuery<Grade[]>({
+    queryKey: ['teacher', 'grades', selectedClass?.id],
+    enabled: Boolean(selectedClass?.id),
+    queryFn: async () => {
+      const response = await api.get(`/classes/${selectedClass?.id}/grades/`);
+      return response.data;
+    },
+  });
+
+  const students = useMemo(
+    () => studentsQuery.data ?? selectedClass?.members ?? [],
+    [selectedClass?.members, studentsQuery.data],
+  );
+  const classCourses = useMemo(() => classCoursesQuery.data ?? [], [classCoursesQuery.data]);
+  const grades = useMemo(() => gradesQuery.data ?? [], [gradesQuery.data]);
   const schedule = scheduleQuery.data ?? [];
   const messages = useMemo(
     () => dedupeMessages([...(messagesQuery.data ?? []), ...liveMessages.filter((message) => message.class_id === selectedClass?.id)]),
     [liveMessages, messagesQuery.data, selectedClass?.id],
   );
+  const selectedCourse = classCourses.find((course) => course.course_id === gradeForm.courseId);
+  const pendingGradesCount = grades.filter((grade) => !grade.is_approved).length;
+
+  useEffect(() => {
+    const studentSignature = students.map((student) => student.id).join('|');
+    const courseSignature = classCourses.map((course) => course.course_id).join('|');
+    if (!studentSignature && !courseSignature && !selectedClass?.subject) return;
+
+    setGradeForm((current) => {
+      const hasStudent = Boolean(current.studentId) && students.some((student) => student.id === current.studentId);
+      const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
+      const fallbackCourse = classCourses[0];
+      const nextStudentId = hasStudent ? current.studentId : students[0]?.id ?? '';
+      const nextCourseId = currentCourse?.course_id ?? fallbackCourse?.course_id ?? '';
+      const defaultSubject = currentCourse?.course_name ?? fallbackCourse?.course_name ?? current.subject.trim();
+      const nextSubject = defaultSubject || selectedClass?.subject || '';
+
+      if (
+        current.studentId === nextStudentId &&
+        current.courseId === nextCourseId &&
+        current.subject === nextSubject
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        studentId: nextStudentId,
+        courseId: nextCourseId,
+        subject: nextSubject,
+      };
+    });
+  }, [classCourses, selectedClass?.subject, students]);
 
   const addToast = useCallback((message: string, type: Toast['type']) => {
     const id = ++toastId;
@@ -183,6 +286,44 @@ export default function TeacherDashboard() {
     onSuccess: () => {
       addToast(t('teacher.toastSaved'), 'success');
       void queryClient.invalidateQueries({ queryKey: ['teacher', 'students', selectedClass?.id] });
+    },
+    onError: (error) => {
+      addToast(error instanceof Error ? error.message : t('auth.connectionError'), 'error');
+    },
+  });
+
+  const addGradeMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedClass) throw new Error(t('teacher.classNotFound'));
+      const student = students.find((candidate) => candidate.id === gradeForm.studentId);
+      if (!student) throw new Error(t('teacher.gradeStudentRequired'));
+
+      const score = Number(gradeForm.score.replace(',', '.'));
+      const maxScore = Number(gradeForm.maxScore.replace(',', '.'));
+      if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0) {
+        throw new Error(t('teacher.gradeScoreInvalid'));
+      }
+      if (score < 0 || score > maxScore) {
+        throw new Error(t('teacher.gradeScoreRange'));
+      }
+
+      const subject = (selectedCourse?.course_name || gradeForm.subject).trim();
+      if (!subject) throw new Error(t('teacher.gradeSubjectRequired'));
+
+      await api.post(`/classes/${selectedClass.id}/grades/`, {
+        student_id: student.id,
+        student_name: student.full_name,
+        course_id: selectedCourse?.course_id,
+        subject,
+        score,
+        max_score: maxScore,
+        comment: gradeForm.comment.trim() || null,
+      });
+    },
+    onSuccess: () => {
+      addToast(t('teacher.gradeToastSaved'), 'success');
+      setGradeForm((current) => ({ ...current, score: '', comment: '' }));
+      void queryClient.invalidateQueries({ queryKey: ['teacher', 'grades', selectedClass?.id] });
     },
     onError: (error) => {
       addToast(error instanceof Error ? error.message : t('auth.connectionError'), 'error');
@@ -233,6 +374,14 @@ export default function TeacherDashboard() {
   const selectClass = (schoolClass: SchoolClass) => {
     setSelectedClassId(schoolClass.id);
     setAttendanceState({});
+    setGradeForm({
+      studentId: '',
+      courseId: '',
+      subject: '',
+      score: '',
+      maxScore: '20',
+      comment: '',
+    });
   };
 
   const toggleAttendance = (student: Student, status: 'present' | 'absent') => {
@@ -240,6 +389,11 @@ export default function TeacherDashboard() {
       ...current,
       [student.id]: status,
     }));
+  };
+
+  const handleGradeSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    addGradeMutation.mutate();
   };
 
   const handleSendMessage = (event: React.FormEvent) => {
@@ -257,7 +411,12 @@ export default function TeacherDashboard() {
   };
 
   const isLoading = classesQuery.isLoading || studentsQuery.isLoading;
-  const loadError = classesQuery.error || studentsQuery.error || scheduleQuery.error || messagesQuery.error;
+  const loadError =
+    classesQuery.error ||
+    studentsQuery.error ||
+    (activeTab === 'schedule' ? scheduleQuery.error : null) ||
+    (activeTab === 'chat' ? messagesQuery.error : null) ||
+    (activeTab === 'grades' ? classCoursesQuery.error || gradesQuery.error : null);
 
   return (
     <div className="container animate-fade-in">
@@ -292,6 +451,14 @@ export default function TeacherDashboard() {
           aria-selected={activeTab === 'classes'}
         >
           <Users size={16} /> {t('teacher.tabClasses')}
+        </button>
+        <button
+          onClick={() => setActiveTab('grades')}
+          className={`tab-button ${activeTab === 'grades' ? 'tab-button--active' : ''}`}
+          role="tab"
+          aria-selected={activeTab === 'grades'}
+        >
+          <NotebookText size={16} /> {t('teacher.tabGrades')}
         </button>
         <button
           onClick={() => setActiveTab('schedule')}
@@ -414,6 +581,184 @@ export default function TeacherDashboard() {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {!isLoading && selectedClass && activeTab === 'grades' && (
+          <div className="animate-fade-in dashboard-split dashboard-split--teacher-grades" role="tabpanel">
+            <div className="dashboard-side">
+              <h3 className="dashboard-section-title">{t('teacher.assignedClasses')}</h3>
+              <div className="dashboard-list">
+                {classes.map((schoolClass) => (
+                  <button
+                    type="button"
+                    key={schoolClass.id}
+                    onClick={() => selectClass(schoolClass)}
+                    className={`class-card class-card-button ${selectedClass.id === schoolClass.id ? 'class-card--active' : ''}`}
+                    aria-label={t('teacher.selectClassAria', {
+                      name: schoolClass.name,
+                      subject: schoolClass.subject || t('teacher.class'),
+                    })}
+                  >
+                    <h4 className="class-card-title">{schoolClass.name}</h4>
+                    <p className="class-card-subtitle">{schoolClass.subject || t('teacher.class')}</p>
+                    <div className="class-card-meta">
+                      <span>{t('teacher.studentsCount', { count: schoolClass.members?.length ?? 0 })}</span>
+                      <span className="class-card-metric">{schoolClass.subject || '-'}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="dashboard-toolbar">
+                <div>
+                  <h3 className="dashboard-section-title dashboard-section-title--plain">{t('teacher.gradesTitle')}</h3>
+                  <p className="dashboard-section-copy">{t('teacher.gradesCopy', { className: selectedClass.name })}</p>
+                </div>
+                <span className={`badge ${pendingGradesCount > 0 ? 'badge-warning' : 'badge-success'}`}>
+                  {t('teacher.gradePendingCount', { count: pendingGradesCount })}
+                </span>
+              </div>
+
+              <div className="teacher-grade-entry-grid">
+                <form className="stacked-form teacher-grade-form" onSubmit={handleGradeSubmit}>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="grade-student">{t('teacher.gradeStudent')}</label>
+                    <select
+                      id="grade-student"
+                      className="form-input"
+                      value={gradeForm.studentId}
+                      onChange={(event) => setGradeForm((current) => ({ ...current, studentId: event.target.value }))}
+                      required
+                    >
+                      <option value="">{t('teacher.gradeChooseStudent')}</option>
+                      {students.map((student) => (
+                        <option key={student.id} value={student.id}>{student.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="grade-course">{t('teacher.gradeCourse')}</label>
+                    <select
+                      id="grade-course"
+                      className="form-input"
+                      value={gradeForm.courseId}
+                      onChange={(event) => {
+                        const course = classCourses.find((candidate) => candidate.course_id === event.target.value);
+                        setGradeForm((current) => ({
+                          ...current,
+                          courseId: event.target.value,
+                          subject: course?.course_name || current.subject,
+                        }));
+                      }}
+                    >
+                      <option value="">{t('teacher.gradeManualSubject')}</option>
+                      {classCourses.map((course) => (
+                        <option key={course.course_id} value={course.course_id}>
+                          {course.course_name || t('teacher.gradeCourse')} - {t('teacher.gradeCoefficientShort', { coefficient: course.coefficient ?? 1 })}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="grade-subject">{t('teacher.gradeSubject')}</label>
+                    <input
+                      id="grade-subject"
+                      className="form-input"
+                      type="text"
+                      value={selectedCourse?.course_name || gradeForm.subject}
+                      onChange={(event) => setGradeForm((current) => ({ ...current, subject: event.target.value }))}
+                      readOnly={Boolean(selectedCourse)}
+                      required
+                    />
+                  </div>
+
+                  <div className="teacher-grade-score-row">
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="grade-score">{t('teacher.gradeScore')}</label>
+                      <input
+                        id="grade-score"
+                        className="form-input"
+                        type="number"
+                        min="0"
+                        max={gradeForm.maxScore || undefined}
+                        step="0.25"
+                        value={gradeForm.score}
+                        onChange={(event) => setGradeForm((current) => ({ ...current, score: event.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="grade-max-score">{t('teacher.gradeMaxScore')}</label>
+                      <input
+                        id="grade-max-score"
+                        className="form-input"
+                        type="number"
+                        min="1"
+                        step="0.5"
+                        value={gradeForm.maxScore}
+                        onChange={(event) => setGradeForm((current) => ({ ...current, maxScore: event.target.value }))}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="grade-comment">{t('teacher.gradeComment')}</label>
+                    <textarea
+                      id="grade-comment"
+                      className="form-input teacher-grade-comment"
+                      value={gradeForm.comment}
+                      onChange={(event) => setGradeForm((current) => ({ ...current, comment: event.target.value }))}
+                      placeholder={t('teacher.gradeCommentPlaceholder')}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-full"
+                    disabled={addGradeMutation.isPending || students.length === 0}
+                  >
+                    <NotebookText size={16} /> {t('teacher.gradeSave')}
+                  </button>
+                  <p className="dashboard-section-copy teacher-grade-note">{t('teacher.gradeValidationHint')}</p>
+                </form>
+
+                <div>
+                  <h3 className="dashboard-section-title">{t('teacher.latestGrades')}</h3>
+                  <div className="dashboard-list teacher-grade-list">
+                    {gradesQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                    {!gradesQuery.isLoading && grades.length === 0 && (
+                      <p className="empty-list-copy">{t('teacher.emptyGrades')}</p>
+                    )}
+                    {grades.map((grade) => {
+                      const score = gradeOnTwenty(grade);
+                      return (
+                        <div key={grade.id} className="student-list-item teacher-grade-item">
+                          <div className="teacher-grade-main">
+                            <span className="grade-subject">{grade.subject}</span>
+                            <div className="grade-date">
+                              {grade.student_name} - {formatDate(grade.date, locale)}
+                            </div>
+                            {grade.comment && <div className="teacher-grade-comment-text">{grade.comment}</div>}
+                          </div>
+                          <div className="teacher-grade-status">
+                            <span className="grade-score">{score.toFixed(1)}/20</span>
+                            <span className={`badge badge-compact ${grade.is_approved ? 'badge-success' : 'badge-warning'}`}>
+                              {grade.is_approved ? t('teacher.gradeApproved') : t('teacher.gradePending')}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

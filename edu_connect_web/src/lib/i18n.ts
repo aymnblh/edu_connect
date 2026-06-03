@@ -1244,6 +1244,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'الحضور والأقسام',
     en: 'Attendance and classes',
   },
+  'teacher.tabGrades': {
+    fr: 'Notes',
+    ar: 'الدرجات',
+    en: 'Grades',
+  },
   'teacher.tabSchedule': {
     fr: 'Emploi du temps',
     ar: 'جدول الحصص',
@@ -1298,6 +1303,126 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: "Fiche d'appel enregistrée avec succès !",
     ar: 'تم حفظ ورقة الحضور بنجاح.',
     en: 'Attendance saved successfully.',
+  },
+  'teacher.gradesTitle': {
+    fr: 'Saisie des notes',
+    ar: 'إدخال الدرجات',
+    en: 'Grade entry',
+  },
+  'teacher.gradesCopy': {
+    fr: '{className} - Notes par élève et par module',
+    ar: '{className} - درجات حسب التلميذ والمادة',
+    en: '{className} - Grades by student and course',
+  },
+  'teacher.gradePendingCount': {
+    fr: '{count} en attente',
+    ar: '{count} في الانتظار',
+    en: '{count} pending',
+  },
+  'teacher.gradeStudent': {
+    fr: 'Élève',
+    ar: 'التلميذ',
+    en: 'Student',
+  },
+  'teacher.gradeChooseStudent': {
+    fr: 'Choisir un élève',
+    ar: 'اختيار تلميذ',
+    en: 'Choose a student',
+  },
+  'teacher.gradeCourse': {
+    fr: 'Module',
+    ar: 'المادة',
+    en: 'Course',
+  },
+  'teacher.gradeManualSubject': {
+    fr: 'Saisie manuelle du module',
+    ar: 'إدخال المادة يدويا',
+    en: 'Manual course entry',
+  },
+  'teacher.gradeCoefficientShort': {
+    fr: 'coef. {coefficient}',
+    ar: 'المعامل {coefficient}',
+    en: 'coef. {coefficient}',
+  },
+  'teacher.gradeSubject': {
+    fr: 'Nom du module',
+    ar: 'اسم المادة',
+    en: 'Course name',
+  },
+  'teacher.gradeScore': {
+    fr: 'Note',
+    ar: 'الدرجة',
+    en: 'Score',
+  },
+  'teacher.gradeMaxScore': {
+    fr: 'Barème',
+    ar: 'السلم',
+    en: 'Max score',
+  },
+  'teacher.gradeComment': {
+    fr: 'Observation',
+    ar: 'ملاحظة',
+    en: 'Comment',
+  },
+  'teacher.gradeCommentPlaceholder': {
+    fr: 'Ex. devoir surveillé, participation, rattrapage...',
+    ar: 'مثال: فرض، مشاركة، استدراك...',
+    en: 'Example: test, participation, retake...',
+  },
+  'teacher.gradeSave': {
+    fr: 'Ajouter la note',
+    ar: 'إضافة الدرجة',
+    en: 'Add grade',
+  },
+  'teacher.gradeValidationHint': {
+    fr: 'La note sera visible aux parents après validation par la direction.',
+    ar: 'تظهر الدرجة للأولياء بعد اعتمادها من الإدارة.',
+    en: 'Parents see the grade after administration approval.',
+  },
+  'teacher.latestGrades': {
+    fr: 'Dernières notes',
+    ar: 'آخر الدرجات',
+    en: 'Latest grades',
+  },
+  'teacher.emptyGrades': {
+    fr: 'Aucune note enregistrée pour cette classe.',
+    ar: 'لا توجد درجات مسجلة لهذا القسم.',
+    en: 'No grades recorded for this class.',
+  },
+  'teacher.gradeApproved': {
+    fr: 'Validée',
+    ar: 'معتمدة',
+    en: 'Approved',
+  },
+  'teacher.gradePending': {
+    fr: 'En attente',
+    ar: 'في الانتظار',
+    en: 'Pending',
+  },
+  'teacher.gradeToastSaved': {
+    fr: 'Note ajoutée. Elle attend la validation administrative.',
+    ar: 'تمت إضافة الدرجة وهي في انتظار اعتماد الإدارة.',
+    en: 'Grade added. It is waiting for administration approval.',
+  },
+  'teacher.gradeStudentRequired': {
+    fr: 'Choisissez un élève.',
+    ar: 'اختاروا تلميذا.',
+    en: 'Choose a student.',
+  },
+  'teacher.gradeSubjectRequired': {
+    fr: 'Indiquez le module de la note.',
+    ar: 'أدخلوا مادة الدرجة.',
+    en: 'Enter the course for this grade.',
+  },
+  'teacher.gradeScoreInvalid': {
+    fr: 'La note et le barème doivent être numériques.',
+    ar: 'يجب أن تكون الدرجة والسلم أرقاما.',
+    en: 'Score and max score must be numeric.',
+  },
+  'teacher.gradeScoreRange': {
+    fr: 'La note doit être comprise entre 0 et le barème.',
+    ar: 'يجب أن تكون الدرجة بين 0 والسلم.',
+    en: 'Score must be between 0 and the max score.',
   },
   'teacher.studentName': {
     fr: "Nom de l'élève",
