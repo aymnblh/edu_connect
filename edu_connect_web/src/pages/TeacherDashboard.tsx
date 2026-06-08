@@ -271,9 +271,7 @@ export default function TeacherDashboard() {
     const courseSignature = classCourses.map((course) => course.course_id).join('|');
     if (!studentSignature && !courseSignature && !selectedClass?.subject) return;
 
-    // Seed form defaults after async class/course data settles.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setGradeForm((current) => {
+    const syncTimer = window.setTimeout(() => setGradeForm((current) => {
       const hasStudent = Boolean(current.studentId) && students.some((student) => student.id === current.studentId);
       const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
       const fallbackCourse = classCourses[0];
@@ -296,16 +294,16 @@ export default function TeacherDashboard() {
         courseId: nextCourseId,
         subject: nextSubject,
       };
-    });
+    }), 0);
+
+    return () => window.clearTimeout(syncTimer);
   }, [classCourses, selectedClass?.subject, students]);
 
   useEffect(() => {
     const courseSignature = classCourses.map((course) => course.course_id).join('|');
     if (!courseSignature && !selectedClass?.subject) return;
 
-    // Seed form defaults after async class/course data settles.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHomeworkForm((current) => {
+    const syncTimer = window.setTimeout(() => setHomeworkForm((current) => {
       const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
       const fallbackCourse = classCourses[0];
       const nextCourseId = currentCourse?.course_id ?? fallbackCourse?.course_id ?? '';
@@ -321,16 +319,16 @@ export default function TeacherDashboard() {
         courseId: nextCourseId,
         subject: nextSubject,
       };
-    });
+    }), 0);
+
+    return () => window.clearTimeout(syncTimer);
   }, [classCourses, selectedClass?.subject]);
 
   useEffect(() => {
     const courseSignature = classCourses.map((course) => course.course_id).join('|');
     if (!courseSignature && !selectedClass?.subject) return;
 
-    // Seed form defaults after async class/course data settles.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setExamForm((current) => {
+    const syncTimer = window.setTimeout(() => setExamForm((current) => {
       const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
       const fallbackCourse = classCourses[0];
       const nextCourseId = currentCourse?.course_id ?? fallbackCourse?.course_id ?? '';
@@ -346,7 +344,9 @@ export default function TeacherDashboard() {
         courseId: nextCourseId,
         subject: nextSubject,
       };
-    });
+    }), 0);
+
+    return () => window.clearTimeout(syncTimer);
   }, [classCourses, selectedClass?.subject]);
 
   const addToast = useCallback((message: string, type: Toast['type']) => {

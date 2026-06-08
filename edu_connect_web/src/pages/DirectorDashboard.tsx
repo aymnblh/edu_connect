@@ -139,6 +139,13 @@ interface CreateTeacherResponse extends Teacher {
   invite_code?: string | null;
 }
 
+type StaffInviteRole = 'teacher' | 'secretary';
+
+interface StaffMember extends Teacher {
+  role: string;
+  invite_code?: string | null;
+}
+
 interface ClassCourseAssignment {
   class_id: string;
   course_id: string;
@@ -184,6 +191,7 @@ const directorTabs: Array<{
 const emptyStudents: Student[] = [];
 const emptyClasses: SchoolClass[] = [];
 const emptyTeachers: Teacher[] = [];
+const emptyStaffMembers: StaffMember[] = [];
 const emptyCourses: Course[] = [];
 const emptySemesters: Semester[] = [];
 
@@ -193,6 +201,20 @@ function readCurrentSchoolId(): string {
   try {
     const user = JSON.parse(raw) as { school_id?: unknown };
     return typeof user.school_id === 'string' ? user.school_id : '';
+  } catch {
+    return '';
+  }
+}
+
+function readCurrentUserRole(): string {
+  const activeRole = localStorage.getItem('active_workspace_role');
+  if (activeRole) return activeRole;
+
+  const raw = localStorage.getItem('user');
+  if (!raw) return '';
+  try {
+    const user = JSON.parse(raw) as { role?: unknown };
+    return typeof user.role === 'string' ? user.role : '';
   } catch {
     return '';
   }
@@ -303,14 +325,19 @@ export default function DirectorDashboard() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeTab = tabFromPath(location.pathname);
   const schoolId = useMemo(() => readCurrentSchoolId(), []);
+  const currentUserRole = useMemo(() => readCurrentUserRole(), []);
 
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [studentSearch, setStudentSearch] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [linkLabel, setLinkLabel] = useState('parent');
   const [qrModal, setQrModal] = useState<{ student: Student; token: ParentLinkToken } | null>(null);
-  const [teacherForm, setTeacherForm] = useState({ full_name: '', email: '' });
-  const [teacherInvite, setTeacherInvite] = useState<CreateTeacherResponse | null>(null);
+  const [staffForm, setStaffForm] = useState({
+    full_name: '',
+    email: '',
+    role: 'teacher' as StaffInviteRole,
+  });
+  const [staffInvite, setStaffInvite] = useState<CreateTeacherResponse | null>(null);
   const [classForm, setClassForm] = useState({ name: '', subject: '' });
   const [courseName, setCourseName] = useState('');
   const [selectedClassId, setSelectedClassId] = useState('');
@@ -370,9 +397,18 @@ export default function DirectorDashboard() {
 
   const teachersQuery = useQuery<Teacher[]>({
     queryKey: ['director-teachers'],
-    enabled: activeTab === 'classes' || activeTab === 'team',
+    enabled: activeTab === 'classes',
     queryFn: async () => {
       const res = await api.get('/classes/teachers/all');
+      return res.data;
+    },
+  });
+
+  const staffQuery = useQuery<StaffMember[]>({
+    queryKey: ['director-staff'],
+    enabled: activeTab === 'team',
+    queryFn: async () => {
+      const res = await api.get('/admin/staff');
       return res.data;
     },
   });
@@ -398,6 +434,7 @@ export default function DirectorDashboard() {
   const students = studentsQuery.data ?? emptyStudents;
   const classes = classesQuery.data ?? emptyClasses;
   const teachers = teachersQuery.data ?? emptyTeachers;
+  const staffMembers = staffQuery.data ?? emptyStaffMembers;
   const courses = coursesQuery.data ?? emptyCourses;
   const semesters = semestersQuery.data ?? emptySemesters;
   const pendingAttendances = pendingAttendanceQuery.data ?? [];
@@ -549,15 +586,18 @@ export default function DirectorDashboard() {
     onError: (error) => addToast(getErrorMessage(error), 'error'),
   });
 
-  const createTeacherMutation = useMutation({
+  const createStaffMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post<CreateTeacherResponse>('/admin/create-teacher', teacherForm);
+      const res = await api.post<CreateTeacherResponse>('/admin/create-staff', staffForm);
       return res.data;
     },
-    onSuccess: (teacher) => {
-      queryClient.invalidateQueries({ queryKey: ['director-teachers'] });
-      setTeacherInvite(teacher);
-      setTeacherForm({ full_name: '', email: '' });
+    onSuccess: (staffMember) => {
+      queryClient.invalidateQueries({ queryKey: ['director-staff'] });
+      if (staffMember.role === 'teacher') {
+        queryClient.invalidateQueries({ queryKey: ['director-teachers'] });
+      }
+      setStaffInvite(staffMember);
+      setStaffForm({ full_name: '', email: '', role: 'teacher' });
       addToast(t('director.toast.teacherCreated'), 'success');
     },
     onError: (error) => addToast(getErrorMessage(error), 'error'),
@@ -650,9 +690,9 @@ export default function DirectorDashboard() {
     if (file) importStudentsMutation.mutate(file);
   };
 
-  const handleTeacherSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleStaffSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    createTeacherMutation.mutate();
+    createStaffMutation.mutate();
   };
 
   const handleClassSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -1531,43 +1571,59 @@ export default function DirectorDashboard() {
         <p className="dashboard-section-copy dashboard-section-copy--spaced">
           {t('director.team.inviteCopy')}
         </p>
-        <form className="stacked-form" onSubmit={handleTeacherSubmit}>
+        <form className="stacked-form" onSubmit={handleStaffSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="teacher-name">{t('director.team.fullName')}</label>
-            <input
-              id="teacher-name"
+            <label className="form-label" htmlFor="staff-role">{t('director.team.role')}</label>
+            <select
+              id="staff-role"
               className="form-input"
-              value={teacherForm.full_name}
-              onChange={(event) => setTeacherForm((current) => ({ ...current, full_name: event.target.value }))}
+              value={staffForm.role}
+              onChange={(event) =>
+                setStaffForm((current) => ({ ...current, role: event.target.value as StaffInviteRole }))
+              }
+            >
+              <option value="teacher">{t('director.team.roleTeacher')}</option>
+              {currentUserRole === 'principal' && (
+                <option value="secretary">{t('director.team.roleSecretary')}</option>
+              )}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label" htmlFor="staff-name">{t('director.team.fullName')}</label>
+            <input
+              id="staff-name"
+              className="form-input"
+              value={staffForm.full_name}
+              onChange={(event) => setStaffForm((current) => ({ ...current, full_name: event.target.value }))}
               placeholder={t('director.team.fullNamePlaceholder')}
               required
             />
           </div>
           <div className="form-group">
-            <label className="form-label" htmlFor="teacher-email">{t('director.team.email')}</label>
+            <label className="form-label" htmlFor="staff-email">{t('director.team.email')}</label>
             <input
-              id="teacher-email"
+              id="staff-email"
               className="form-input"
               type="email"
-              value={teacherForm.email}
-              onChange={(event) => setTeacherForm((current) => ({ ...current, email: event.target.value }))}
+              value={staffForm.email}
+              onChange={(event) => setStaffForm((current) => ({ ...current, email: event.target.value }))}
               placeholder="samir@ecole.dz"
               required
             />
           </div>
-          <button type="submit" className="btn btn-primary btn-full" disabled={createTeacherMutation.isPending}>
-            {createTeacherMutation.isPending ? <Loader2 size={16} className="spin-icon" /> : <UserPlus size={16} />}
+          <button type="submit" className="btn btn-primary btn-full" disabled={createStaffMutation.isPending}>
+            {createStaffMutation.isPending ? <Loader2 size={16} className="spin-icon" /> : <UserPlus size={16} />}
             {t('director.team.createInvite')}
           </button>
         </form>
 
-        {teacherInvite?.invite_code && (
+        {staffInvite?.invite_code && (
           <div className="notice-box">
             <strong>{t('director.team.inviteCode')}</strong>
-            <button type="button" className="token-code" onClick={() => copyText(teacherInvite.invite_code || '', t('director.toast.inviteCopied'))}>
-              {teacherInvite.invite_code}
+            <button type="button" className="token-code" onClick={() => copyText(staffInvite.invite_code || '', t('director.toast.inviteCopied'))}>
+              {staffInvite.invite_code}
             </button>
-            <span>{t('director.team.shareInvite', { name: teacherInvite.full_name })}</span>
+            <span>{t('director.team.shareInvite', { name: staffInvite.full_name })}</span>
           </div>
         )}
       </section>
@@ -1578,7 +1634,7 @@ export default function DirectorDashboard() {
             <h2 className="dashboard-section-title dashboard-section-title--plain">{t('director.team.title')}</h2>
             <p className="dashboard-section-copy">{t('director.team.copy')}</p>
           </div>
-          <span className="status-badge status-badge--active">{t('director.team.count', { count: teachers.length })}</span>
+          <span className="status-badge status-badge--active">{t('director.team.count', { count: staffMembers.length })}</span>
         </div>
         <div className="premium-table-wrapper">
           <table className="premium-table">
@@ -1586,22 +1642,30 @@ export default function DirectorDashboard() {
               <tr>
                 <th>{t('director.team.fullName')}</th>
                 <th>{t('director.team.email')}</th>
-                <th>{t('director.students.identifier')}</th>
+                <th>{t('director.team.role')}</th>
+                <th>{t('director.team.status')}</th>
               </tr>
             </thead>
             <tbody>
-              {teachersQuery.isLoading && (
-                <tr><td colSpan={3}>{t('director.team.loading')}</td></tr>
+              {staffQuery.isLoading && (
+                <tr><td colSpan={4}>{t('director.team.loading')}</td></tr>
               )}
-              {!teachersQuery.isLoading && teachers.map((teacher) => (
-                <tr key={teacher.id}>
-                  <td>{teacher.full_name}</td>
-                  <td>{teacher.email}</td>
-                  <td><span className="token-inline">{teacher.id.slice(0, 8)}</span></td>
+              {!staffQuery.isLoading && staffMembers.map((member) => (
+                <tr key={member.id}>
+                  <td>{member.full_name}</td>
+                  <td>{member.email}</td>
+                  <td>{t(`role.${member.role}`)}</td>
+                  <td>
+                    {member.invite_code ? (
+                      <span className="status-badge status-badge--warning">{t('director.team.pendingActivation')}</span>
+                    ) : (
+                      <span className="status-badge status-badge--active">{t('director.team.activeAccount')}</span>
+                    )}
+                  </td>
                 </tr>
               ))}
-              {!teachersQuery.isLoading && teachers.length === 0 && (
-                <tr><td colSpan={3}>{t('director.team.empty')}</td></tr>
+              {!staffQuery.isLoading && staffMembers.length === 0 && (
+                <tr><td colSpan={4}>{t('director.team.empty')}</td></tr>
               )}
             </tbody>
           </table>

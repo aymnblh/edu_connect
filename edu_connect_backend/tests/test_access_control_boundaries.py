@@ -668,6 +668,51 @@ def test_pending_attendance_dashboard_filters_to_unaccepted_absences():
     assert "attendance.is_justified IS false" in sql
 
 
+def test_principal_can_invite_secretary_staff_account():
+    db = FakeDb(results=[FakeResult()])
+
+    created = run(
+        admin.create_staff(
+            admin.CreateStaffRequest(
+                email="secretary-a@wasel-edu.dz",
+                full_name="Secretary A",
+                role=UserRole.secretary,
+            ),
+            current_user=make_user("principal-a", UserRole.principal),
+            db=db,
+        )
+    )
+
+    assert created.role == UserRole.secretary
+    assert created.school_id == "school-a"
+    assert created.password_hash is None
+    assert created.invite_code
+    assert db.added == [created]
+    assert db.commits == 1
+    assert db.refreshed == [created]
+
+
+def test_secretary_cannot_invite_secretary_staff_account():
+    db = FakeDb()
+
+    with pytest.raises(HTTPException) as exc:
+        run(
+            admin.create_staff(
+                admin.CreateStaffRequest(
+                    email="secretary-b@wasel-edu.dz",
+                    full_name="Secretary B",
+                    role=UserRole.secretary,
+                ),
+                current_user=make_user("secretary-a", UserRole.secretary),
+                db=db,
+            )
+        )
+
+    assert exc.value.status_code == 403
+    assert db.added == []
+    assert db.commits == 0
+
+
 def test_homework_and_lesson_reads_filter_by_class_school():
     cls = Class(id="class-a", school_id="school-a", name="3A", join_code="ABC123")
 

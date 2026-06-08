@@ -32,6 +32,13 @@ class CreateTeacherRequest(BaseModel):
     email: EmailStr
     full_name: str
 
+
+class CreateStaffRequest(BaseModel):
+    email: EmailStr
+    full_name: str
+    role: UserRole = UserRole.teacher
+
+
 class UserSimpleOut(BaseModel):
     id: str
     email: str
@@ -69,6 +76,44 @@ import random
 def generate_invite_code(length=8):
     alphabet = string.ascii_uppercase + string.digits
     return ''.join(random.choice(alphabet) for _ in range(length))
+
+
+async def _create_invited_staff_user(
+    *,
+    payload: CreateStaffRequest,
+    current_user: User,
+    db: AsyncSession,
+) -> User:
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Only school administration can invite staff accounts.")
+
+    if payload.role not in [UserRole.teacher, UserRole.secretary]:
+        raise HTTPException(status_code=400, detail="Only teacher and secretary invitations are supported.")
+
+    if payload.role == UserRole.secretary and current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Only the director can invite secretary accounts.")
+
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+
+    stmt = select(User).where(User.email == payload.email)
+    result = await db.execute(stmt)
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Un compte avec cet email existe deja.")
+
+    invited_user = User(
+        id=str(uuid.uuid4()),
+        email=payload.email,
+        full_name=payload.full_name,
+        role=payload.role,
+        school_id=current_user.school_id,
+        password_hash=None,
+        invite_code=generate_invite_code(),
+    )
+    db.add(invited_user)
+    await db.commit()
+    await db.refresh(invited_user)
+    return invited_user
 
 
 def _normalized_csv_row(row: dict[str | None, str | None]) -> dict[str, str]:
@@ -123,32 +168,48 @@ async def create_teacher(
     Principal creates a teacher account without a password.
     An invite_code is generated so the teacher can log in for the first time.
     """
+    return await _create_invited_staff_user(
+        payload=CreateStaffRequest(
+            email=payload.email,
+            full_name=payload.full_name,
+            role=UserRole.teacher,
+        ),
+        current_user=current_user,
+        db=db,
+    )
+
+
+@router.post("/create-staff", response_model=UserSimpleOut, status_code=status.HTTP_201_CREATED)
+async def create_staff(
+    payload: CreateStaffRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Invite a teacher or secretary account with a first-login code."""
+    return await _create_invited_staff_user(payload=payload, current_user=current_user, db=db)
+
+
+@router.get("/staff", response_model=list[UserSimpleOut])
+async def list_staff(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     if current_user.role.value not in ["principal", "secretary"]:
-        raise HTTPException(status_code=403, detail="Only principals can create teacher accounts.")
+        raise HTTPException(status_code=403, detail="Only school administration can list staff accounts.")
 
     if not current_user.school_id:
-        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+        return []
 
-    stmt = select(User).where(User.email == payload.email)
-    result = await db.execute(stmt)
-    if result.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="Un compte avec cet email existe déjà.")
-
-    invite_code = generate_invite_code()
-
-    new_teacher = User(
-        id=str(uuid.uuid4()),
-        email=payload.email,
-        full_name=payload.full_name,
-        role=UserRole.teacher,
-        school_id=current_user.school_id,
-        password_hash=None,  # Forces set-password on first login
-        invite_code=invite_code,
+    result = await db.execute(
+        select(User)
+        .where(
+            User.school_id == current_user.school_id,
+            User.role.in_([UserRole.principal, UserRole.secretary, UserRole.teacher]),
+        )
+        .order_by(User.role.asc(), User.full_name.asc())
     )
-    db.add(new_teacher)
-    await db.commit()
-    await db.refresh(new_teacher)
-    return new_teacher
+    return result.scalars().all()
+
 
 ALGERIAN_CORE_SUBJECTS = [
     "اللغة العربية (Arabic)",

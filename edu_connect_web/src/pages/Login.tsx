@@ -159,6 +159,9 @@ export default function Login() {
 
           <div className="login-footer">
             <LocaleSwitcher />
+            <Link to="/activate" className="link-hover-primary">
+              {t('login.activateLink')}
+            </Link>
             <Link to="/policies" className="link-hover-primary">
               {t('login.policiesLink')}
             </Link>

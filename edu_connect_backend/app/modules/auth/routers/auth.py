@@ -380,6 +380,7 @@ class VerifyCodeResponse(BaseModel):
     email: str | None = None
     name: str | None = None
     label: str | None = None
+    role: str | None = None
 
 @router.post("/verify-code", response_model=VerifyCodeResponse)
 async def verify_code(req: VerifyCodeRequest, db: AsyncSession = Depends(get_db)):
@@ -387,12 +388,23 @@ async def verify_code(req: VerifyCodeRequest, db: AsyncSession = Depends(get_db)
     
     # 1. Is it a QR Token or Invite Code?
     if req.code:
-        # Check Teacher Invite
+        # Check staff invite
         await set_auth_invite_code(db, req.code)
-        user_res = await db.execute(select(User).where(User.invite_code == req.code, User.role == UserRole.teacher))
+        user_res = await db.execute(
+            select(User).where(
+                User.invite_code == req.code,
+                User.role.in_([UserRole.teacher, UserRole.secretary]),
+            )
+        )
         user = user_res.scalar_one_or_none()
         if user:
-            return VerifyCodeResponse(type="teacher_invite", email=user.email, name=user.full_name)
+            invite_type = "teacher_invite" if user.role == UserRole.teacher else "staff_invite"
+            return VerifyCodeResponse(
+                type=invite_type,
+                email=user.email,
+                name=user.full_name,
+                role=user.role.value,
+            )
         
         # Check Parent QR Token (PendingLink)
         await set_pending_link_token(db, req.code)
@@ -563,16 +575,21 @@ class TeacherCompleteRequest(BaseModel):
     password: str
     terms_accepted: bool = False
 
-@router.post("/complete-teacher-code", response_model=TokenResponse)
-async def complete_teacher_code(
+
+async def _complete_staff_invite_code(
     req: TeacherCompleteRequest,
     request: Request,
-    db: AsyncSession = Depends(get_db),
-):
+    db: AsyncSession,
+) -> dict[str, str]:
     require_terms_accepted(req.terms_accepted)
 
     await set_auth_invite_code(db, req.invite_code)
-    user_res = await db.execute(select(User).where(User.invite_code == req.invite_code, User.role == UserRole.teacher))
+    user_res = await db.execute(
+        select(User).where(
+            User.invite_code == req.invite_code,
+            User.role.in_([UserRole.teacher, UserRole.secretary]),
+        )
+    )
     user = user_res.scalar_one_or_none()
     
     if not user:
@@ -602,7 +619,26 @@ async def complete_teacher_code(
         expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
     )
     db.add(db_token)
-    await _audit_auth(db, request, action="auth.teacher_completed", user=user)
+    action = "auth.teacher_completed" if user.role == UserRole.teacher else "auth.secretary_completed"
+    await _audit_auth(db, request, action=action, user=user)
     await db.commit()
     
     return {"access_token": access_token, "refresh_token": refresh_token}
+
+
+@router.post("/complete-teacher-code", response_model=TokenResponse)
+async def complete_teacher_code(
+    req: TeacherCompleteRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    return await _complete_staff_invite_code(req, request, db)
+
+
+@router.post("/complete-staff-code", response_model=TokenResponse)
+async def complete_staff_code(
+    req: TeacherCompleteRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    return await _complete_staff_invite_code(req, request, db)

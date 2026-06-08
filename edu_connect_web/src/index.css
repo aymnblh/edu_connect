@@ -667,6 +667,14 @@ body {
   width: 100%;
 }
 
+.activate-confirm-form {
+  margin-top: 20px;
+}
+
+.activate-terms span {
+  white-space: normal;
+}
+
 .login-footer {
   margin-top: 28px;
   text-align: center;

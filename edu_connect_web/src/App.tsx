@@ -10,6 +10,7 @@ import { useLocale } from './lib/i18n';
 const queryClient = new QueryClient();
 
 const Login = lazy(() => import('./pages/Login'));
+const ActivateAccount = lazy(() => import('./pages/ActivateAccount'));
 const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
 const DirectorDashboard = lazy(() => import('./pages/DirectorDashboard'));
 const LegalPolicies = lazy(() => import('./pages/LegalPolicies'));
@@ -44,6 +45,7 @@ function App() {
             <Routes>
               {/* Public Auth Portal */}
               <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+              <Route path="/activate" element={<PageTransition><ActivateAccount /></PageTransition>} />
               <Route path="/policies" element={<PageTransition><LegalPolicies /></PageTransition>} />
               <Route path="/workspace/select" element={<PageTransition><WorkspaceSelect /></PageTransition>} />
               
