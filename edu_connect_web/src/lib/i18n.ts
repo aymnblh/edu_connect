@@ -324,6 +324,76 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'ولي أمر',
     en: 'Parent',
   },
+  'messages.contactsTitle': {
+    fr: 'Destinataires autorisés',
+    ar: 'المستلمون المسموحون',
+    en: 'Authorized recipients',
+  },
+  'messages.emptyContacts': {
+    fr: 'Aucun destinataire autorisé pour ce compte.',
+    ar: 'لا يوجد مستلمون مسموحون لهذا الحساب.',
+    en: 'No authorized recipients for this account.',
+  },
+  'messages.emptyConversation': {
+    fr: 'Aucun message avec ce destinataire.',
+    ar: 'لا توجد رسائل مع هذا المستلم.',
+    en: 'No messages with this recipient.',
+  },
+  'messages.chooseRecipient': {
+    fr: 'Choisissez un destinataire',
+    ar: 'اختاروا مستلما',
+    en: 'Choose a recipient',
+  },
+  'messages.recipientBadge': {
+    fr: 'Destinataire validé',
+    ar: 'مستلم موثق',
+    en: 'Recipient verified',
+  },
+  'messages.placeholder': {
+    fr: 'Écrire au destinataire choisi...',
+    ar: 'اكتبوا للمستلم المختار...',
+    en: 'Write to the selected recipient...',
+  },
+  'messages.recipientRequired': {
+    fr: 'Choisissez au moins un destinataire.',
+    ar: 'اختاروا مستلما واحدا على الأقل.',
+    en: 'Choose at least one recipient.',
+  },
+  'messages.policy': {
+    fr: 'Chaque conversation est visible uniquement par les destinataires explicitement autorisés.',
+    ar: 'كل محادثة تظهر فقط للمستلمين المسموحين صراحة.',
+    en: 'Each conversation is visible only to explicitly authorized recipients.',
+  },
+  'messages.contactAria': {
+    fr: 'Contacter {name} - {role}',
+    ar: 'مراسلة {name} - {role}',
+    en: 'Contact {name} - {role}',
+  },
+  'messages.messagesAria': {
+    fr: 'Messages de la conversation',
+    ar: 'رسائل المحادثة',
+    en: 'Conversation messages',
+  },
+  'messages.writeMessage': {
+    fr: 'Écrire un message',
+    ar: 'كتابة رسالة',
+    en: 'Write a message',
+  },
+  'messages.sendMessage': {
+    fr: 'Envoyer le message',
+    ar: 'إرسال الرسالة',
+    en: 'Send message',
+  },
+  'messages.senderYou': {
+    fr: 'Vous',
+    ar: 'أنت',
+    en: 'You',
+  },
+  'director.tab.messages': {
+    fr: 'Messagerie',
+    ar: 'الرسائل',
+    en: 'Messaging',
+  },
   'superadmin.loading': {
     fr: 'Chargement des écoles...',
     ar: 'جار تحميل المدارس...',

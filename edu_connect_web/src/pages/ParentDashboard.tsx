@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Award,
@@ -9,13 +9,11 @@ import {
   MessageSquare,
   NotebookText,
   RefreshCw,
-  Send,
-  Sparkles,
 } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
-import { buildClassWebSocketUrl } from '../lib/realtime';
 
 interface Student {
   id: string;
@@ -83,16 +81,6 @@ interface ScheduleExam {
   created_at: string;
 }
 
-interface ClassMessage {
-  id: string;
-  class_id: string;
-  sender_id: string;
-  sender_name: string;
-  content: string;
-  is_announcement: boolean;
-  created_at: string;
-}
-
 interface ChildContext {
   student: Student;
   classId: string | null;
@@ -112,12 +100,6 @@ function formatDate(value: string, locale: Locale): string {
     : new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
   return new Intl.DateTimeFormat(localeToIntl(locale), { day: '2-digit', month: 'short' }).format(parsed);
-}
-
-function formatTime(value: string, locale: Locale): string {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '';
-  return new Intl.DateTimeFormat(localeToIntl(locale), { hour: '2-digit', minute: '2-digit' }).format(parsed);
 }
 
 function formatClock(value: string, locale: Locale): string {
@@ -165,24 +147,10 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
   return value === 'assignment' || value === 'exam' ? value : 'homework';
 }
 
-function dedupeMessages(messages: ClassMessage[]): ClassMessage[] {
-  const byId = new Map<string, ClassMessage>();
-  for (const message of messages) {
-    byId.set(message.id, message);
-  }
-  return [...byId.values()].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-  );
-}
-
 export default function ParentDashboard() {
   const { t, locale } = useLocale();
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'message'>('grades');
-  const [typedMessage, setTypedMessage] = useState('');
-  const [liveMessages, setLiveMessages] = useState<ClassMessage[]>([]);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<WebSocket | null>(null);
 
   const childrenQuery = useQuery<Student[]>({
     queryKey: ['parent', 'children'],
@@ -252,23 +220,10 @@ export default function ParentDashboard() {
     },
   });
 
-  const messagesQuery = useQuery<ClassMessage[]>({
-    queryKey: ['parent', 'messages', activeChild?.classId],
-    enabled: Boolean(activeChild?.classId),
-    queryFn: async () => {
-      const response = await api.get(`/classes/${activeChild?.classId}/messages`);
-      return response.data;
-    },
-  });
-
   const grades = gradesQuery.data ?? [];
   const attendance = attendanceQuery.data ?? [];
   const homework = homeworkQuery.data ?? [];
   const exams = examsQuery.data ?? [];
-  const messages = useMemo(
-    () => dedupeMessages([...(messagesQuery.data ?? []), ...liveMessages.filter((message) => message.class_id === activeChild?.classId)]),
-    [activeChild?.classId, liveMessages, messagesQuery.data],
-  );
   const average = weightedAverage(grades);
   const todayIso = new Date().toISOString().slice(0, 10);
   const upcomingExamsCount = exams.filter((item) => item.exam_date >= todayIso).length;
@@ -281,54 +236,8 @@ export default function ParentDashboard() {
       score: Number(gradeOnTwenty(grade).toFixed(1)),
     }));
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  useEffect(() => {
-    if (!activeChild?.classId || activeSubTab !== 'message') {
-      socketRef.current?.close();
-      socketRef.current = null;
-      return undefined;
-    }
-
-    const socket = new WebSocket(buildClassWebSocketUrl(activeChild.classId));
-    socketRef.current = socket;
-    socket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(String(event.data)) as ClassMessage | { error?: string };
-        if ('error' in message) return;
-        if ('id' in message) {
-          setLiveMessages((current) => dedupeMessages([...current, message]));
-        }
-      } catch {
-        // The next REST refresh will recover malformed transient messages.
-      }
-    };
-    socket.onclose = () => {
-      if (socketRef.current === socket) {
-        socketRef.current = null;
-      }
-    };
-
-    return () => {
-      socket.close();
-      if (socketRef.current === socket) {
-        socketRef.current = null;
-      }
-    };
-  }, [activeChild?.classId, activeSubTab]);
-
   const selectChild = (child: ChildContext) => {
     setActiveChildId(child.student.id);
-  };
-
-  const handleSendMessage = (event: React.FormEvent) => {
-    event.preventDefault();
-    const content = typedMessage.trim();
-    if (!content || socketRef.current?.readyState !== WebSocket.OPEN) return;
-    socketRef.current.send(JSON.stringify({ content }));
-    setTypedMessage('');
   };
 
   const getStatusBadge = (status: Attendance['status']) => {
@@ -349,8 +258,7 @@ export default function ParentDashboard() {
     (activeSubTab === 'grades' ? gradesQuery.error : null) ||
     (activeSubTab === 'homework' ? homeworkQuery.error : null) ||
     (activeSubTab === 'schedule' ? examsQuery.error : null) ||
-    (activeSubTab === 'attendance' ? attendanceQuery.error : null) ||
-    (activeSubTab === 'message' ? messagesQuery.error : null);
+    (activeSubTab === 'attendance' ? attendanceQuery.error : null);
 
   return (
     <div className="container animate-fade-in">
@@ -375,7 +283,6 @@ export default function ParentDashboard() {
               void homeworkQuery.refetch();
               void examsQuery.refetch();
               void attendanceQuery.refetch();
-              void messagesQuery.refetch();
             }}
           >
             <RefreshCw size={14} /> {t('common.reload')}
@@ -469,7 +376,7 @@ export default function ParentDashboard() {
               </button>
             </div>
 
-            {!activeChild.classId && (
+            {!activeChild.classId && activeSubTab !== 'message' && (
               <p className="empty-list-copy">{t('parent.unassignedChildClass')}</p>
             )}
 
@@ -665,65 +572,7 @@ export default function ParentDashboard() {
               </div>
             )}
 
-            {activeChild.classId && activeSubTab === 'message' && (
-              <div className="animate-fade-in dashboard-split dashboard-split--chat" role="tabpanel">
-                <div className="dashboard-side">
-                  <h3 className="dashboard-section-title">{t('parent.messaging')}</h3>
-                  <div className="class-card class-card--active contact-card" role="group">
-                    <div className="contact-avatar">{activeChild.className.slice(0, 2).toUpperCase()}</div>
-                    <div>
-                      <h4 className="contact-name">{activeChild.className}</h4>
-                      <p className="contact-preview">{messages.at(-1)?.content || t('parent.noMessagePreview')}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="dashboard-toolbar">
-                    <div>
-                      <h3 className="dashboard-section-title dashboard-section-title--plain">{activeChild.className}</h3>
-                      <p className="dashboard-section-copy">{t('parent.onlineTeacher', { student: activeChild.student.full_name.split(' ')[0] })}</p>
-                    </div>
-                    <span className="badge badge-success badge-inline">
-                      <Sparkles size={10} /> {t('parent.responseIn')}
-                    </span>
-                  </div>
-
-                  <div className="chat-sim-container" aria-label={t('parent.messagesAria')}>
-                    <div className="chat-sim-messages">
-                      {messages.length === 0 && <p className="empty-list-copy">{t('parent.emptyMessages')}</p>}
-                      {messages.map((message) => (
-                        <div key={message.id} className="chat-sim-bubble chat-sim-bubble-incoming">
-                          <div className="chat-message-header chat-message-header--incoming">{message.sender_name}</div>
-                          <div>{message.content}</div>
-                          <div className="chat-message-time">{formatTime(message.created_at, locale)}</div>
-                        </div>
-                      ))}
-                      <div ref={chatEndRef} />
-                    </div>
-
-                    <form onSubmit={handleSendMessage} className="chat-sim-input-bar">
-                      <input
-                        type="text"
-                        className="input-field chat-input-field"
-                        value={typedMessage}
-                        onChange={(event) => setTypedMessage(event.target.value)}
-                        placeholder={t('parent.messagePlaceholder')}
-                        aria-label={t('parent.writeMessage')}
-                      />
-                      <button
-                        type="submit"
-                        className="btn btn-primary btn-icon-square"
-                        aria-label={t('parent.sendMessage')}
-                        disabled={!typedMessage.trim()}
-                      >
-                        <Send size={16} />
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            )}
+            {activeSubTab === 'message' && <DirectMessagingPanel scopeKey="parent" />}
           </div>
         </>
       )}

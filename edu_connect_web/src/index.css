@@ -2583,6 +2583,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  text-align: start;
 }
 
 .contact-avatar {
@@ -2602,6 +2603,10 @@ body {
   font-weight: 600;
   font-size: 14px;
   margin: 0;
+}
+
+.contact-card-body {
+  min-width: 0;
 }
 
 .contact-preview {
@@ -2638,6 +2643,10 @@ body {
 .chat-input-field {
   padding: 10px 16px;
   font-size: 14px;
+}
+
+.direct-message-error {
+  margin-bottom: 16px;
 }
 
 .tooltip-card {

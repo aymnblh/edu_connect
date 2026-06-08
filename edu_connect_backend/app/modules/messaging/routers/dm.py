@@ -232,6 +232,7 @@ async def _assert_can_dm(current_user: User, recipient_id: str, db: AsyncSession
     # ① Teacher → parents of students in their classes OR admin
     if role == UserRole.teacher:
         if recipient.role in [UserRole.principal, UserRole.secretary]:
+            await _assert_not_message_blocked(current_user, recipient, db)
             return recipient  # admin always allowed
         if recipient.role != UserRole.parent:
             raise HTTPException(
@@ -281,6 +282,7 @@ async def _assert_can_dm(current_user: User, recipient_id: str, db: AsyncSession
     # ② Parent → teachers of their children OR admin
     elif role == UserRole.parent:
         if recipient.role in [UserRole.principal, UserRole.secretary]:
+            await _assert_not_message_blocked(current_user, recipient, db)
             return recipient  # admin always allowed
         if recipient.role != UserRole.teacher:
             raise HTTPException(
@@ -1097,7 +1099,7 @@ async def mark_conversation_read(
     db: AsyncSession = Depends(get_db),
 ):
     """Mark all messages as read (updates last_read_at timestamp)."""
-    await _assert_participant(current_user, conversation_id, db)
+    conv = await _assert_participant(current_user, conversation_id, db)
     participant_res = await db.execute(
         select(ConversationParticipant).where(
             ConversationParticipant.school_id == conv.school_id,
@@ -1278,7 +1280,7 @@ async def _assert_can_send_message(conv: Conversation, current_user: User, db: A
         )
     )
     for recipient in recipient_res.scalars().all():
-        await _assert_not_message_blocked(current_user, recipient, db)
+        await _assert_can_dm(current_user, recipient.id, db)
 
 
 async def _assert_participant(current_user: User, conversation_id: str, db: AsyncSession):

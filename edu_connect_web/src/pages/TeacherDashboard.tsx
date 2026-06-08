@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BookOpen,
@@ -7,13 +7,12 @@ import {
   MessageSquare,
   NotebookText,
   RefreshCw,
-  Send,
   UserCheck,
   Users,
 } from 'lucide-react';
+import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
-import { buildClassWebSocketUrl } from '../lib/realtime';
 
 interface Student {
   id: string;
@@ -92,16 +91,6 @@ interface ScheduleExam {
   created_at: string;
 }
 
-interface ClassMessage {
-  id: string;
-  class_id: string;
-  sender_id: string;
-  sender_name: string;
-  content: string;
-  is_announcement: boolean;
-  created_at: string;
-}
-
 interface Toast {
   id: number;
   message: string;
@@ -115,12 +104,6 @@ function localeToIntl(locale: Locale) {
   if (locale === 'ar') return 'ar-DZ';
   if (locale === 'en') return 'en-US';
   return 'fr-DZ';
-}
-
-function formatTime(value: string, locale: Locale): string {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '';
-  return new Intl.DateTimeFormat(localeToIntl(locale), { hour: '2-digit', minute: '2-digit' }).format(parsed);
 }
 
 function formatDate(value: string, locale: Locale): string {
@@ -160,16 +143,6 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
   return value === 'assignment' || value === 'exam' ? value : 'homework';
 }
 
-function dedupeMessages(messages: ClassMessage[]): ClassMessage[] {
-  const byId = new Map<string, ClassMessage>();
-  for (const message of messages) {
-    byId.set(message.id, message);
-  }
-  return [...byId.values()].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-  );
-}
-
 export default function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'homework' | 'schedule' | 'chat'>('classes');
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -199,11 +172,7 @@ export default function TeacherDashboard() {
     room: '',
     description: '',
   });
-  const [typedMessage, setTypedMessage] = useState('');
-  const [liveMessages, setLiveMessages] = useState<ClassMessage[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
   const { t, locale } = useLocale();
 
@@ -238,15 +207,6 @@ export default function TeacherDashboard() {
         }),
       );
       return responses.flat();
-    },
-  });
-
-  const messagesQuery = useQuery<ClassMessage[]>({
-    queryKey: ['teacher', 'messages', selectedClass?.id],
-    enabled: Boolean(selectedClass?.id),
-    queryFn: async () => {
-      const response = await api.get(`/classes/${selectedClass?.id}/messages`);
-      return response.data;
     },
   });
 
@@ -295,10 +255,6 @@ export default function TeacherDashboard() {
   const homework = useMemo(() => homeworkQuery.data ?? [], [homeworkQuery.data]);
   const exams = useMemo(() => examsQuery.data ?? [], [examsQuery.data]);
   const schedule = scheduleQuery.data ?? [];
-  const messages = useMemo(
-    () => dedupeMessages([...(messagesQuery.data ?? []), ...liveMessages.filter((message) => message.class_id === selectedClass?.id)]),
-    [liveMessages, messagesQuery.data, selectedClass?.id],
-  );
   const selectedCourse = classCourses.find((course) => course.course_id === gradeForm.courseId);
   const selectedHomeworkCourse = classCourses.find((course) => course.course_id === homeworkForm.courseId);
   const selectedExamCourse = classCourses.find((course) => course.course_id === examForm.courseId);
@@ -315,6 +271,8 @@ export default function TeacherDashboard() {
     const courseSignature = classCourses.map((course) => course.course_id).join('|');
     if (!studentSignature && !courseSignature && !selectedClass?.subject) return;
 
+    // Seed form defaults after async class/course data settles.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setGradeForm((current) => {
       const hasStudent = Boolean(current.studentId) && students.some((student) => student.id === current.studentId);
       const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
@@ -345,6 +303,8 @@ export default function TeacherDashboard() {
     const courseSignature = classCourses.map((course) => course.course_id).join('|');
     if (!courseSignature && !selectedClass?.subject) return;
 
+    // Seed form defaults after async class/course data settles.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHomeworkForm((current) => {
       const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
       const fallbackCourse = classCourses[0];
@@ -368,6 +328,8 @@ export default function TeacherDashboard() {
     const courseSignature = classCourses.map((course) => course.course_id).join('|');
     if (!courseSignature && !selectedClass?.subject) return;
 
+    // Seed form defaults after async class/course data settles.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExamForm((current) => {
       const currentCourse = classCourses.find((course) => course.course_id === current.courseId);
       const fallbackCourse = classCourses[0];
@@ -534,47 +496,6 @@ export default function TeacherDashboard() {
     },
   });
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  useEffect(() => {
-    if (!selectedClass?.id || activeTab !== 'chat') {
-      socketRef.current?.close();
-      socketRef.current = null;
-      return undefined;
-    }
-
-    const socket = new WebSocket(buildClassWebSocketUrl(selectedClass.id));
-    socketRef.current = socket;
-    socket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(String(event.data)) as ClassMessage | { error?: string };
-        if ('error' in message && message.error) {
-          addToast(message.error, 'error');
-          return;
-        }
-        if ('id' in message) {
-          setLiveMessages((current) => dedupeMessages([...current, message]));
-        }
-      } catch {
-        addToast(t('auth.connectionError'), 'error');
-      }
-    };
-    socket.onclose = () => {
-      if (socketRef.current === socket) {
-        socketRef.current = null;
-      }
-    };
-
-    return () => {
-      socket.close();
-      if (socketRef.current === socket) {
-        socketRef.current = null;
-      }
-    };
-  }, [activeTab, addToast, selectedClass?.id, t]);
-
   const selectClass = (schoolClass: SchoolClass) => {
     setSelectedClassId(schoolClass.id);
     setAttendanceState({});
@@ -627,26 +548,11 @@ export default function TeacherDashboard() {
     publishExamMutation.mutate();
   };
 
-  const handleSendMessage = (event: React.FormEvent) => {
-    event.preventDefault();
-    const content = typedMessage.trim();
-    if (!content) return;
-
-    if (socketRef.current?.readyState !== WebSocket.OPEN) {
-      addToast(t('teacher.socketConnecting'), 'warning');
-      return;
-    }
-
-    socketRef.current.send(JSON.stringify({ content }));
-    setTypedMessage('');
-  };
-
   const isLoading = classesQuery.isLoading || studentsQuery.isLoading;
   const loadError =
     classesQuery.error ||
     studentsQuery.error ||
     (activeTab === 'schedule' ? scheduleQuery.error || classCoursesQuery.error || examsQuery.error : null) ||
-    (activeTab === 'chat' ? messagesQuery.error : null) ||
     (activeTab === 'grades' ? classCoursesQuery.error || gradesQuery.error : null) ||
     (activeTab === 'homework' ? classCoursesQuery.error || homeworkQuery.error : null);
 
@@ -1398,58 +1304,7 @@ export default function TeacherDashboard() {
           </div>
         )}
 
-        {!isLoading && selectedClass && activeTab === 'chat' && (
-          <div className="animate-fade-in dashboard-split dashboard-split--chat" role="tabpanel">
-            <div className="dashboard-side">
-              <h3 className="dashboard-section-title">{t('teacher.discussions')}</h3>
-              <div className="class-card class-card--active contact-card" role="group">
-                <div className="contact-avatar">{selectedClass.name.slice(0, 2).toUpperCase()}</div>
-                <div>
-                  <h4 className="contact-name">{selectedClass.name}</h4>
-                  <p className="contact-preview">{messages.at(-1)?.content || t('teacher.noMessagePreview')}</p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div className="dashboard-toolbar">
-                <div>
-                  <h3 className="dashboard-section-title dashboard-section-title--plain">{selectedClass.name}</h3>
-                  <p className="dashboard-section-copy">{t('teacher.messagesPolicy')}</p>
-                </div>
-                <span className="badge badge-success">{t('teacher.validatedLink')}</span>
-              </div>
-
-              <div className="chat-sim-container" aria-label={t('teacher.messagesAria')}>
-                <div className="chat-sim-messages">
-                  {messages.length === 0 && <p className="empty-list-copy">{t('teacher.emptyMessages')}</p>}
-                  {messages.map((message) => (
-                    <div key={message.id} className="chat-sim-bubble chat-sim-bubble-incoming">
-                      <div className="chat-message-header chat-message-header--incoming">{message.sender_name}</div>
-                      <div>{message.content}</div>
-                      <div className="chat-message-time">{formatTime(message.created_at, locale)}</div>
-                    </div>
-                  ))}
-                  <div ref={chatEndRef} />
-                </div>
-
-                <form onSubmit={handleSendMessage} className="chat-sim-input-bar">
-                  <input
-                    type="text"
-                    className="input-field chat-input-field"
-                    value={typedMessage}
-                    onChange={(event) => setTypedMessage(event.target.value)}
-                    placeholder={t('teacher.messagePlaceholder')}
-                    aria-label={t('teacher.writeMessage')}
-                  />
-                  <button type="submit" className="btn btn-primary btn-icon-square" aria-label={t('teacher.sendMessage')}>
-                    <Send size={16} />
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        {!isLoading && activeTab === 'chat' && <DirectMessagingPanel scopeKey="teacher" />}
       </div>
     </div>
   );

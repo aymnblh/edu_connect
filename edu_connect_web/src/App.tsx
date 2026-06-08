@@ -54,6 +54,7 @@ function App() {
                 <Route path="/director/students" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/classes" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/team" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/director/messages" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/teacher/dashboard" element={<PageTransition><WorkspaceRoute role="teacher"><TeacherDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/parent/dashboard" element={<PageTransition><WorkspaceRoute role="parent"><ParentDashboard /></WorkspaceRoute></PageTransition>} />
               </Route>

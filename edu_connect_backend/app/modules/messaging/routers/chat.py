@@ -269,6 +269,11 @@ async def ws_chat(
             if not content:
                 continue
 
+            requested_ids = _requested_recipient_ids(data.get("recipient_ids"))
+            if not is_announcement and not requested_ids:
+                await websocket.send_json({"error": "Choisissez au moins un destinataire."})
+                continue
+
             try:
                 await check_rate_limit(f"class_chat:{sender.id}:{class_id}", limit=60, window_seconds=60)
                 recipient_ids = await _resolve_class_message_recipients(
@@ -276,7 +281,7 @@ async def ws_chat(
                     school_id=cls.school_id,
                     sender=sender,
                     is_announcement=is_announcement,
-                    requested_ids=_requested_recipient_ids(data.get("recipient_ids")),
+                    requested_ids=requested_ids,
                     db=db,
                 )
             except HTTPException as exc:

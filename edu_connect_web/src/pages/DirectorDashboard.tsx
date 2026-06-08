@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'rea
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { t as translate, useLocale, type Locale } from '../lib/i18n';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -17,6 +18,7 @@ import {
   KeyRound,
   Link2Off,
   Loader2,
+  MessageSquare,
   Plus,
   QrCode,
   Search,
@@ -147,7 +149,7 @@ interface ClassCourseAssignment {
 }
 
 type ToastType = 'success' | 'error' | 'warning';
-type DirectorTab = 'overview' | 'students' | 'classes' | 'team';
+type DirectorTab = 'overview' | 'students' | 'classes' | 'team' | 'messages';
 
 interface Toast {
   id: number;
@@ -176,6 +178,7 @@ const directorTabs: Array<{
   { id: 'students', labelKey: 'director.tab.students', route: '/director/students', icon: Users },
   { id: 'classes', labelKey: 'director.tab.classes', route: '/director/classes', icon: BookOpen },
   { id: 'team', labelKey: 'director.tab.team', route: '/director/team', icon: UserPlus },
+  { id: 'messages', labelKey: 'director.tab.messages', route: '/director/messages', icon: MessageSquare },
 ];
 
 const emptyStudents: Student[] = [];
@@ -199,6 +202,7 @@ function tabFromPath(pathname: string): DirectorTab {
   if (pathname.includes('/director/students')) return 'students';
   if (pathname.includes('/director/classes')) return 'classes';
   if (pathname.includes('/director/team')) return 'team';
+  if (pathname.includes('/director/messages')) return 'messages';
   return 'overview';
 }
 
@@ -1626,6 +1630,11 @@ export default function DirectorDashboard() {
       {activeTab === 'students' && renderStudents()}
       {activeTab === 'classes' && renderClasses()}
       {activeTab === 'team' && renderTeam()}
+      {activeTab === 'messages' && (
+        <section className="glass-card dashboard-card-pad">
+          <DirectMessagingPanel scopeKey="director" />
+        </section>
+      )}
 
       {qrModal && (
         <div className="workspace-modal-backdrop" role="presentation">
