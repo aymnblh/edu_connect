@@ -1821,6 +1821,184 @@ body {
   border-color: rgba(20, 184, 166, 0.3);
 }
 
+.superadmin-platform-panel {
+  margin-bottom: 28px;
+}
+
+.superadmin-kpi-grid,
+.platform-health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 12px;
+}
+
+.superadmin-kpi,
+.platform-health-item {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  background: rgba(15, 118, 110, 0.06);
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  border-radius: var(--radius-md);
+  min-width: 0;
+}
+
+.superadmin-kpi svg,
+.platform-health-item svg {
+  color: var(--primary);
+}
+
+.superadmin-kpi span,
+.platform-health-item span {
+  color: var(--text-muted);
+  font-size: var(--font-xs);
+  font-weight: 700;
+}
+
+.superadmin-kpi strong,
+.platform-health-item strong {
+  color: var(--text-primary);
+  font-size: var(--font-lg);
+}
+
+.platform-health-grid {
+  margin-top: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.superadmin-school-grid {
+  align-items: start;
+}
+
+.school-card--ops {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.school-status-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.school-ops-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.school-ops-summary div,
+.school-detail-section {
+  padding: 12px;
+  background: rgba(148, 163, 184, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: var(--radius-md);
+}
+
+.school-ops-summary span,
+.school-billing-row span,
+.school-timeline span {
+  color: var(--text-muted);
+  font-size: var(--font-xs);
+}
+
+.school-ops-summary strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+}
+
+.school-detail-section h4 {
+  margin: 0 0 10px;
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+}
+
+.school-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.school-mini-grid span,
+.role-chip-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-muted);
+  font-size: var(--font-xs);
+  min-width: 0;
+}
+
+.school-mini-grid strong {
+  color: var(--text-primary);
+}
+
+.role-chip-row,
+.school-signal-list,
+.school-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.role-chip-row {
+  margin-top: 10px;
+}
+
+.role-chip-row span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.school-timeline {
+  margin-top: 10px;
+}
+
+.school-signal {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: var(--font-xs);
+  font-weight: 700;
+}
+
+.school-signal--success {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.school-signal--warning {
+  background: rgba(245, 158, 11, 0.16);
+  color: #92400e;
+}
+
+.school-signal--danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.school-billing-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--surface-border);
+}
+
+.school-billing-row strong {
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
 .screen-min-height {
   min-height: 60vh;
 }
@@ -3345,6 +3523,21 @@ body {
 
   .director-stat-strip {
     grid-template-columns: 1fr;
+  }
+
+  .school-ops-summary,
+  .school-mini-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .school-card-header,
+  .school-billing-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .school-status-stack {
+    align-items: flex-start;
   }
 
   .management-actions,

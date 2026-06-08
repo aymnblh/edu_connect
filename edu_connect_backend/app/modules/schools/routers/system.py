@@ -1,12 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 import calendar
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.db.database import get_db
-from app.models import User, UserRole, School, SubscriptionPayment, Student, Class
+from app.models import (
+    AuditEvent,
+    Attendance,
+    AttendanceStatus,
+    Class,
+    Course,
+    DirectMessage,
+    Grade,
+    Homework,
+    Message,
+    PendingLink,
+    RefreshToken,
+    School,
+    Student,
+    SubscriptionPayment,
+    User,
+    UserRole,
+)
 from app.core.security import get_current_user
 
 router = APIRouter(prefix="/system", tags=["System Administration"])
@@ -19,12 +36,105 @@ class SchoolAdminOut(BaseModel):
     subscription_expires_at: str | None = None
     created_at: str | None = None
     user_count: int = 0
+    teacher_count: int = 0
+    parent_count: int = 0
+    principal_count: int = 0
+    secretary_count: int = 0
     student_count: int = 0
     class_count: int = 0
+    course_count: int = 0
+    active_session_count: int = 0
+    pending_parent_link_count: int = 0
+    used_parent_link_count: int = 0
+    grade_count: int = 0
+    approved_grade_count: int = 0
+    pending_grade_count: int = 0
+    attendance_count: int = 0
+    absence_count: int = 0
+    homework_count: int = 0
+    class_message_count: int = 0
+    direct_message_count: int = 0
+    audit_event_count_24h: int = 0
+    failed_auth_count_24h: int = 0
+    server_error_count_24h: int = 0
+    payment_count: int = 0
+    total_revenue: float = 0
     last_payment_amount: float | None = None
     last_payment_at: str | None = None
+    last_login_at: str | None = None
+    last_audit_at: str | None = None
+    last_message_at: str | None = None
+    last_grade_at: str | None = None
+    last_attendance_at: str | None = None
+    days_until_expiry: int | None = None
+    health_status: str = "healthy"
+    health_score: int = 100
+    role_counts: dict[str, int] = Field(default_factory=dict)
     
     model_config = {"from_attributes": True}
+
+
+def _iso(value: datetime | None) -> str | None:
+    return value.isoformat() if value else None
+
+
+def _aware(value: datetime | None) -> datetime | None:
+    if not value:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value
+
+
+def _days_until(value: datetime | None, now: datetime) -> int | None:
+    aware_value = _aware(value)
+    if not aware_value:
+        return None
+    return int((aware_value - now).total_seconds() // 86400)
+
+
+async def _count(db: AsyncSession, stmt) -> int:
+    return int(await db.scalar(stmt) or 0)
+
+
+async def _max_date(db: AsyncSession, stmt) -> datetime | None:
+    return await db.scalar(stmt)
+
+
+def _health_status_and_score(
+    *,
+    school: School,
+    now: datetime,
+    server_errors: int,
+    failed_auth: int,
+    active_sessions: int,
+) -> tuple[str, int]:
+    score = 100
+    expiry = _aware(school.subscription_expires_at)
+
+    if not school.is_active:
+        return "suspended", 35
+    if not expiry or expiry < now:
+        return "subscription_expired", 45
+
+    days_left = _days_until(expiry, now)
+    if days_left is not None and days_left <= 7:
+        score -= 20
+    if server_errors:
+        score -= min(35, server_errors * 8)
+    if failed_auth >= 10:
+        score -= 20
+    elif failed_auth >= 3:
+        score -= 10
+    if active_sessions == 0:
+        score -= 10
+
+    score = max(score, 0)
+    if score >= 80:
+        return "healthy", score
+    if score >= 55:
+        return "watch", score
+    return "risk", score
 
 
 @router.get("/schools", response_model=list[SchoolAdminOut])
@@ -39,18 +149,108 @@ async def list_all_schools(
     result = await db.execute(select(School).order_by(School.created_at.desc()))
     schools = result.scalars().all()
     
-    # Format subscription dates to string if they exist
     out = []
+    now = datetime.now(timezone.utc)
+    last_24h = now - timedelta(hours=24)
     for s in schools:
-        user_count = await db.scalar(
+        user_count = await _count(db,
             select(func.count(User.id)).where(User.school_id == s.id)
         )
-        student_count = await db.scalar(
+        teacher_count = await _count(db,
+            select(func.count(User.id)).where(User.school_id == s.id, User.role == UserRole.teacher)
+        )
+        parent_count = await _count(db,
+            select(func.count(User.id)).where(User.school_id == s.id, User.role == UserRole.parent)
+        )
+        principal_count = await _count(db,
+            select(func.count(User.id)).where(User.school_id == s.id, User.role == UserRole.principal)
+        )
+        secretary_count = await _count(db,
+            select(func.count(User.id)).where(User.school_id == s.id, User.role == UserRole.secretary)
+        )
+        student_count = await _count(db,
             select(func.count(Student.id)).where(Student.school_id == s.id)
         )
-        class_count = await db.scalar(
+        class_count = await _count(db,
             select(func.count(Class.id)).where(Class.school_id == s.id)
         )
+        course_count = await _count(db,
+            select(func.count(Course.id)).where(Course.school_id == s.id)
+        )
+        active_session_count = await _count(db,
+            select(func.count(RefreshToken.id)).where(
+                RefreshToken.school_id == s.id,
+                RefreshToken.revoked_at.is_(None),
+                RefreshToken.expires_at > now,
+            )
+        )
+        pending_parent_link_count = await _count(db,
+            select(func.count(PendingLink.id)).where(
+                PendingLink.school_id == s.id,
+                PendingLink.status == "pending",
+                PendingLink.revoked_at.is_(None),
+                PendingLink.expires_at > now,
+            )
+        )
+        used_parent_link_count = await _count(db,
+            select(func.count(PendingLink.id)).where(
+                PendingLink.school_id == s.id,
+                PendingLink.used_at.is_not(None),
+            )
+        )
+        grade_count = await _count(db,
+            select(func.count(Grade.id)).where(Grade.school_id == s.id)
+        )
+        approved_grade_count = await _count(db,
+            select(func.count(Grade.id)).where(Grade.school_id == s.id, Grade.is_approved.is_(True))
+        )
+        pending_grade_count = await _count(db,
+            select(func.count(Grade.id)).where(Grade.school_id == s.id, Grade.is_approved.is_(False))
+        )
+        attendance_count = await _count(db,
+            select(func.count(Attendance.id)).where(Attendance.school_id == s.id)
+        )
+        absence_count = await _count(db,
+            select(func.count(Attendance.id)).where(
+                Attendance.school_id == s.id,
+                Attendance.status == AttendanceStatus.absent,
+            )
+        )
+        homework_count = await _count(db,
+            select(func.count(Homework.id)).where(Homework.school_id == s.id)
+        )
+        class_message_count = await _count(db,
+            select(func.count(Message.id)).where(Message.school_id == s.id)
+        )
+        direct_message_count = await _count(db,
+            select(func.count(DirectMessage.id)).where(DirectMessage.school_id == s.id)
+        )
+        audit_event_count_24h = await _count(db,
+            select(func.count(AuditEvent.id)).where(
+                AuditEvent.school_id == s.id,
+                AuditEvent.created_at >= last_24h,
+            )
+        )
+        failed_auth_count_24h = await _count(db,
+            select(func.count(AuditEvent.id)).where(
+                AuditEvent.school_id == s.id,
+                AuditEvent.created_at >= last_24h,
+                AuditEvent.action.in_(["auth.login_failed", "auth.refresh_failed"]),
+            )
+        )
+        server_error_count_24h = await _count(db,
+            select(func.count(AuditEvent.id)).where(
+                AuditEvent.school_id == s.id,
+                AuditEvent.created_at >= last_24h,
+                AuditEvent.status_code >= 500,
+            )
+        )
+        payment_count = await _count(db,
+            select(func.count(SubscriptionPayment.id)).where(SubscriptionPayment.school_id == s.id)
+        )
+        total_revenue = float(await db.scalar(
+            select(func.coalesce(func.sum(SubscriptionPayment.amount), 0)).where(SubscriptionPayment.school_id == s.id)
+        ) or 0)
         last_payment = (
             await db.execute(
                 select(SubscriptionPayment)
@@ -59,17 +259,83 @@ async def list_all_schools(
                 .limit(1)
             )
         ).scalar_one_or_none()
+        last_login_at = await _max_date(db,
+            select(func.max(AuditEvent.created_at)).where(
+                AuditEvent.school_id == s.id,
+                AuditEvent.action == "auth.login_success",
+            )
+        )
+        last_audit_at = await _max_date(db,
+            select(func.max(AuditEvent.created_at)).where(AuditEvent.school_id == s.id)
+        )
+        last_class_message_at = await _max_date(db,
+            select(func.max(Message.created_at)).where(Message.school_id == s.id)
+        )
+        last_direct_message_at = await _max_date(db,
+            select(func.max(DirectMessage.created_at)).where(DirectMessage.school_id == s.id)
+        )
+        message_dates = [date for date in [last_class_message_at, last_direct_message_at] if date]
+        last_message_at = max(message_dates) if message_dates else None
+        last_grade_at = await _max_date(db,
+            select(func.max(Grade.date)).where(Grade.school_id == s.id)
+        )
+        last_attendance_at = await _max_date(db,
+            select(func.max(Attendance.date)).where(Attendance.school_id == s.id)
+        )
+        health_status, health_score = _health_status_and_score(
+            school=s,
+            now=now,
+            server_errors=server_error_count_24h,
+            failed_auth=failed_auth_count_24h,
+            active_sessions=active_session_count,
+        )
+        role_counts = {
+            "principal": principal_count,
+            "secretary": secretary_count,
+            "teacher": teacher_count,
+            "parent": parent_count,
+        }
         out.append(SchoolAdminOut(
             id=s.id,
             name=s.name,
             is_active=s.is_active,
-            subscription_expires_at=s.subscription_expires_at.isoformat() if s.subscription_expires_at else None,
-            created_at=s.created_at.isoformat() if s.created_at else None,
-            user_count=user_count or 0,
-            student_count=student_count or 0,
-            class_count=class_count or 0,
+            subscription_expires_at=_iso(s.subscription_expires_at),
+            created_at=_iso(s.created_at),
+            user_count=user_count,
+            teacher_count=teacher_count,
+            parent_count=parent_count,
+            principal_count=principal_count,
+            secretary_count=secretary_count,
+            student_count=student_count,
+            class_count=class_count,
+            course_count=course_count,
+            active_session_count=active_session_count,
+            pending_parent_link_count=pending_parent_link_count,
+            used_parent_link_count=used_parent_link_count,
+            grade_count=grade_count,
+            approved_grade_count=approved_grade_count,
+            pending_grade_count=pending_grade_count,
+            attendance_count=attendance_count,
+            absence_count=absence_count,
+            homework_count=homework_count,
+            class_message_count=class_message_count,
+            direct_message_count=direct_message_count,
+            audit_event_count_24h=audit_event_count_24h,
+            failed_auth_count_24h=failed_auth_count_24h,
+            server_error_count_24h=server_error_count_24h,
+            payment_count=payment_count,
+            total_revenue=total_revenue,
             last_payment_amount=last_payment.amount if last_payment else None,
-            last_payment_at=last_payment.created_at.isoformat() if last_payment else None,
+            last_payment_at=_iso(last_payment.created_at) if last_payment else None,
+            last_login_at=_iso(last_login_at),
+            last_audit_at=_iso(last_audit_at),
+            last_message_at=_iso(last_message_at),
+            last_grade_at=_iso(last_grade_at),
+            last_attendance_at=_iso(last_attendance_at),
+            days_until_expiry=_days_until(s.subscription_expires_at, now),
+            health_status=health_status,
+            health_score=health_score,
+            role_counts=role_counts,
         ))
     return out
 

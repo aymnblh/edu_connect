@@ -420,9 +420,274 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: 'School management',
   },
   'superadmin.subtitle': {
-    fr: 'Gérez les abonnements et les paiements de vos clients SaaS.',
+    fr: "Pilotez les écoles clientes, l'usage de l'application, la facturation et les signaux d'observabilité.",
     ar: 'تابعوا اشتراكات ومدفوعات المدارس المشتركة.',
-    en: 'Manage subscriptions and payments for your SaaS customers.',
+    en: 'Manage customer schools, application usage, billing, and observability signals.',
+  },
+  'superadmin.eyebrow': {
+    fr: 'Observabilité SaaS',
+    ar: 'مراقبة SaaS',
+    en: 'SaaS observability',
+  },
+  'superadmin.platformTitle': {
+    fr: 'État de la plateforme',
+    ar: 'حالة المنصة',
+    en: 'Platform status',
+  },
+  'superadmin.platformCopy': {
+    fr: 'Vue opérationnelle temps réel : API, base de données, Redis, sessions et événements audités.',
+    ar: 'نظرة تشغيلية مباشرة: الواجهة البرمجية وقاعدة البيانات وRedis والجلسات وأحداث التدقيق.',
+    en: 'Operational view: API readiness, database, Redis, sessions, and audited events.',
+  },
+  'superadmin.readiness.ready': {
+    fr: 'Prêt',
+    ar: 'جاهز',
+    en: 'Ready',
+  },
+  'superadmin.readiness.degraded': {
+    fr: 'Dégradé',
+    ar: 'متدهور',
+    en: 'Degraded',
+  },
+  'superadmin.readiness.unknown': {
+    fr: 'Inconnu',
+    ar: 'غير معروف',
+    en: 'Unknown',
+  },
+  'superadmin.kpiSchools': {
+    fr: 'Écoles',
+    ar: 'مدارس',
+    en: 'Schools',
+  },
+  'superadmin.kpiActiveSchools': {
+    fr: 'Écoles actives',
+    ar: 'مدارس نشطة',
+    en: 'Active schools',
+  },
+  'superadmin.kpiUsers': {
+    fr: 'Comptes',
+    ar: 'حسابات',
+    en: 'Accounts',
+  },
+  'superadmin.kpiSessions': {
+    fr: 'Sessions actives',
+    ar: 'جلسات نشطة',
+    en: 'Active sessions',
+  },
+  'superadmin.kpiAudits': {
+    fr: 'Audits 24h',
+    ar: 'تدقيق 24 ساعة',
+    en: '24h audits',
+  },
+  'superadmin.kpiRevenue': {
+    fr: 'Revenus enregistrés',
+    ar: 'الإيرادات المسجلة',
+    en: 'Recorded revenue',
+  },
+  'superadmin.kpiErrors': {
+    fr: 'Erreurs 24h',
+    ar: 'أخطاء 24 ساعة',
+    en: '24h errors',
+  },
+  'superadmin.checkDatabase': {
+    fr: 'Base de données',
+    ar: 'قاعدة البيانات',
+    en: 'Database',
+  },
+  'superadmin.checkRedis': {
+    fr: 'Redis temps réel',
+    ar: 'Redis مباشر',
+    en: 'Realtime Redis',
+  },
+  'superadmin.dbPool': {
+    fr: 'Pool DB utilisé',
+    ar: 'استعمال مجمع قاعدة البيانات',
+    en: 'DB pool used',
+  },
+  'superadmin.health.healthy': {
+    fr: 'Sain',
+    ar: 'سليم',
+    en: 'Healthy',
+  },
+  'superadmin.health.watch': {
+    fr: 'À surveiller',
+    ar: 'تحت المراقبة',
+    en: 'Watch',
+  },
+  'superadmin.health.risk': {
+    fr: 'Risque',
+    ar: 'خطر',
+    en: 'Risk',
+  },
+  'superadmin.health.suspended': {
+    fr: 'Suspendu',
+    ar: 'معلق',
+    en: 'Suspended',
+  },
+  'superadmin.health.subscription_expired': {
+    fr: 'Abonnement expiré',
+    ar: 'الاشتراك منته',
+    en: 'Subscription expired',
+  },
+  'superadmin.healthScore': {
+    fr: 'Score santé',
+    ar: 'مؤشر الصحة',
+    en: 'Health score',
+  },
+  'superadmin.createdAt': {
+    fr: 'Créée',
+    ar: 'تم الإنشاء',
+    en: 'Created',
+  },
+  'superadmin.lastLogin': {
+    fr: 'Dernière connexion',
+    ar: 'آخر تسجيل دخول',
+    en: 'Last login',
+  },
+  'superadmin.sectionPopulation': {
+    fr: 'Population',
+    ar: 'المستخدمون',
+    en: 'Population',
+  },
+  'superadmin.sectionUsage': {
+    fr: 'Usage application',
+    ar: 'استخدام التطبيق',
+    en: 'App usage',
+  },
+  'superadmin.sectionObservability': {
+    fr: 'Observabilité tenant',
+    ar: 'مراقبة المؤسسة',
+    en: 'Tenant observability',
+  },
+  'superadmin.metricUsers': {
+    fr: 'Comptes',
+    ar: 'حسابات',
+    en: 'Accounts',
+  },
+  'superadmin.metricStudents': {
+    fr: 'Élèves',
+    ar: 'تلاميذ',
+    en: 'Students',
+  },
+  'superadmin.metricClasses': {
+    fr: 'Classes',
+    ar: 'أقسام',
+    en: 'Classes',
+  },
+  'superadmin.metricCourses': {
+    fr: 'Modules',
+    ar: 'مواد',
+    en: 'Courses',
+  },
+  'superadmin.metricSessions': {
+    fr: 'Sessions',
+    ar: 'جلسات',
+    en: 'Sessions',
+  },
+  'superadmin.metricMessages': {
+    fr: 'Messages',
+    ar: 'رسائل',
+    en: 'Messages',
+  },
+  'superadmin.metricGrades': {
+    fr: 'Notes',
+    ar: 'درجات',
+    en: 'Grades',
+  },
+  'superadmin.metricAbsences': {
+    fr: 'Absences',
+    ar: 'غيابات',
+    en: 'Absences',
+  },
+  'superadmin.metricHomework': {
+    fr: 'Devoirs',
+    ar: 'واجبات',
+    en: 'Homework',
+  },
+  'superadmin.metricLinks': {
+    fr: 'Liens parent utilisés',
+    ar: 'روابط الأولياء المستعملة',
+    en: 'Used parent links',
+  },
+  'superadmin.metricAudit24h': {
+    fr: 'Audit 24h',
+    ar: 'تدقيق 24 ساعة',
+    en: '24h audit',
+  },
+  'superadmin.metricFailedAuth': {
+    fr: 'Auth échouées',
+    ar: 'مصادقات فاشلة',
+    en: 'Failed auth',
+  },
+  'superadmin.metricServerErrors': {
+    fr: 'Erreurs serveur',
+    ar: 'أخطاء الخادم',
+    en: 'Server errors',
+  },
+  'superadmin.metricPendingLinks': {
+    fr: 'Invitations parent',
+    ar: 'دعوات الأولياء',
+    en: 'Parent invites',
+  },
+  'superadmin.lastAudit': {
+    fr: 'Dernier audit',
+    ar: 'آخر تدقيق',
+    en: 'Last audit',
+  },
+  'superadmin.lastMessage': {
+    fr: 'Dernier message',
+    ar: 'آخر رسالة',
+    en: 'Last message',
+  },
+  'superadmin.lastGrade': {
+    fr: 'Dernière note',
+    ar: 'آخر درجة',
+    en: 'Last grade',
+  },
+  'superadmin.lastAttendance': {
+    fr: 'Dernier appel',
+    ar: 'آخر حضور',
+    en: 'Last attendance',
+  },
+  'superadmin.signalSuspended': {
+    fr: 'Établissement suspendu',
+    ar: 'المؤسسة معلقة',
+    en: 'School suspended',
+  },
+  'superadmin.signalExpiry': {
+    fr: 'Abonnement : {days} jours',
+    ar: 'الاشتراك: {days} يوم',
+    en: 'Subscription: {days} days',
+  },
+  'superadmin.signalServerErrors': {
+    fr: '{count} erreurs serveur sur 24h',
+    ar: '{count} أخطاء خادم خلال 24 ساعة',
+    en: '{count} server errors in 24h',
+  },
+  'superadmin.signalFailedAuth': {
+    fr: '{count} échecs auth sur 24h',
+    ar: '{count} فشل مصادقة خلال 24 ساعة',
+    en: '{count} auth failures in 24h',
+  },
+  'superadmin.signalPendingGrades': {
+    fr: '{count} notes en attente',
+    ar: '{count} درجات في الانتظار',
+    en: '{count} pending grades',
+  },
+  'superadmin.signalHealthy': {
+    fr: 'Aucun signal critique',
+    ar: 'لا توجد إشارات حرجة',
+    en: 'No critical signals',
+  },
+  'superadmin.paymentsCount': {
+    fr: '{count} paiements',
+    ar: '{count} دفعات',
+    en: '{count} payments',
+  },
+  'superadmin.noPayment': {
+    fr: 'Aucun paiement',
+    ar: 'لا يوجد دفع',
+    en: 'No payment',
   },
   'superadmin.statusExpired': {
     fr: 'Expiré',
