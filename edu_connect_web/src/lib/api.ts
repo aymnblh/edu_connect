@@ -1,5 +1,12 @@
 import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
-import { clearWorkspaceStorage, notifyWorkspaceSessionChanged } from './workspace';
+import {
+  clearWorkspaceStorage,
+  getCurrentSessionPersistence,
+  notifyWorkspaceSessionChanged,
+  readWorkspaceSessionItem,
+  setRememberDevicePreference,
+  storeWorkspaceSessionItem,
+} from './workspace';
 
 const apiBaseURL = import.meta.env.VITE_API_BASE_URL?.trim();
 const fallbackApiBaseURL = import.meta.env.DEV ? 'http://localhost:8000' : undefined;
@@ -19,9 +26,14 @@ type SessionRequestConfig = InternalAxiosRequestConfig & {
 
 let refreshPromise: Promise<string | null> | null = null;
 
-export function storeSessionTokens(accessToken: string, refreshToken: string): void {
-  localStorage.setItem('access_token', accessToken);
-  localStorage.setItem('refresh_token', refreshToken);
+export function storeSessionTokens(
+  accessToken: string,
+  refreshToken: string,
+  rememberDevice = getCurrentSessionPersistence(),
+): void {
+  setRememberDevicePreference(rememberDevice);
+  storeWorkspaceSessionItem('access_token', accessToken, rememberDevice);
+  storeWorkspaceSessionItem('refresh_token', refreshToken, rememberDevice);
   notifyWorkspaceSessionChanged();
 }
 
@@ -30,7 +42,7 @@ function isAuthRefreshPath(url: string | undefined): boolean {
 }
 
 async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = localStorage.getItem('refresh_token');
+  const refreshToken = readWorkspaceSessionItem('refresh_token');
   if (!refreshToken) {
     clearWorkspaceStorage();
     return null;
@@ -50,7 +62,7 @@ async function refreshAccessToken(): Promise<string | null> {
           clearWorkspaceStorage();
           return null;
         }
-        storeSessionTokens(accessToken, nextRefreshToken);
+        storeSessionTokens(accessToken, nextRefreshToken, getCurrentSessionPersistence());
         return accessToken;
       })
       .catch(() => {
@@ -66,7 +78,7 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 export async function logoutSession(): Promise<void> {
-  const refreshToken = localStorage.getItem('refresh_token');
+  const refreshToken = readWorkspaceSessionItem('refresh_token');
   if (refreshToken) {
     try {
       await api.post(
@@ -83,11 +95,11 @@ export async function logoutSession(): Promise<void> {
 
 // Interceptor to attach tokens if needed
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+  const token = readWorkspaceSessionItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  const activeRole = localStorage.getItem('active_workspace_role');
+  const activeRole = readWorkspaceSessionItem('active_workspace_role');
   if (activeRole) {
     config.headers['X-Workspace-Role'] = activeRole;
   }

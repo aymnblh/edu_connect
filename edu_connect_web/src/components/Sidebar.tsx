@@ -16,6 +16,7 @@ import {
 import { useWorkspace } from '../contexts/useWorkspace';
 import { logoutSession } from '../lib/api';
 import { useLocale } from '../lib/i18n';
+import { readWorkspaceSessionItem } from '../lib/workspace';
 import LocaleSwitcher from './LocaleSwitcher';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 
@@ -31,7 +32,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const { activeRole } = useWorkspace();
   const { t } = useLocale();
   const user = (() => {
-    const raw = localStorage.getItem('user');
+    const raw = readWorkspaceSessionItem('user');
     if (!raw) return null;
     try {
       return JSON.parse(raw) as { name?: string } | null;

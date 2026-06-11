@@ -11,6 +11,52 @@ export const workspaceRoutes: Record<WorkspaceRole, string> = {
 const rolePriority: WorkspaceRole[] = ['system_admin', 'principal', 'secretary', 'teacher', 'parent'];
 const validRoles = new Set<WorkspaceRole>(rolePriority);
 export const workspaceSessionChangeEvent = 'educonnect_workspace_session_change';
+export const rememberDevicePreferenceKey = 'educonnect_remember_device';
+
+type WorkspaceSessionKey = 'access_token' | 'refresh_token' | 'user' | 'active_workspace_role';
+const workspaceSessionKeys: WorkspaceSessionKey[] = ['access_token', 'refresh_token', 'user', 'active_workspace_role'];
+
+function preferredRememberDevice(): boolean {
+  return localStorage.getItem(rememberDevicePreferenceKey) !== 'false';
+}
+
+export function getCurrentSessionPersistence(): boolean {
+  if (localStorage.getItem('access_token') || localStorage.getItem('refresh_token')) {
+    return true;
+  }
+  if (sessionStorage.getItem('access_token') || sessionStorage.getItem('refresh_token')) {
+    return false;
+  }
+  return preferredRememberDevice();
+}
+
+export function setRememberDevicePreference(rememberDevice: boolean): void {
+  localStorage.setItem(rememberDevicePreferenceKey, rememberDevice ? 'true' : 'false');
+}
+
+export function readRememberDevicePreference(): boolean {
+  return preferredRememberDevice();
+}
+
+export function readWorkspaceSessionItem(key: WorkspaceSessionKey): string | null {
+  return localStorage.getItem(key) ?? sessionStorage.getItem(key);
+}
+
+export function storeWorkspaceSessionItem(
+  key: WorkspaceSessionKey,
+  value: string,
+  rememberDevice = getCurrentSessionPersistence(),
+): void {
+  const targetStorage = rememberDevice ? localStorage : sessionStorage;
+  const otherStorage = rememberDevice ? sessionStorage : localStorage;
+  otherStorage.removeItem(key);
+  targetStorage.setItem(key, value);
+}
+
+export function removeWorkspaceSessionItem(key: WorkspaceSessionKey): void {
+  localStorage.removeItem(key);
+  sessionStorage.removeItem(key);
+}
 
 export function normalizeWorkspaceRoles(rawRoles: unknown): WorkspaceRole[] {
   const values = Array.isArray(rawRoles) ? rawRoles : rawRoles ? [rawRoles] : [];
@@ -77,9 +123,6 @@ export function notifyWorkspaceSessionChanged(): void {
 }
 
 export function clearWorkspaceStorage(): void {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user');
-  localStorage.removeItem('active_workspace_role');
+  workspaceSessionKeys.forEach(removeWorkspaceSessionItem);
   notifyWorkspaceSessionChanged();
 }

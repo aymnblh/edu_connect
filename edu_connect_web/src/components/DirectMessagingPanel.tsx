@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Send } from 'lucide-react';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
+import { readWorkspaceSessionItem } from '../lib/workspace';
 
 interface DmContact {
   user_id: string;
@@ -60,7 +61,7 @@ function formatTime(value: string, locale: Locale): string {
 }
 
 function readCurrentUserId(): string | null {
-  const raw = localStorage.getItem('user');
+  const raw = readWorkspaceSessionItem('user');
   if (!raw) return null;
   try {
     const user = JSON.parse(raw) as { id?: unknown };

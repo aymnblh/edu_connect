@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   getInitialActiveRole,
+  readWorkspaceSessionItem,
   routeForRole,
+  storeWorkspaceSessionItem,
   workspaceSessionChangeEvent,
   workspaceRolesFromSession,
 } from '../lib/workspace';
@@ -9,7 +11,7 @@ import { WorkspaceContext, type WorkspaceContextValue } from './workspaceContext
 import type { WorkspaceRole } from '../lib/workspace';
 
 function readStoredUser(): unknown {
-  const raw = localStorage.getItem('user');
+  const raw = readWorkspaceSessionItem('user');
   if (!raw) {
     return null;
   }
@@ -21,13 +23,13 @@ function readStoredUser(): unknown {
 }
 
 function readWorkspaceSnapshot() {
-  const token = localStorage.getItem('access_token');
+  const token = readWorkspaceSessionItem('access_token');
   const user = readStoredUser();
   const roles = workspaceRolesFromSession(user, token);
-  const savedRole = localStorage.getItem('active_workspace_role');
+  const savedRole = readWorkspaceSessionItem('active_workspace_role');
   const activeRole = getInitialActiveRole(roles, savedRole);
   if (activeRole && savedRole !== activeRole) {
-    localStorage.setItem('active_workspace_role', activeRole);
+    storeWorkspaceSessionItem('active_workspace_role', activeRole);
   }
   return {
     token,
@@ -58,7 +60,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       if (!snapshot.roles.includes(role)) {
         throw new Error('Workspace role is not available for this user.');
       }
-      localStorage.setItem('active_workspace_role', role);
+      storeWorkspaceSessionItem('active_workspace_role', role);
       setSnapshot((current) => ({ ...current, activeRole: role }));
       return routeForRole(role);
     },

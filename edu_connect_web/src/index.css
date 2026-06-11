@@ -591,6 +591,13 @@ body {
   width: 100%;
   max-width: 440px;
   padding: 40px 32px;
+  position: relative;
+}
+
+.login-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
 
 .login-card-header {
@@ -673,6 +680,23 @@ body {
 
 .activate-terms span {
   white-space: normal;
+}
+
+.login-remember-device {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.login-remember-device input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
 }
 
 .login-footer {
@@ -1016,8 +1040,7 @@ body {
   color: var(--text-primary);
 }
 
-.workspace-switcher,
-.locale-switcher {
+.workspace-switcher {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1028,8 +1051,7 @@ body {
   color: var(--text-secondary);
 }
 
-.workspace-switcher select,
-.locale-switcher select {
+.workspace-switcher select {
   min-width: 0;
   flex: 1;
   background: transparent;
@@ -1042,15 +1064,58 @@ body {
   cursor: pointer;
 }
 
-.workspace-switcher select option,
-.locale-switcher select option {
+.workspace-switcher select option {
   background: #0A0D16;
   color: var(--text-primary);
 }
 
 .locale-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   width: fit-content;
-  padding: 0.6rem 0.75rem;
+  padding: 0.35rem;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  color: var(--primary);
+  box-shadow: 0 12px 28px rgba(32, 48, 64, 0.08);
+}
+
+.locale-switcher > svg {
+  margin-inline-start: 0.45rem;
+  flex-shrink: 0;
+}
+
+.locale-options {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.locale-option {
+  min-width: 38px;
+  min-height: 32px;
+  padding: 0 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.locale-option:hover {
+  color: var(--text-primary);
+  background: rgba(15, 118, 110, 0.08);
+}
+
+.locale-option--active {
+  background: var(--primary);
+  color: #FFFFFF;
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.22);
 }
 
 /* ═══ Legal & Policy Page ═══ */

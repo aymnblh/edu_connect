@@ -6,7 +6,15 @@ import LocaleSwitcher from '../components/LocaleSwitcher';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { api, storeSessionTokens } from '../lib/api';
 import { useLocale } from '../lib/i18n';
-import { clearWorkspaceStorage, getInitialActiveRole, routeForRole, workspaceRolesFromSession } from '../lib/workspace';
+import {
+  clearWorkspaceStorage,
+  getInitialActiveRole,
+  readRememberDevicePreference,
+  removeWorkspaceSessionItem,
+  routeForRole,
+  storeWorkspaceSessionItem,
+  workspaceRolesFromSession,
+} from '../lib/workspace';
 
 interface VerifiedInvite {
   type: string;
@@ -74,19 +82,20 @@ export default function ActivateAccount() {
         terms_accepted: termsAccepted,
       });
 
+      const rememberDevice = readRememberDevicePreference();
       clearWorkspaceStorage();
-      storeSessionTokens(res.data.access_token, res.data.refresh_token);
+      storeSessionTokens(res.data.access_token, res.data.refresh_token, rememberDevice);
 
       const profileRes = await api.get('/users/me');
       const user = profileRes.data;
-      localStorage.setItem('user', JSON.stringify(user));
+      storeWorkspaceSessionItem('user', JSON.stringify(user), rememberDevice);
 
       const roles = workspaceRolesFromSession(user, res.data.access_token);
       const activeRole = getInitialActiveRole(roles, null);
       if (activeRole) {
-        localStorage.setItem('active_workspace_role', activeRole);
+        storeWorkspaceSessionItem('active_workspace_role', activeRole, rememberDevice);
       } else {
-        localStorage.removeItem('active_workspace_role');
+        removeWorkspaceSessionItem('active_workspace_role');
       }
       refreshWorkspace();
 
@@ -121,6 +130,10 @@ export default function ActivateAccount() {
 
       <div className="login-form-side">
         <div className="glass-card animate-fade-in login-card">
+          <div className="login-card-actions">
+            <LocaleSwitcher />
+          </div>
+
           <div className="login-card-header">
             <div className="login-logo-wrap">
               <div className="login-logo">
@@ -201,7 +214,6 @@ export default function ActivateAccount() {
           )}
 
           <div className="login-footer">
-            <LocaleSwitcher />
             <Link to="/policies" className="link-hover-primary">
               {t('login.policiesLink')}
             </Link>

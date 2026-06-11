@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { isAxiosError } from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert, Sparkles, BookOpen, HeartHandshake, ShieldCheck } from 'lucide-react';
@@ -6,16 +6,30 @@ import LocaleSwitcher from '../components/LocaleSwitcher';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { api, storeSessionTokens } from '../lib/api';
 import { useLocale } from '../lib/i18n';
-import { clearWorkspaceStorage, getInitialActiveRole, routeForRole, workspaceRolesFromSession } from '../lib/workspace';
+import {
+  clearWorkspaceStorage,
+  getInitialActiveRole,
+  readRememberDevicePreference,
+  removeWorkspaceSessionItem,
+  routeForRole,
+  storeWorkspaceSessionItem,
+  workspaceRolesFromSession,
+} from '../lib/workspace';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberDevice, setRememberDevice] = useState(readRememberDevicePreference);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { refreshWorkspace } = useWorkspace();
+  const { activeRole, hasMultipleRoles, isAuthenticated, refreshWorkspace, routeForActiveRole } = useWorkspace();
   const { t } = useLocale();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    navigate(hasMultipleRoles && !activeRole ? '/workspace/select' : routeForActiveRole(), { replace: true });
+  }, [activeRole, hasMultipleRoles, isAuthenticated, navigate, routeForActiveRole]);
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -25,18 +39,18 @@ export default function Login() {
     try {
       const res = await api.post('/auth/login', { email, password });
       clearWorkspaceStorage();
-      storeSessionTokens(res.data.access_token, res.data.refresh_token);
+      storeSessionTokens(res.data.access_token, res.data.refresh_token, rememberDevice);
 
       const profileRes = await api.get('/users/me');
       const user = profileRes.data;
-      localStorage.setItem('user', JSON.stringify(user));
+      storeWorkspaceSessionItem('user', JSON.stringify(user), rememberDevice);
 
       const roles = workspaceRolesFromSession(user, res.data.access_token);
       const activeRole = getInitialActiveRole(roles, null);
       if (activeRole) {
-        localStorage.setItem('active_workspace_role', activeRole);
+        storeWorkspaceSessionItem('active_workspace_role', activeRole, rememberDevice);
       } else {
-        localStorage.removeItem('active_workspace_role');
+        removeWorkspaceSessionItem('active_workspace_role');
       }
       refreshWorkspace();
 
@@ -106,6 +120,10 @@ export default function Login() {
 
       <div className="login-form-side">
         <div className="glass-card animate-fade-in login-card">
+          <div className="login-card-actions">
+            <LocaleSwitcher />
+          </div>
+
           <div className="login-card-header">
             <div className="login-logo-wrap">
               <div className="login-logo">
@@ -152,13 +170,21 @@ export default function Login() {
               />
             </div>
 
+            <label className="login-remember-device">
+              <input
+                type="checkbox"
+                checked={rememberDevice}
+                onChange={(event) => setRememberDevice(event.target.checked)}
+              />
+              <span>{t('login.rememberDevice')}</span>
+            </label>
+
             <button type="submit" className="btn btn-primary login-submit" disabled={loading} aria-busy={loading}>
               {loading ? t('login.submitLoading') : t('login.submit')}
             </button>
           </form>
 
           <div className="login-footer">
-            <LocaleSwitcher />
             <Link to="/activate" className="link-hover-primary">
               {t('login.activateLink')}
             </Link>

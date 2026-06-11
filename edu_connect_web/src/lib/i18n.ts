@@ -169,6 +169,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'جار التحقق...',
     en: 'Signing in...',
   },
+  'login.rememberDevice': {
+    fr: 'Se souvenir de cet appareil',
+    ar: 'تذكر هذا الجهاز',
+    en: 'Remember this device',
+  },
   'login.policiesLink': {
     fr: 'Mentions légales et confidentialité',
     ar: 'الشروط القانونية والخصوصية',

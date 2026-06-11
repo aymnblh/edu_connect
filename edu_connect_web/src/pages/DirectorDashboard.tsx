@@ -5,6 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { t as translate, useLocale, type Locale } from '../lib/i18n';
+import { readWorkspaceSessionItem } from '../lib/workspace';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import {
   Activity,
@@ -196,7 +197,7 @@ const emptyCourses: Course[] = [];
 const emptySemesters: Semester[] = [];
 
 function readCurrentSchoolId(): string {
-  const raw = localStorage.getItem('user');
+  const raw = readWorkspaceSessionItem('user');
   if (!raw) return '';
   try {
     const user = JSON.parse(raw) as { school_id?: unknown };
@@ -207,10 +208,10 @@ function readCurrentSchoolId(): string {
 }
 
 function readCurrentUserRole(): string {
-  const activeRole = localStorage.getItem('active_workspace_role');
+  const activeRole = readWorkspaceSessionItem('active_workspace_role');
   if (activeRole) return activeRole;
 
-  const raw = localStorage.getItem('user');
+  const raw = readWorkspaceSessionItem('user');
   if (!raw) return '';
   try {
     const user = JSON.parse(raw) as { role?: unknown };

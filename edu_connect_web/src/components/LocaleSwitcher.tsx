@@ -2,25 +2,32 @@ import { Languages } from 'lucide-react';
 import { useLocale, type Locale } from '../lib/i18n';
 
 const locales: Locale[] = ['fr', 'ar', 'en'];
+const localeShortLabels: Record<Locale, string> = {
+  fr: 'FR',
+  ar: 'AR',
+  en: 'EN',
+};
 
 export default function LocaleSwitcher() {
   const { locale, setLocale, t } = useLocale();
 
   return (
-    <label className="locale-switcher">
+    <div className="locale-switcher" role="group" aria-label={t('language.label')}>
       <Languages size={16} />
-      <span className="sr-only">{t('language.label')}</span>
-      <select
-        value={locale}
-        aria-label={t('language.label')}
-        onChange={(event) => setLocale(event.target.value as Locale)}
-      >
+      <div className="locale-options">
         {locales.map((localeOption) => (
-          <option key={localeOption} value={localeOption}>
-            {t(`language.${localeOption}`)}
-          </option>
+          <button
+            key={localeOption}
+            type="button"
+            className={`locale-option ${locale === localeOption ? 'locale-option--active' : ''}`}
+            aria-label={t(`language.${localeOption}`)}
+            aria-pressed={locale === localeOption}
+            onClick={() => setLocale(localeOption)}
+          >
+            {localeShortLabels[localeOption]}
+          </button>
         ))}
-      </select>
-    </label>
+      </div>
+    </div>
   );
 }
