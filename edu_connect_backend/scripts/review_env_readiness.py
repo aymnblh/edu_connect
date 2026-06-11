@@ -30,6 +30,7 @@ DISPLAY_KEYS = [
     "CORS_ORIGINS",
     "NTFY_TOPIC_PREFIX",
     "CREATE_TABLES_ON_STARTUP",
+    "MEDIA_UPLOADS_ENABLED",
     "MEDIA_MALWARE_SCAN_REQUIRED",
     "BACKUP_RETENTION_DAYS",
 ]
@@ -58,9 +59,11 @@ def _secret_summary(values: dict[str, str], key: str) -> str:
 
 
 def _render_env(name: str, path: Path, values: dict[str, str]) -> list[str]:
+    display_values = dict(values)
+    display_values.setdefault("MEDIA_UPLOADS_ENABLED", "true")
     lines = [f"{name}: {path}"]
     for key in DISPLAY_KEYS:
-        lines.append(f"- {key}: {values.get(key, '(missing)')}")
+        lines.append(f"- {key}: {display_values.get(key, '(missing)')}")
     lines.append("- Secrets:")
     for key in sorted(SENSITIVE_KEYS):
         lines.append(f"  - {key}: {_secret_summary(values, key)}")

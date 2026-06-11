@@ -54,7 +54,7 @@ def test_health_endpoint_starts_without_database(monkeypatch, tmp_path):
         metrics = client.get("/metrics", headers={"X-Platform-Secret": "test-platform-secret"})
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {"status": "ok", "environment": "test", "version": "1.0.0"}
     assert denied_metrics.status_code == 403
     assert metrics.status_code == 200
     assert "educonnect_http_requests_total" in metrics.text

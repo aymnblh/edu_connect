@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     ntfy_base_url: str = ""
     ntfy_auth_token: str = ""
     ntfy_topic_prefix: str = "educonnect"
+    media_uploads_enabled: bool = True
     media_storage_path: str = "media/attachments"
     media_max_upload_bytes: int = 10 * 1024 * 1024
     media_malware_scan_enabled: bool = False
@@ -158,7 +159,10 @@ class Settings(BaseSettings):
             errors.append("SERVER_FINGERPRINT_SALT must be a strong production salt")
         if self.ntfy_auth_token and _looks_like_placeholder(self.ntfy_auth_token):
             errors.append("NTFY_AUTH_TOKEN must be replaced")
-        if not self.media_malware_scan_enabled or not self.media_malware_scan_required:
+        if (
+            self.media_uploads_enabled
+            and (not self.media_malware_scan_enabled or not self.media_malware_scan_required)
+        ):
             errors.append("Media malware scanning must be enabled and required")
         if self.previous_public_key and self.previous_public_key == self.public_key:
             errors.append("PREVIOUS_PUBLIC_KEY_PATH must not point at the current public key")

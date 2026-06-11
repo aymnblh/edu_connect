@@ -71,6 +71,34 @@ def test_production_config_accepts_strict_settings(tmp_path):
     assert "ok" in result.stdout
 
 
+def test_production_config_accepts_uploads_disabled_without_scanner(tmp_path):
+    result = _import_config(
+        _production_env(
+            tmp_path,
+            MEDIA_UPLOADS_ENABLED="false",
+            MEDIA_MALWARE_SCAN_ENABLED="false",
+            MEDIA_MALWARE_SCAN_REQUIRED="false",
+        )
+    )
+
+    assert result.returncode == 0
+    assert "ok" in result.stdout
+
+
+def test_production_config_rejects_uploads_enabled_without_required_scanner(tmp_path):
+    result = _import_config(
+        _production_env(
+            tmp_path,
+            MEDIA_UPLOADS_ENABLED="true",
+            MEDIA_MALWARE_SCAN_ENABLED="false",
+            MEDIA_MALWARE_SCAN_REQUIRED="false",
+        )
+    )
+
+    assert result.returncode != 0
+    assert "Media malware scanning" in result.stderr
+
+
 def test_production_config_rejects_wildcard_cors(tmp_path):
     result = _import_config(_production_env(tmp_path, CORS_ORIGINS="*"))
 

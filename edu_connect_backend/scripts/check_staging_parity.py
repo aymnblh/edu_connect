@@ -17,6 +17,7 @@ SAME_VALUE_KEYS = {
     "SECURITY_ALERT_WINDOW_SECONDS",
     "SECURITY_ALERT_COOLDOWN_SECONDS",
     "CREATE_TABLES_ON_STARTUP",
+    "MEDIA_UPLOADS_ENABLED",
     "MEDIA_STORAGE_PATH",
     "MEDIA_MAX_UPLOAD_BYTES",
     "MEDIA_MALWARE_SCAN_ENABLED",
@@ -55,6 +56,12 @@ def _is_placeholder(value: str) -> bool:
     return bool(PLACEHOLDER_RE.search(value))
 
 
+def _with_defaults(values: dict[str, str]) -> dict[str, str]:
+    resolved = dict(values)
+    resolved.setdefault("MEDIA_UPLOADS_ENABLED", "true")
+    return resolved
+
+
 def validate(
     production_env: Path,
     staging_env: Path,
@@ -67,8 +74,8 @@ def validate(
     if not staging_env.exists():
         return [f"Missing staging env file: {staging_env}"]
 
-    prod = env_values(production_env)
-    staging = env_values(staging_env)
+    prod = _with_defaults(env_values(production_env))
+    staging = _with_defaults(env_values(staging_env))
 
     if prod.get("APP_ENV") != "production":
         failures.append("Production env must set APP_ENV=production.")

@@ -60,7 +60,7 @@ app.include_router(api_router)
 
 @app.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "ok", "environment": settings.app_env, "version": app.version}
 
 
 def _db_pool_snapshot() -> dict[str, int | None]:

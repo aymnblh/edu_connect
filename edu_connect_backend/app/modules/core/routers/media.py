@@ -251,6 +251,9 @@ async def upload_attachment(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if not settings.media_uploads_enabled:
+        raise HTTPException(status_code=503, detail="File uploads are disabled for this deployment.")
+
     normalized_type = parent_type.strip().lower()
     school_id = await _assert_parent_access(normalized_type, parent_id, current_user, db, write=True)
     content = await _read_upload(file)
