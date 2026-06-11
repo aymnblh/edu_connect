@@ -14,9 +14,14 @@
     "test:secrets": "node scripts/check-built-secrets.mjs",
     "test:workspace": "node scripts/test-workspace-logic.mjs",
     "test:preview": "node scripts/smoke-built-app.mjs",
+    "mobile:sync": "npm run build && npx cap sync",
+    "mobile:ios:add": "npx cap add ios",
+    "mobile:ios": "npm run build && npx cap sync ios && npx cap open ios",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
     "@tanstack/react-query": "^5.100.6",
     "axios": "^1.15.2",
     "lucide-react": "^1.14.0",
@@ -27,6 +32,7 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.0",
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
