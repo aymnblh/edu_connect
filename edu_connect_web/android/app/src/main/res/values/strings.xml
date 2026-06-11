@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Wasel Edu</string>
+    <string name="title_activity_main">Wasel Edu</string>
+    <string name="package_name">dz.waseledu.app</string>
+    <string name="custom_url_scheme">dz.waseledu.app</string>
+</resources>

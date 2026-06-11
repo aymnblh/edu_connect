@@ -17,9 +17,12 @@
     "mobile:sync": "npm run build && npx cap sync",
     "mobile:ios:add": "npx cap add ios",
     "mobile:ios": "npm run build && npx cap sync ios && npx cap open ios",
+    "mobile:android:add": "npx cap add android",
+    "mobile:android": "npm run build && npx cap sync android && npx cap open android",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.0",
     "@capacitor/core": "^8.4.0",
     "@capacitor/ios": "^8.4.0",
     "@tanstack/react-query": "^5.100.6",
