@@ -228,94 +228,91 @@ class ShimmerDashboard extends StatelessWidget {
     return Shimmer.fromColors(
       baseColor: colors.shimmerBase,
       highlightColor: colors.shimmerHighlight,
-      child: Padding(
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header shimmer
-            Container(
-              height: 70,
-              decoration: BoxDecoration(
-                color: colors.shimmerBase,
-                borderRadius: BorderRadius.circular(12),
-              ),
+        children: [
+          // Header shimmer
+          Container(
+            height: 70,
+            decoration: BoxDecoration(
+              color: colors.shimmerBase,
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 16),
-            // 3 KPI cards
-            Row(
-              children: List.generate(
-                3,
-                (index) => Expanded(
-                  child: Container(
-                    margin: EdgeInsetsDirectional.only(
-                      end: index < 2 ? 8 : 0,
-                    ),
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: colors.shimmerBase,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+          ),
+          const SizedBox(height: 16),
+          // 3 KPI cards
+          Row(
+            children: List.generate(
+              3,
+              (index) => Expanded(
+                child: Container(
+                  margin: EdgeInsetsDirectional.only(
+                    end: index < 2 ? 8 : 0,
+                  ),
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: colors.shimmerBase,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            // Chart placeholder
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: colors.shimmerBase,
-                borderRadius: BorderRadius.circular(12),
+          ),
+          const SizedBox(height: 20),
+          // Chart placeholder
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: colors.shimmerBase,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // List items
+          ...List.generate(
+            4,
+            (index) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: colors.shimmerBase,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 14,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: colors.shimmerBase,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          height: 12,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: colors.shimmerBase,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-            // List items
-            ...List.generate(
-              4,
-              (index) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: colors.shimmerBase,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            height: 14,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: colors.shimmerBase,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Container(
-                            height: 12,
-                            width: 100,
-                            decoration: BoxDecoration(
-                              color: colors.shimmerBase,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

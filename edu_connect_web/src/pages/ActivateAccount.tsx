@@ -80,6 +80,7 @@ export default function ActivateAccount() {
         invite_code: normalizedCode,
         password,
         terms_accepted: termsAccepted,
+        remember_device: readRememberDevicePreference(),
       });
 
       const rememberDevice = readRememberDevicePreference();

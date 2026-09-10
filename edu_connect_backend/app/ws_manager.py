@@ -26,6 +26,7 @@ import json
 import logging
 from collections import defaultdict
 from fastapi import WebSocket
+from starlette.websockets import WebSocketState
 import redis.asyncio as redis
 from app.core.config import settings
 
@@ -200,7 +201,8 @@ class ConnectionManager:
     # ── Public API (unchanged interface) ─────────────────────────────────────
 
     async def connect(self, websocket: WebSocket, room_key: str):
-        await websocket.accept()
+        if websocket.application_state != WebSocketState.CONNECTED:
+            await websocket.accept()
         self.rooms[room_key].append(websocket)
 
     def disconnect(self, websocket: WebSocket, room_key: str):

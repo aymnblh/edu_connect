@@ -13,16 +13,19 @@ class AppConstants {
   );
   static const String ntfyBaseUrl = String.fromEnvironment(
     'NTFY_BASE_URL',
-    defaultValue: 'https://ntfy.educonnect.local',
+    defaultValue: '',
   );
   static const String ntfyWsBaseUrl = String.fromEnvironment(
     'NTFY_WS_BASE_URL',
-    defaultValue: 'wss://ntfy.educonnect.local',
+    defaultValue: '',
   );
   static const String appEnv = String.fromEnvironment(
     'APP_ENV',
     defaultValue: 'development',
   );
+
+  static bool get hasNtfyTransport =>
+      ntfyBaseUrl.trim().isNotEmpty && ntfyWsBaseUrl.trim().isNotEmpty;
 
   static const String roleTeacher = 'teacher';
   static const String roleParent = 'parent';

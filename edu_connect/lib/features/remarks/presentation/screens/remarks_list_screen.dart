@@ -112,6 +112,7 @@ class RemarksListScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref, ClassModel cls) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       backgroundColor:
           Theme.of(context).colorScheme.surface.withValues(alpha: 0),

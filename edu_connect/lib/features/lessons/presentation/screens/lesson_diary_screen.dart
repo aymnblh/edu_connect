@@ -102,6 +102,7 @@ class LessonDiaryScreen extends ConsumerWidget {
 
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       backgroundColor:
           Theme.of(context).colorScheme.surface.withValues(alpha: 0),

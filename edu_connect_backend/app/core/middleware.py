@@ -3,8 +3,8 @@ import logging
 from datetime import datetime, timezone
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from jose import jwt, JWTError
 from app.core.config import settings
+from app.core.security import decode_token
 from app.core.rls import set_request_rls_context
 from app.core.security_alerts import record_security_response_if_needed
 from app.db.database import AsyncSessionLocal
@@ -45,10 +45,10 @@ def _try_decode_jwt(request: Request) -> dict | None:
 
     token = auth_header[7:]
     try:
-        payload = jwt.decode(token, settings.public_key, algorithms=["RS256"])
+        payload = decode_token(token)
         request.state.jwt_payload = payload
         return payload
-    except JWTError:
+    except (ValueError, TypeError):
         request.state.jwt_payload = None
         return None
 
@@ -156,11 +156,10 @@ class SchoolActivationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
 
-        # Skip public routes AND WebSocket upgrades (no Authorization header on WS)
+        # WebSockets authenticate during their handshake/message exchange.
         if (
             path in _PUBLIC_EXACT
             or any(path.startswith(p) for p in _PUBLIC_PREFIXES)
-            or request.headers.get("upgrade", "").lower() == "websocket"
         ):
             return await call_next(request)
 
@@ -219,3 +218,15 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 system_admin_context.reset(admin_token)
 
         return await call_next(request)
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        if request.url.scheme == "https" or settings.is_production:
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        return response

@@ -11,17 +11,13 @@ class PlatformRepository {
 
   PlatformRepository(this._dio);
 
-  Future<List<SchoolModel>> getSchools(String secret) async {
-    final response = await _dio.get(
-      '/platform/schools',
-      options: Options(headers: {'X-Platform-Secret': secret}),
-    );
+  Future<List<SchoolModel>> getSchools() async {
+    final response = await _dio.get('/platform/schools');
     return (response.data as List).map((x) => SchoolModel.fromJson(x)).toList();
   }
 
   Future<void> addSubscriptionPayment({
     required String schoolId,
-    required String secret,
     required double amount,
     required int monthsAdded,
     required String paymentMethod,
@@ -29,7 +25,6 @@ class PlatformRepository {
   }) async {
     await _dio.post(
       '/platform/schools/$schoolId/subscription',
-      options: Options(headers: {'X-Platform-Secret': secret}),
       data: {
         'amount': amount,
         'months_added': monthsAdded,

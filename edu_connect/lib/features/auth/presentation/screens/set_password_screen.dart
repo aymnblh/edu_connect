@@ -18,6 +18,7 @@ class _SetPasswordScreenState extends ConsumerState<SetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _passwordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
+  final _inviteCodeCtrl = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _acceptedTerms = false;
@@ -26,6 +27,7 @@ class _SetPasswordScreenState extends ConsumerState<SetPasswordScreen> {
   void dispose() {
     _passwordCtrl.dispose();
     _confirmPasswordCtrl.dispose();
+    _inviteCodeCtrl.dispose();
     super.dispose();
   }
 
@@ -49,6 +51,7 @@ class _SetPasswordScreenState extends ConsumerState<SetPasswordScreen> {
       final repo = ref.read(authRepositoryProvider);
       await repo.setPassword(
         email: widget.email,
+        inviteCode: _inviteCodeCtrl.text.trim(),
         password: _passwordCtrl.text,
         termsAccepted: _acceptedTerms,
       );
@@ -122,6 +125,18 @@ class _SetPasswordScreenState extends ConsumerState<SetPasswordScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
+                    TextFormField(
+                      controller: _inviteCodeCtrl,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: const InputDecoration(
+                        labelText: 'Code d\'activation',
+                        prefixIcon: Icon(Icons.key_outlined),
+                      ),
+                      validator: (value) => (value == null || value.trim().length < 16)
+                          ? 'Code d\'activation invalide'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
                     Semantics(
                       label: text.newPasswordLabel,
                       textField: true,

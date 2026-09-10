@@ -53,10 +53,10 @@ class AnalyticsOverview(BaseModel):
     absence_rate: float
 
 class SchoolRegistration(BaseModel):
-    school_name: str
+    school_name: str = Field(min_length=2, max_length=255)
     admin_email: EmailStr
-    admin_full_name: str
-    admin_password: str
+    admin_full_name: str = Field(min_length=2, max_length=255)
+    admin_password: str = Field(min_length=8, max_length=128)
     terms_accepted: bool = False
 
 class SchoolCreate(BaseModel):

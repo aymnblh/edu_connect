@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 import 'dart:async';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../../core/services/app_secure_storage.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../models/message_model.dart';
 
@@ -25,11 +25,11 @@ class ChatRepository {
 
   /// Connect to WebSocket room for real-time messages
   Future<void> connect(String classId) async {
-    const storage = FlutterSecureStorage();
-    final token = await storage.read(key: 'access_token');
-    final uri = Uri.parse('${AppConstants.wsBaseUrl}/classes/$classId/ws')
-        .replace(queryParameters: {'token': token ?? ''});
+    final token = await appSecureStorage.read(key: 'access_token');
+    await _channel?.sink.close();
+    final uri = Uri.parse('${AppConstants.wsBaseUrl}/classes/$classId/ws');
     _channel = WebSocketChannel.connect(uri);
+    _channel!.sink.add(jsonEncode({'type': 'auth', 'token': token ?? ''}));
 
     _channel!.stream.listen(
       (raw) {
@@ -50,15 +50,12 @@ class ChatRepository {
     );
   }
 
-  /// Send a message via WebSocket (includes auth token)
+  /// Send a message via WebSocket after the connection was authenticated.
   Future<void> sendMessage({
     required String content,
     bool isAnnouncement = false,
   }) async {
-    const storage = FlutterSecureStorage();
-    final token = await storage.read(key: 'access_token');
     _channel?.sink.add(jsonEncode({
-      'token': token ?? '',
       'content': content,
       'is_announcement': isAnnouncement,
     }));

@@ -12,6 +12,7 @@ from app.db.database import get_db
 from app.models import Attendance, AttendanceStatus, User, Student, StudentParent
 from app.schemas import AttendanceCreate, AttendanceOut, JustifyRequest
 from app.core.security import get_current_user
+from app.utils.notifications import create_notification
 
 router = APIRouter(prefix="/classes/{class_id}/attendance", tags=["Attendance"])
 
@@ -37,6 +38,7 @@ async def mark_attendance(
     doc_id = f"{payload.student_id}_{today.isoformat()}"
     existing = await db.execute(select(Attendance).where(Attendance.id == doc_id))
     existing_record = existing.scalar_one_or_none()
+    previous_status = existing_record.status if existing_record else None
     
     record = Attendance(
         id=doc_id,
@@ -52,6 +54,33 @@ async def mark_attendance(
         existing_record.student_name = student.full_name
     else:
         db.add(record)
+
+    # Notify each linked parent only when a student becomes absent or late.
+    if payload.status in {AttendanceStatus.absent, AttendanceStatus.late} and previous_status != payload.status:
+        parents_result = await db.execute(
+            select(User)
+            .join(StudentParent, StudentParent.parent_id == User.id)
+            .where(
+                StudentParent.student_id == student.id,
+                StudentParent.school_id == cls.school_id,
+                User.school_id == cls.school_id,
+            )
+        )
+        title = "Absence signalee" if payload.status == AttendanceStatus.absent else "Retard signale"
+        content = (
+            f"{student.full_name} a ete marque(e) {'absent(e)' if payload.status == AttendanceStatus.absent else 'en retard'} "
+            f"le {today.strftime('%d/%m/%Y')}."
+        )
+        for parent in parents_result.scalars().all():
+            await create_notification(
+                db,
+                user_id=parent.id,
+                title=title,
+                content=content,
+                type="WARNING",
+                school_id=cls.school_id,
+            )
+
     await db.commit()
     result = await db.execute(
         select(Attendance).where(Attendance.id == doc_id).options(selectinload(Attendance.student))

@@ -21,7 +21,7 @@ function preferredRememberDevice(): boolean {
 }
 
 export function getCurrentSessionPersistence(): boolean {
-  if (localStorage.getItem('access_token') || localStorage.getItem('refresh_token')) {
+  if (localStorage.getItem('access_token')) {
     return true;
   }
   if (sessionStorage.getItem('access_token') || sessionStorage.getItem('refresh_token')) {
@@ -39,6 +39,10 @@ export function readRememberDevicePreference(): boolean {
 }
 
 export function readWorkspaceSessionItem(key: WorkspaceSessionKey): string | null {
+  if (key === 'refresh_token') {
+    // Persistent refresh tokens live in the HttpOnly backend cookie.
+    return sessionStorage.getItem(key);
+  }
   return localStorage.getItem(key) ?? sessionStorage.getItem(key);
 }
 
@@ -47,7 +51,7 @@ export function storeWorkspaceSessionItem(
   value: string,
   rememberDevice = getCurrentSessionPersistence(),
 ): void {
-  const targetStorage = rememberDevice ? localStorage : sessionStorage;
+  const targetStorage = rememberDevice && key !== 'refresh_token' ? localStorage : sessionStorage;
   const otherStorage = rememberDevice ? sessionStorage : localStorage;
   otherStorage.removeItem(key);
   targetStorage.setItem(key, value);

@@ -9,7 +9,13 @@ Required keys:
 - `APP_ENV`: use `production`
 - `API_BASE_URL`: stable HTTPS API domain
 - `WS_BASE_URL`: stable WSS API WebSocket domain
-- `NTFY_BASE_URL`: stable HTTPS ntfy domain
-- `NTFY_WS_BASE_URL`: stable WSS ntfy WebSocket domain
+- `NTFY_BASE_URL`: optional stable HTTPS ntfy domain
+- `NTFY_WS_BASE_URL`: optional stable WSS ntfy WebSocket domain
 
-Production builds reject localhost, `.local`, placeholder domains, and temporary Cloudflare tunnel domains at startup.
+The two ntfy values must either both be configured or both be empty. When they are empty, the app keeps in-app notifications and foreground polling without opening an ntfy WebSocket.
+
+Production builds reject localhost, `.local`, placeholder domains, temporary Cloudflare tunnel domains, and non-production `APP_ENV` values. Validate a file before release with:
+
+```text
+dart run tool/validate_mobile_config.dart config/production.json
+```

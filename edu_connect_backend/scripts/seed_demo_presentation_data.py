@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import random
 import sys
 import uuid
@@ -54,7 +55,7 @@ from app.models import (
 
 DEMO_SCHOOL_NAME = "EduConnect Demo Academy"
 DEMO_DOMAIN = "demo.educonnect.dz"
-DEMO_PASSWORD = "Demo2026!"
+DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "").strip()
 TERMS_VERSION = "demo-privacy-terms-2026-05-24"
 
 
@@ -76,8 +77,10 @@ def demo_id(prefix: str) -> str:
 
 
 def assert_safe_environment(force: bool) -> None:
-    if settings.is_production and not force:
-        raise RuntimeError("Refusing to seed demo data while APP_ENV is production. Pass --force only for an isolated demo database.")
+    if settings.is_production:
+        raise RuntimeError("Refusing to seed demo data while APP_ENV is production.")
+    if not DEMO_PASSWORD:
+        raise RuntimeError("DEMO_PASSWORD must be set explicitly for local or staging demo seeding.")
 
     db_url = settings.database_url.lower()
     local_markers = ("localhost", "127.0.0.1", "@db:", "host.docker.internal")
@@ -168,13 +171,13 @@ def render_accounts(accounts: list[DemoAccount], *, school_id: str) -> str:
         "",
         f"- School: {DEMO_SCHOOL_NAME}",
         f"- School ID: {school_id}",
-        f"- Password for all accounts: `{DEMO_PASSWORD}`",
+        "- Password: the value configured in the local DEMO_PASSWORD environment variable.",
         "",
-        "| Role | Email | Password | Notes |",
-        "| --- | --- | --- | --- |",
+        "| Role | Email | Notes |",
+        "| --- | --- | --- |",
     ]
     for account in accounts:
-        lines.append(f"| {account.role} | `{account.email}` | `{account.password}` | {account.notes} |")
+        lines.append(f"| {account.role} | `{account.email}` | {account.notes} |")
     lines.extend(
         [
             "",

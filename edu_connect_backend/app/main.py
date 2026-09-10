@@ -1,5 +1,7 @@
 ﻿from contextlib import asynccontextmanager
 
+import secrets
+
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -8,7 +10,12 @@ from sqlalchemy import text
 from app.db.database import engine, Base
 from app.api.router import api_router
 from app.core.config import settings
-from app.core.middleware import TenantMiddleware, AuditMiddleware, SchoolActivationMiddleware
+from app.core.middleware import (
+    TenantMiddleware,
+    AuditMiddleware,
+    SchoolActivationMiddleware,
+    SecurityHeadersMiddleware,
+)
 from app.core.observability import ObservabilityMiddleware, metrics
 from app.ws_manager import manager
 
@@ -24,7 +31,7 @@ async def lifespan(app: FastAPI):
         report = await seed_demo_data(
             reset_demo=settings.demo_seed_reset_on_startup,
             accounts_output=None,
-            force=True,
+            force=False,
         )
         print(report)
     await manager.startup()
@@ -44,12 +51,19 @@ app = FastAPI(
 app.add_middleware(AuditMiddleware)
 app.add_middleware(SchoolActivationMiddleware)
 app.add_middleware(TenantMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-Device-Id",
+        "X-Device-Platform",
+        "X-Workspace-Role",
+    ],
 )
 app.add_middleware(ObservabilityMiddleware)
 
@@ -116,6 +130,6 @@ async def readiness():
 
 @app.get("/metrics", tags=["Operations"], response_class=PlainTextResponse)
 async def prometheus_metrics(x_platform_secret: str = Header("", alias="X-Platform-Secret")):
-    if x_platform_secret != settings.platform_secret:
+    if not secrets.compare_digest(x_platform_secret, settings.platform_secret):
         raise HTTPException(status_code=403, detail="Invalid platform secret")
     return PlainTextResponse(metrics.render_prometheus(db_pool=_db_pool_snapshot()))

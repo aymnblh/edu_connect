@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../config/runtime_config_validator.dart';
 import '../constants/app_constants.dart';
 import '../utils/device_info.dart';
+import 'app_secure_storage.dart';
 
 /// Singleton Dio client that injects Bearer token and Device Audit headers.
 class ApiService {
@@ -12,9 +13,7 @@ class ApiService {
   static final ValueNotifier<int> unauthorizedEvents = ValueNotifier<int>(0);
 
   late final Dio _dio;
-  final _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
+  final _storage = appSecureStorage;
   static const Duration _preRequestTimeout = Duration(seconds: 2);
 
   void initialize() {
@@ -71,67 +70,13 @@ class ApiService {
   static void _validateRuntimeConfig() {
     if (!kReleaseMode && AppConstants.appEnv != 'production') return;
 
-    _validateEndpoint(
-      name: 'API_BASE_URL',
-      value: AppConstants.apiBaseUrl,
-      allowedSchemes: const {'https'},
+    RuntimeConfigValidator.validateProduction(
+      appEnv: AppConstants.appEnv,
+      apiBaseUrl: AppConstants.apiBaseUrl,
+      wsBaseUrl: AppConstants.wsBaseUrl,
+      ntfyBaseUrl: AppConstants.ntfyBaseUrl,
+      ntfyWsBaseUrl: AppConstants.ntfyWsBaseUrl,
     );
-    _validateEndpoint(
-      name: 'WS_BASE_URL',
-      value: AppConstants.wsBaseUrl,
-      allowedSchemes: const {'wss'},
-    );
-    _validateEndpoint(
-      name: 'NTFY_BASE_URL',
-      value: AppConstants.ntfyBaseUrl,
-      allowedSchemes: const {'https'},
-    );
-    _validateEndpoint(
-      name: 'NTFY_WS_BASE_URL',
-      value: AppConstants.ntfyWsBaseUrl,
-      allowedSchemes: const {'wss'},
-    );
-  }
-
-  static void _validateEndpoint({
-    required String name,
-    required String value,
-    required Set<String> allowedSchemes,
-  }) {
-    final uri = Uri.tryParse(value);
-    if (uri == null ||
-        uri.host.isEmpty ||
-        !allowedSchemes.contains(uri.scheme)) {
-      throw StateError(
-        '$name must be a valid ${allowedSchemes.join('/')} URL for production builds.',
-      );
-    }
-
-    final host = uri.host.toLowerCase();
-    final forbiddenHosts = <String>{
-      'localhost',
-      '127.0.0.1',
-      '10.0.2.2',
-      '0.0.0.0',
-    };
-    final forbiddenSuffixes = <String>{
-      '.local',
-      '.localhost',
-      '.example',
-      '.test',
-      '.invalid',
-      '.trycloudflare.com',
-    };
-
-    final isForbiddenHost = forbiddenHosts.contains(host) ||
-        forbiddenSuffixes.any((suffix) => host.endsWith(suffix));
-
-    if (isForbiddenHost) {
-      throw StateError(
-        '$name points to a local, placeholder, or temporary tunnel host. '
-        'Use a stable production domain.',
-      );
-    }
   }
 
   /// Returns true if [token] looks like a valid JWT:

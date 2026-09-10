@@ -25,6 +25,7 @@ if ((Get-Content "android/key.properties" -Raw) -match "REPLACE_WITH_") {
 
 Write-Host "[INFO] Using Dart defines: $DartDefineFile"
 flutter pub get
+dart run tool/validate_mobile_config.dart $DartDefineFile
 flutter analyze
 flutter build appbundle --release --no-pub --dart-define-from-file="$DartDefineFile"
 

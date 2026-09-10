@@ -124,7 +124,7 @@ class SuperAdminDashboardScreen extends ConsumerWidget {
     }
   }
 
-  void _showPaymentDialog(
+  Future<void> _showPaymentDialog(
     BuildContext context,
     WidgetRef ref,
     Map<String, dynamic> school,
@@ -133,9 +133,10 @@ class SuperAdminDashboardScreen extends ConsumerWidget {
     final monthsController = TextEditingController(text: '12');
     final text = _SuperAdminText.of(context);
 
-    showDialog(
+    return showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
+        scrollable: true,
         title: Text(text.paymentTitle(school['name']?.toString())),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -198,7 +199,10 @@ class SuperAdminDashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ).whenComplete(() {
+      amountController.dispose();
+      monthsController.dispose();
+    });
   }
 }
 
@@ -227,6 +231,46 @@ class _Header extends StatelessWidget {
       0,
       (sum, s) => sum + _asInt(s['class_count']),
     );
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final metricHeight = (120 + ((textScale - 1).clamp(0, 1) * 190)).toDouble();
+    final metrics = <Widget>[
+      _MetricCard(
+        icon: Icons.account_balance_outlined,
+        label: text.schools,
+        value: '$total',
+        color: colors.subtitleText,
+      ),
+      _MetricCard(
+        icon: Icons.verified_outlined,
+        label: text.activeSchools,
+        value: '$active',
+        color: colors.successGreen,
+      ),
+      _MetricCard(
+        icon: Icons.pending_actions_outlined,
+        label: text.pending,
+        value: '$pending',
+        color: colors.warningAmber,
+      ),
+      _MetricCard(
+        icon: Icons.groups_2_outlined,
+        label: text.users,
+        value: '$users',
+        color: colors.subtitleText,
+      ),
+      _MetricCard(
+        icon: Icons.school_outlined,
+        label: text.students,
+        value: '$students',
+        color: colors.subtitleText,
+      ),
+      _MetricCard(
+        icon: Icons.class_outlined,
+        label: text.classes,
+        value: '$classes',
+        color: colors.subtitleText,
+      ),
+    ];
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
@@ -247,51 +291,17 @@ class _Header extends StatelessWidget {
             style: TextStyle(color: colors.subtitleText),
           ),
           const SizedBox(height: 18),
-          GridView.count(
-            crossAxisCount: MediaQuery.sizeOf(context).width >= 720 ? 4 : 2,
+          GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 1.55,
-            children: [
-              _MetricCard(
-                icon: Icons.account_balance_outlined,
-                label: text.schools,
-                value: '$total',
-                color: colors.subtitleText,
-              ),
-              _MetricCard(
-                icon: Icons.verified_outlined,
-                label: text.activeSchools,
-                value: '$active',
-                color: colors.successGreen,
-              ),
-              _MetricCard(
-                icon: Icons.pending_actions_outlined,
-                label: text.pending,
-                value: '$pending',
-                color: colors.warningAmber,
-              ),
-              _MetricCard(
-                icon: Icons.groups_2_outlined,
-                label: text.users,
-                value: '$users',
-                color: colors.subtitleText,
-              ),
-              _MetricCard(
-                icon: Icons.school_outlined,
-                label: text.students,
-                value: '$students',
-                color: colors.subtitleText,
-              ),
-              _MetricCard(
-                icon: Icons.class_outlined,
-                label: text.classes,
-                value: '$classes',
-                color: colors.subtitleText,
-              ),
-            ],
+            itemCount: metrics.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: MediaQuery.sizeOf(context).width >= 720 ? 4 : 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              mainAxisExtent: metricHeight,
+            ),
+            itemBuilder: (context, index) => metrics[index],
           ),
           const SizedBox(height: 20),
           Text(
@@ -352,7 +362,7 @@ class _MetricCard extends StatelessWidget {
                   ),
                   Text(
                     label,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: colors.mutedText,

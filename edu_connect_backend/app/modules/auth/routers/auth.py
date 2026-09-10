@@ -1,10 +1,10 @@
 import hashlib
 import uuid
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, Body, Request
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status, Body, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, func, select, update
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from app.core.audit import record_audit_event
 from app.core.rate_limit import check_rate_limit
@@ -45,11 +45,13 @@ def mark_terms_accepted(user: User):
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(max_length=128)
+    remember_device: bool = False
 
 class SetPasswordRequest(BaseModel):
     email: EmailStr
-    password: str
+    invite_code: str = Field(min_length=16, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
     terms_accepted: bool = False
 
 class TokenResponse(BaseModel):
@@ -68,6 +70,26 @@ class SessionOut(BaseModel):
     expires_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+def _set_refresh_cookie(response: Response | None, refresh_token: str, *, persistent: bool) -> None:
+    if response is None:
+        return
+    response.set_cookie(
+        key="educonnect_refresh",
+        value=refresh_token,
+        max_age=settings.refresh_token_expire_days * 86400 if persistent else None,
+        httponly=True,
+        secure=settings.is_production,
+        samesite="none" if settings.is_production else "lax",
+        path="/auth",
+    )
+
+
+def _clear_refresh_cookie(response: Response | None) -> None:
+    if response is None:
+        return
+    response.delete_cookie(key="educonnect_refresh", path="/auth")
 
 
 def _session_metadata(request: Request) -> dict:
@@ -129,6 +151,7 @@ async def _audit_auth(
 async def login(
     req: LoginRequest,
     request: Request,
+    response: Response = None,
     db: AsyncSession = Depends(get_db),
 ):
     ip_address = getattr(request.state, "ip_address", "unknown")
@@ -231,19 +254,46 @@ async def login(
     await _audit_auth(db, request, action="auth.login_success", user=user)
     await db.commit()
 
+    if req.remember_device:
+        _set_refresh_cookie(response, refresh_token, persistent=True)
+    else:
+        _clear_refresh_cookie(response)
+
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 @router.post("/set-password")
-async def set_password(req: SetPasswordRequest, db: AsyncSession = Depends(get_db)):
+async def set_password(
+    req: SetPasswordRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
     """Initial password setup for migrated or invited users."""
     require_terms_accepted(req.terms_accepted)
 
-    await set_auth_lookup_email(db, str(req.email).lower())
-    result = await db.execute(select(User).where(User.email == req.email))
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    await check_rate_limit(
+        f"set_password:{ip_address}:{hashlib.sha256(req.invite_code.encode()).hexdigest()}",
+        limit=5,
+        window_seconds=900,
+    )
+
+    await set_auth_invite_code(db, req.invite_code)
+    result = await db.execute(
+        select(User)
+        .where(
+            User.email == req.email,
+            User.invite_code == req.invite_code,
+            User.password_hash.is_(None),
+        )
+        .with_for_update()
+    )
     user = result.scalar_one_or_none()
 
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé.")
+
+    if user.invite_expires_at and user.invite_expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Code d'activation expire.")
 
     if user.password_hash is not None:
         raise HTTPException(
@@ -259,6 +309,8 @@ async def set_password(req: SetPasswordRequest, db: AsyncSession = Depends(get_d
 
     # Set password
     user.password_hash = get_password_hash(req.password)
+    user.invite_code = None
+    user.invite_expires_at = None
     mark_terms_accepted(user)
     await db.commit()
 
@@ -267,10 +319,15 @@ async def set_password(req: SetPasswordRequest, db: AsyncSession = Depends(get_d
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(
     request: Request,
-    refresh_token: str = Body(..., embed=True),
+    response: Response = None,
+    refresh_token: str | None = Body(None, embed=True),
+    refresh_cookie: str | None = Cookie(None, alias="educonnect_refresh"),
     db: AsyncSession = Depends(get_db),
 ):
     """Strict rotation: invalidate old, issue new."""
+    refresh_token = refresh_token or refresh_cookie
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token is required.")
     try:
         new_access, new_refresh = await rotate_refresh_token(db, refresh_token, _session_metadata(request))
     except HTTPException as exc:
@@ -283,15 +340,23 @@ async def refresh(
         )
         await db.commit()
         raise
+    if refresh_cookie:
+        _set_refresh_cookie(response, new_refresh, persistent=True)
     return {"access_token": new_access, "refresh_token": new_refresh}
 
 @router.post("/logout")
 async def logout(
     request: Request,
-    refresh_token: str = Body(..., embed=True),
+    response: Response = None,
+    refresh_token: str | None = Body(None, embed=True),
+    refresh_cookie: str | None = Cookie(None, alias="educonnect_refresh"),
     db: AsyncSession = Depends(get_db),
 ):
     """Invalidate a specific refresh token."""
+    refresh_token = refresh_token or refresh_cookie
+    if not refresh_token:
+        _clear_refresh_cookie(response)
+        return {"message": "Logged out."}
     token_hash = await set_refresh_token_lookup(db, refresh_token)
     token_res = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
     token = token_res.scalar_one_or_none()
@@ -304,6 +369,7 @@ async def logout(
     if user and user.role == UserRole.system_admin:
         await set_request_rls_context(db, is_system_admin=True)
     await db.execute(delete(RefreshToken).where(RefreshToken.token_hash == token_hash))
+    _clear_refresh_cookie(response)
     await _audit_auth(
         db,
         request,
@@ -371,9 +437,9 @@ async def revoke_session(
 
 
 class VerifyCodeRequest(BaseModel):
-    code: str | None = None
-    student_id: str | None = None
-    pin: str | None = None
+    code: str | None = Field(default=None, min_length=8, max_length=255)
+    student_id: str | None = Field(default=None, min_length=1, max_length=20)
+    pin: str | None = Field(default=None, pattern=r"^\d{6}$")
 
 class VerifyCodeResponse(BaseModel):
     type: str
@@ -383,8 +449,20 @@ class VerifyCodeResponse(BaseModel):
     role: str | None = None
 
 @router.post("/verify-code", response_model=VerifyCodeResponse)
-async def verify_code(req: VerifyCodeRequest, db: AsyncSession = Depends(get_db)):
+async def verify_code(
+    req: VerifyCodeRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
     from app.models import PendingLink, Student
+
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    lookup_value = req.code or f"{req.student_id}:{req.pin}"
+    await check_rate_limit(
+        f"verify_code:{ip_address}:{hashlib.sha256(lookup_value.encode()).hexdigest()}",
+        limit=8,
+        window_seconds=900,
+    )
     
     # 1. Is it a QR Token or Invite Code?
     if req.code:
@@ -398,6 +476,8 @@ async def verify_code(req: VerifyCodeRequest, db: AsyncSession = Depends(get_db)
         )
         user = user_res.scalar_one_or_none()
         if user:
+            if user.invite_expires_at and user.invite_expires_at < datetime.now(timezone.utc):
+                raise HTTPException(status_code=400, detail="Code d'invitation expire.")
             invite_type = "teacher_invite" if user.role == UserRole.teacher else "staff_invite"
             return VerifyCodeResponse(
                 type=invite_type,
@@ -449,22 +529,32 @@ async def verify_code(req: VerifyCodeRequest, db: AsyncSession = Depends(get_db)
     raise HTTPException(status_code=404, detail="Code invalide ou expiré.")
 
 class ParentRegisterRequest(BaseModel):
-    full_name: str
+    full_name: str = Field(min_length=2, max_length=255)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=128)
     terms_accepted: bool = False
-    code: str | None = None        # QR Token
-    student_id: str | None = None
-    pin: str | None = None
+    code: str | None = Field(default=None, min_length=16, max_length=255)  # QR Token
+    student_id: str | None = Field(default=None, min_length=1, max_length=20)
+    pin: str | None = Field(default=None, pattern=r"^\d{6}$")
+    remember_device: bool = False
 
 @router.post("/register-parent-code", response_model=TokenResponse)
 async def register_parent_code(
     req: ParentRegisterRequest,
     request: Request,
+    response: Response = None,
     db: AsyncSession = Depends(get_db),
 ):
-    from app.models import PendingLink, Student, StudentParent
+    from app.models import PendingLink, School, Student, StudentParent
     require_terms_accepted(req.terms_accepted)
+
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    lookup_value = req.code or f"{req.student_id}:{req.pin}"
+    await check_rate_limit(
+        f"register_parent_code:{ip_address}:{hashlib.sha256(lookup_value.encode()).hexdigest()}",
+        limit=5,
+        window_seconds=900,
+    )
     
     # Verify Email is not taken
     await set_auth_lookup_email(db, str(req.email).lower())
@@ -496,6 +586,7 @@ async def register_parent_code(
                 Student.school_id == pending_link.school_id,
                 Student.id == pending_link.student_id,
             )
+            .with_for_update()
         )
         student = student_res.scalar_one_or_none()
         if not student or student.archived_at:
@@ -509,6 +600,7 @@ async def register_parent_code(
                 Student.linking_pin == req.pin,
                 Student.archived_at.is_(None),
             )
+            .with_for_update()
         )
         student = student_res.scalar_one_or_none()
         if not student:
@@ -517,6 +609,17 @@ async def register_parent_code(
         await set_request_rls_context(db, school_id=school_id)
     else:
         raise HTTPException(status_code=400, detail="Méthode d'identification manquante.")
+
+    school = await db.get(School, school_id)
+    max_parents = int((school.tenant_config or {}).get("max_parents_per_student", 2)) if school else 2
+    parent_count = await db.execute(
+        select(func.count(StudentParent.parent_id)).where(
+            StudentParent.school_id == school_id,
+            StudentParent.student_id == student.id,
+        )
+    )
+    if (parent_count.scalar() or 0) >= max_parents:
+        raise HTTPException(status_code=409, detail="Le nombre maximal de parents lies est atteint.")
 
     # Create Parent User
     new_user = User(
@@ -566,22 +669,34 @@ async def register_parent_code(
         metadata={"student_id": student.id},
     )
     await db.commit()
+
+    if req.remember_device:
+        _set_refresh_cookie(response, refresh_token, persistent=True)
     
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 
 class TeacherCompleteRequest(BaseModel):
-    invite_code: str
-    password: str
+    invite_code: str = Field(min_length=16, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
     terms_accepted: bool = False
+    remember_device: bool = False
 
 
 async def _complete_staff_invite_code(
     req: TeacherCompleteRequest,
     request: Request,
+    response: Response,
     db: AsyncSession,
 ) -> dict[str, str]:
     require_terms_accepted(req.terms_accepted)
+
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    await check_rate_limit(
+        f"complete_staff_code:{ip_address}:{hashlib.sha256(req.invite_code.encode()).hexdigest()}",
+        limit=5,
+        window_seconds=900,
+    )
 
     await set_auth_invite_code(db, req.invite_code)
     user_res = await db.execute(
@@ -589,17 +704,21 @@ async def _complete_staff_invite_code(
             User.invite_code == req.invite_code,
             User.role.in_([UserRole.teacher, UserRole.secretary]),
         )
+        .with_for_update()
     )
     user = user_res.scalar_one_or_none()
     
     if not user:
         raise HTTPException(status_code=404, detail="Code d'invitation invalide.")
+    if user.invite_expires_at and user.invite_expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Code d'invitation expire.")
 
     await set_request_rls_context(db, school_id=user.school_id)
         
     # Update user password and clear invite code
     user.password_hash = get_password_hash(req.password)
     user.invite_code = None
+    user.invite_expires_at = None
     mark_terms_accepted(user)
     
     await db.commit()
@@ -622,6 +741,9 @@ async def _complete_staff_invite_code(
     action = "auth.teacher_completed" if user.role == UserRole.teacher else "auth.secretary_completed"
     await _audit_auth(db, request, action=action, user=user)
     await db.commit()
+
+    if req.remember_device:
+        _set_refresh_cookie(response, refresh_token, persistent=True)
     
     return {"access_token": access_token, "refresh_token": refresh_token}
 
@@ -630,15 +752,17 @@ async def _complete_staff_invite_code(
 async def complete_teacher_code(
     req: TeacherCompleteRequest,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ):
-    return await _complete_staff_invite_code(req, request, db)
+    return await _complete_staff_invite_code(req, request, response, db)
 
 
 @router.post("/complete-staff-code", response_model=TokenResponse)
 async def complete_staff_code(
     req: TeacherCompleteRequest,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ):
-    return await _complete_staff_invite_code(req, request, db)
+    return await _complete_staff_invite_code(req, request, response, db)

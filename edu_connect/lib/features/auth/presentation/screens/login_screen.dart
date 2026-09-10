@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,8 +31,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _login() async {
+    if (_isLoading) return;
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _isLoading = true);
 
     try {
@@ -39,6 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             email: _emailCtrl.text.trim(),
             password: _passwordCtrl.text,
           );
+      TextInput.finishAutofillContext();
     } on DioException catch (e) {
       if (e.response?.statusCode == 403) {
         final data = e.response?.data;
@@ -228,90 +232,93 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ).animate().fadeIn(delay: 150.ms),
                       const SizedBox(height: 40),
 
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: _emailCtrl,
-                              keyboardType: TextInputType.emailAddress,
-                              textInputAction: TextInputAction.next,
-                              autocorrect: false,
-                              autofillHints: const [AutofillHints.email],
-                              validator: Validators.email,
-                              decoration: InputDecoration(
-                                labelText: l10n.email,
-                                prefixIcon: const Icon(Icons.email_outlined),
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(delay: 200.ms)
-                                .slideY(begin: 0.3),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _passwordCtrl,
-                              obscureText: _obscurePassword,
-                              textInputAction: TextInputAction.done,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              autofillHints: const [AutofillHints.password],
-                              onFieldSubmitted: (_) => _login(),
-                              validator: Validators.password,
-                              decoration: InputDecoration(
-                                labelText: l10n.password,
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                suffixIcon: IconButton(
-                                  icon: Icon(_obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined),
-                                  tooltip: _passwordVisibilityTooltip(context),
-                                  onPressed: () => setState(() =>
-                                      _obscurePassword = !_obscurePassword),
+                      AutofillGroup(
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: _emailCtrl,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                autocorrect: false,
+                                autofillHints: const [AutofillHints.email],
+                                validator: Validators.email,
+                                decoration: InputDecoration(
+                                  labelText: l10n.email,
+                                  prefixIcon: const Icon(Icons.email_outlined),
                                 ),
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(delay: 250.ms)
-                                .slideY(begin: 0.3),
-                            const SizedBox(height: 28),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _login,
-                                child: _isLoading
-                                    ? SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.5,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  colorScheme.onPrimary),
-                                        ),
-                                      )
-                                    : Text(l10n.login),
-                              ),
-                            ).animate().fadeIn(delay: 300.ms),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: () => context.push('/login-code'),
-                                icon: Icon(Icons.qr_code_scanner,
-                                    color: primaryColor),
-                                label: Text(
-                                  l10n.loginWithCodeQr,
-                                  style: TextStyle(
-                                    color: primaryColor,
-                                    fontWeight: FontWeight.w600,
+                              )
+                                  .animate()
+                                  .fadeIn(delay: 200.ms)
+                                  .slideY(begin: 0.3),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _passwordCtrl,
+                                obscureText: _obscurePassword,
+                                textInputAction: TextInputAction.done,
+                                autocorrect: false,
+                                enableSuggestions: false,
+                                autofillHints: const [AutofillHints.password],
+                                onFieldSubmitted: (_) => _login(),
+                                validator: Validators.password,
+                                decoration: InputDecoration(
+                                  labelText: l10n.password,
+                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(_obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined),
+                                    tooltip:
+                                        _passwordVisibilityTooltip(context),
+                                    onPressed: () => setState(() =>
+                                        _obscurePassword = !_obscurePassword),
                                   ),
                                 ),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: primaryColor),
+                              )
+                                  .animate()
+                                  .fadeIn(delay: 250.ms)
+                                  .slideY(begin: 0.3),
+                              const SizedBox(height: 28),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _login,
+                                  child: _isLoading
+                                      ? SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    colorScheme.onPrimary),
+                                          ),
+                                        )
+                                      : Text(l10n.login),
                                 ),
-                              ),
-                            ).animate().fadeIn(delay: 350.ms),
-                          ],
+                              ).animate().fadeIn(delay: 300.ms),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: () => context.push('/login-code'),
+                                  icon: Icon(Icons.qr_code_scanner,
+                                      color: primaryColor),
+                                  label: Text(
+                                    l10n.loginWithCodeQr,
+                                    style: TextStyle(
+                                      color: primaryColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: primaryColor),
+                                  ),
+                                ),
+                              ).animate().fadeIn(delay: 350.ms),
+                            ],
+                          ),
                         ),
                       ),
 

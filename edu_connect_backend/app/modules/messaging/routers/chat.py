@@ -6,10 +6,12 @@ from sqlalchemy import select
 from app.db.database import get_db
 from app.models import Class, ClassMember, ClassTeacher, ClassTemporaryAccess, Message, StudentParent, User, UserRole
 from app.schemas import MessageOut
-from app.core.access import assert_class_read_access
+from app.core.access import assert_class_read_access, assert_school_is_active
 from app.core.rate_limit import check_rate_limit
+from app.core.rls import set_request_rls_context
 from app.core.security import get_current_user, decode_token
 from app.ws_manager import manager
+from sqlalchemy.orm import selectinload
 
 router = APIRouter(prefix="/classes/{class_id}", tags=["Chat"])
 
@@ -194,21 +196,37 @@ def _can_view_message(message: Message, current_user: User) -> bool:
     return current_user.role in _STAFF_ROLES or current_user.role == UserRole.system_admin
 
 
-async def _user_from_ws_token(token: str | None, db: AsyncSession) -> User | None:
-    if not token:
-        return None
+async def _user_from_ws(websocket: WebSocket, db: AsyncSession) -> User | None:
     try:
+        auth_frame = await websocket.receive_json()
+        if auth_frame.get("type") != "auth":
+            return None
+        token = auth_frame.get("token")
+        if not isinstance(token, str) or not token:
+            return None
         payload = decode_token(token)
         uid = payload.get("sub")
     except Exception:
         return None
     if not uid:
         return None
-    stmt = select(User).where(User.id == uid)
+    await set_request_rls_context(
+        db,
+        school_id=payload.get("school_id"),
+        is_system_admin=payload.get("role") == "system_admin",
+    )
+    stmt = select(User).options(selectinload(User.school)).where(User.id == uid)
     if payload.get("role") != "system_admin":
         stmt = stmt.where(User.school_id == payload.get("school_id"))
     result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
+    if not user or user.role.value != payload.get("role"):
+        return None
+    try:
+        assert_school_is_active(user)
+    except HTTPException:
+        return None
+    return user
 
 
 @router.get("/messages", response_model=list[MessageOut])
@@ -236,14 +254,14 @@ async def ws_chat(
     """
     WebSocket endpoint for real-time class chat.
     
-    Flutter sends:
-      {"token": "<local_access_token>", "content": "Hello!", "is_announcement": false}
+    Clients authenticate once with {"type": "auth", "token": "<access_token>"}
+    and then send content frames without repeating the JWT.
     
     Server broadcasts to all room members:
       {"id": "...", "sender_id": "...", "sender_name": "...", "content": "...", ...}
     """
-    token = websocket.query_params.get("token")
-    sender = await _user_from_ws_token(token, db)
+    await websocket.accept()
+    sender = await _user_from_ws(websocket, db)
     if not sender:
         await websocket.close(code=1008)
         return

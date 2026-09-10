@@ -21,10 +21,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application
 COPY . .
 
+# Use a stable non-root UID so VPS-mounted keys can be permissioned precisely.
+# Creating the volume mount points in the image also preserves their ownership
+# when Docker initializes an empty named volume.
+RUN groupadd --gid 10001 appuser \
+    && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin appuser \
+    && mkdir -p /app/private_media /app/secrets \
+    && chown -R 10001:10001 /app
+USER 10001:10001
+
 # Ensure scripts are executable
 RUN chmod +x scripts/*.sh 2>/dev/null || true
 
 EXPOSE 8000
 
-# Run migrations, then start Uvicorn behind Traefik.
+# Run migrations, then start Uvicorn behind Caddy.
 CMD ["sh", "scripts/start.sh"]

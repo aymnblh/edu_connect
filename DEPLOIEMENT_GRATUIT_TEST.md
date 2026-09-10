@@ -1,5 +1,8 @@
 # Déploiement gratuit pour test
 
+Pour le nouveau déploiement autonome sur un serveur en Algérie, utiliser
+`DEPLOIEMENT_VPS_LOCAL.md`. Le présent document reste limité au pilote gratuit.
+
 Ce guide sert à partager une version de test avec une école ou quelques personnes.
 Ce n'est pas une configuration de production finale.
 
@@ -105,6 +108,7 @@ Dans Render -> service `educonnect-api` -> `Environment`, mets temporairement:
 ```text
 DEMO_SEED_ON_STARTUP=true
 DEMO_SEED_RESET_ON_STARTUP=true
+DEMO_PASSWORD=<mot-de-passe-unique-de-test>
 ```
 
 Ensuite redéploie l'API. Au démarrage, l'API crée directement dans PostgreSQL une école démo, des classes, des matières, des enseignants, des élèves, des parents liés, des notes, des absences, des messages et les comptes ci-dessous.
@@ -118,11 +122,8 @@ DEMO_SEED_RESET_ON_STARTUP=false
 
 Puis redéploie une dernière fois. Ça évite de recréer la démo à chaque redéploiement.
 
-Mot de passe pour tous les comptes:
-
-```text
-Demo2026!
-```
+Le seed lit le mot de passe depuis `DEMO_PASSWORD`. Utilise un mot de passe
+unique de test et ne le publie jamais dans le dépôt ou dans les captures.
 
 | Espace | Email |
 | --- | --- |
@@ -144,7 +145,7 @@ Si tu as accès au Shell et que tu veux seulement débloquer la connexion SuperA
 
 ```bash
 SUPERADMIN_EMAIL=system.admin@demo.educonnect.dz \
-SUPERADMIN_PASSWORD='Demo2026!' \
+SUPERADMIN_PASSWORD='<mot-de-passe-unique>' \
 SUPERADMIN_NAME='Admin Demo' \
 python create_superadmin.py
 ```

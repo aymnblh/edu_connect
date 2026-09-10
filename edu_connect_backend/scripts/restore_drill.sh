@@ -20,7 +20,7 @@ if [[ ! -f "$STAGING_ENV_FILE" ]]; then
   exit 1
 fi
 if [[ -z "$BACKUP_ARCHIVE" || ! -f "$BACKUP_ARCHIVE" ]]; then
-  echo "Set BACKUP_ARCHIVE to an existing backup archive." >&2
+  echo "Set BACKUP_ARCHIVE to an existing decrypted .tar.gz backup archive." >&2
   exit 1
 fi
 
@@ -55,10 +55,11 @@ docker compose --env-file "$STAGING_ENV_FILE" -f "$COMPOSE_FILE" exec -T db \
   pg_restore -U "$POSTGRES_SUPERUSER" -d "$POSTGRES_DB" --clean --if-exists --no-owner --no-acl \
   < "${snapshot_dir}/database.dump"
 
-if [[ -d "${snapshot_dir}/volumes/private_media" ]]; then
-  echo "Restoring private media into staging worktree"
-  rm -rf private_media
-  cp -a "${snapshot_dir}/volumes/private_media" private_media
+if [[ -f "${snapshot_dir}/private_media.tar.gz" ]]; then
+  echo "Restoring private media into the staging Docker volume"
+  docker compose --env-file "$STAGING_ENV_FILE" -f "$COMPOSE_FILE" run --rm --no-deps \
+    --entrypoint sh api -c 'find /app/private_media -mindepth 1 -delete; tar -xzf - -C /app/private_media' \
+    < "${snapshot_dir}/private_media.tar.gz"
 fi
 
 echo "Applying migrations"

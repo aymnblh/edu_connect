@@ -1,30 +1,43 @@
+name: educonnect
+
+x-default-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
-  # ─── Reverse Proxy (Traefik) ────────────────────────────────────────────────
-  traefik:
-    image: traefik:v2.11
-    command:
-      - "--api.insecure=false"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL:?ACME_EMAIL is required}"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+  # Caddy terminates TLS and is the only service exposed to the Internet.
+  # It uses a static configuration and therefore does not need the Docker socket.
+  caddy:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+      FQDN: ${FQDN:?FQDN is required}
+      WEB_FQDN: ${WEB_FQDN:?WEB_FQDN is required}
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./letsencrypt:/letsencrypt"
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
     networks:
-      - internal
-      - public
+      - edge
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
 
-  # ─── Database (PostgreSQL) ──────────────────────────────────────────────────
   db:
-    image: postgres:16-alpine
-    restart: always
+    image: postgres:16.14-alpine3.23
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_SUPERUSER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?POSTGRES_SUPERUSER_PASSWORD is required}
@@ -38,72 +51,126 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_SUPERUSER:-postgres} -d ${POSTGRES_DB:-edu_connect}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 20s
+    shm_size: 256mb
     networks:
       - internal
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
 
-  # ─── Sovereign Notification Service (ntfy) ──────────────────────────────────
-  ntfy:
-    image: binwiederhier/ntfy:v2.11.0
-    command: ["serve"]
-    restart: always
+  redis:
+    image: redis:7.4.10-alpine3.21
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     environment:
-      NTFY_BASE_URL: ${NTFY_BASE_URL:-http://ntfy}
-      NTFY_AUTH_DEFAULT_ACCESS: "deny-all" # Internal only security
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     volumes:
-      - ntfy_data:/var/lib/ntfy
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     networks:
       - internal
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
 
-  # ─── EduConnect API (FastAPI) ───────────────────────────────────────────────
-  # Private malware scanner for file uploads.
+  # Private malware scanner. Port 3310 is reachable only on the internal network.
   clamav:
-    image: clamav/clamav:stable
-    restart: always
+    image: clamav/clamav:stable-debian13-slim
+    restart: unless-stopped
     volumes:
       - clamav_data:/var/lib/clamav
     networks:
       - internal
+      - egress
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
 
   api:
-    build: .
-    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
       clamav:
-        condition: service_started
+        condition: service_healthy
     env_file: ${ENV_FILE:-.env.production}
     environment:
       DATABASE_URL: postgresql+asyncpg://${APP_DB_USER:-edu_app}:${APP_DB_PASSWORD:?APP_DB_PASSWORD is required}@db:5432/${POSTGRES_DB:-edu_connect}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0
+      PORT: "8000"
     volumes:
-      # CRITICAL: RSA keys mounted READ-ONLY for security
       - ./secrets:/app/secrets:ro
       - private_media:/app/private_media
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`${FQDN:?FQDN is required}`)"
-      - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls.certresolver=myresolver"
-      - "traefik.http.services.api.loadbalancer.server.port=8000"
-      # Global Redirect to HTTPS
-      - "traefik.http.routers.api-http.rule=Host(`${FQDN:?FQDN is required}`)"
-      - "traefik.http.routers.api-http.entrypoints=web"
-      - "traefik.http.routers.api-http.middlewares=https-redirect"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8000/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     networks:
       - internal
-      - public
+      - edge
+    logging: *default-logging
+
+  web:
+    build:
+      context: ../edu_connect_web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${WEB_API_BASE_URL:?WEB_API_BASE_URL is required}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--output-document=-", "http://127.0.0.1:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - edge
+    logging: *default-logging
 
 networks:
-  internal: # Database, ntfy, and API communication
+  internal:
     driver: bridge
-  public: # Traefik and public-facing services
+    internal: true
+  edge:
+    driver: bridge
+  egress:
     driver: bridge
 
 volumes:
   pgdata:
-  ntfy_data:
+  redis_data:
   clamav_data:
   private_media:
-  letsencrypt:
+  caddy_data:
+  caddy_config:

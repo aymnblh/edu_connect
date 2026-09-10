@@ -6,7 +6,8 @@ import signal
 
 # Configuration
 BASE_URL = "http://127.0.0.1:8000"
-PLATFORM_SECRET = "educonnect-plat-sec-2026-v1"
+SUPERADMIN_EMAIL = os.environ.get("SUPERADMIN_EMAIL", "")
+SUPERADMIN_PASSWORD = os.environ.get("SUPERADMIN_PASSWORD", "")
 
 def run_test_and_server():
     print("--- Integrated Activation Flow Validation ---")
@@ -71,10 +72,20 @@ def run_test_and_server():
             # print(f"Response: {test_resp.text}")
 
         # 5. Activate School
-        print("[4/4] Activating school via Platform Secret...")
+        print("[4/4] Activating school via the authenticated platform admin...")
+        if not SUPERADMIN_EMAIL or not SUPERADMIN_PASSWORD:
+            print("SKIPPED: Set SUPERADMIN_EMAIL and SUPERADMIN_PASSWORD to run activation validation.")
+            return
+        admin_login = requests.post(
+            f"{BASE_URL}/auth/login",
+            json={"email": SUPERADMIN_EMAIL, "password": SUPERADMIN_PASSWORD},
+            timeout=10,
+        )
+        admin_login.raise_for_status()
         act_resp = requests.patch(
             f"{BASE_URL}/platform/schools/{school_id}/activate",
-            headers={"X-Platform-Secret": PLATFORM_SECRET}
+            headers={"Authorization": f"Bearer {admin_login.json()['access_token']}"},
+            timeout=10,
         )
         if act_resp.status_code == 200:
             print("SUCCESS: School activated via Platform API.")

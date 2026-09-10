@@ -37,7 +37,11 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post('/auth/login', {
+        email,
+        password,
+        remember_device: rememberDevice,
+      });
       clearWorkspaceStorage();
       storeSessionTokens(res.data.access_token, res.data.refresh_token, rememberDevice);
 

@@ -193,32 +193,41 @@ class _QuickActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final text = _DashText.of(context);
-    return Row(
-      children: [
-        Expanded(
-          child: _ActionButton(
-            icon: Icons.class_outlined,
-            label: l10n.classList,
-            onTap: () => context.push('/classes'),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _ActionButton(
-            icon: Icons.admin_panel_settings_outlined,
-            label: text.administration,
-            onTap: () => context.push('/admin-tools'),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _ActionButton(
-            icon: Icons.mark_email_unread_outlined,
-            label: l10n.chat,
-            onTap: () => context.push('/messaging'),
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth < 560 ? 2 : 3;
+        final itemWidth = (constraints.maxWidth - (columns - 1) * 8) / columns;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            SizedBox(
+              width: itemWidth,
+              child: _ActionButton(
+                icon: Icons.class_outlined,
+                label: l10n.classList,
+                onTap: () => context.push('/classes'),
+              ),
+            ),
+            SizedBox(
+              width: itemWidth,
+              child: _ActionButton(
+                icon: Icons.admin_panel_settings_outlined,
+                label: text.administration,
+                onTap: () => context.push('/admin-tools'),
+              ),
+            ),
+            SizedBox(
+              width: itemWidth,
+              child: _ActionButton(
+                icon: Icons.mark_email_unread_outlined,
+                label: l10n.chat,
+                onTap: () => context.push('/messaging'),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -247,7 +256,7 @@ class _ActionButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           onTap: onTap,
           child: Container(
-            height: 72,
+            constraints: const BoxConstraints(minHeight: 76),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
@@ -260,7 +269,8 @@ class _ActionButton extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   label,
-                  maxLines: 1,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w700),

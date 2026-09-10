@@ -29,12 +29,16 @@ SAME_VALUE_KEYS = {
 
 SEPARATE_VALUE_KEYS = {
     "DATABASE_URL",
+    "REDIS_PASSWORD",
+    "REDIS_URL",
     "POSTGRES_DB",
     "PLATFORM_SECRET",
     "SERVER_FINGERPRINT_SALT",
     "NTFY_AUTH_TOKEN",
     "NTFY_TOPIC_PREFIX",
     "FQDN",
+    "WEB_FQDN",
+    "WEB_API_BASE_URL",
     "CORS_ORIGINS",
 }
 
@@ -98,7 +102,14 @@ def validate(
         if key in prod and key in staging and prod[key] == staging[key]:
             failures.append(f"{key} must be staging-specific, not copied from production.")
 
-    for key in ("CORS_ORIGINS", "FQDN", "POSTGRES_DB", "NTFY_TOPIC_PREFIX"):
+    for key in (
+        "CORS_ORIGINS",
+        "FQDN",
+        "WEB_FQDN",
+        "WEB_API_BASE_URL",
+        "POSTGRES_DB",
+        "NTFY_TOPIC_PREFIX",
+    ):
         value = staging.get(key, "")
         if "staging" not in value.lower():
             failures.append(f"Staging {key} should clearly identify the staging environment.")

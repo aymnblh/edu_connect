@@ -1,0 +1,39 @@
+{
+	admin off
+	email {$ACME_EMAIL}
+}
+
+(security_headers) {
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}
+
+{$WEB_FQDN} {
+	import security_headers
+	encode zstd gzip
+	header {
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://{$FQDN} wss://{$FQDN}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+	}
+	reverse_proxy web:8080
+	log {
+		output stdout
+		format json
+	}
+}
+
+{$FQDN} {
+	import security_headers
+	encode zstd gzip
+	header X-Robots-Tag "noindex, nofollow"
+	reverse_proxy api:8000
+	log {
+		output stdout
+		format json
+	}
+}

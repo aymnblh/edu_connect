@@ -50,6 +50,16 @@ def main() -> int:
         failures.append("production compose must mount RSA keys read-only")
     if "NOBYPASSRLS" not in _read(ROOT / "scripts" / "init-db.sh"):
         failures.append("database app role must be created with NOBYPASSRLS")
+    for required in (
+        "internal: true",
+        "REDIS_PASSWORD",
+        "WEB_API_BASE_URL",
+        "condition: service_healthy",
+    ):
+        if required not in compose:
+            failures.append(f"production compose is missing {required}")
+    if "/var/run/docker.sock" in compose:
+        failures.append("production proxy must not mount the Docker socket")
 
     prod_example = _env_values(ROOT / ".env.production.example")
     if prod_example.get("APP_ENV") != "production":
@@ -60,9 +70,19 @@ def main() -> int:
         failures.append("production CORS example must use explicit HTTPS origins")
     if prod_example.get("MEDIA_MALWARE_SCAN_REQUIRED") != "true":
         failures.append("production malware scanning must be required")
+    if prod_example.get("WEB_API_BASE_URL") != f"https://{prod_example.get('FQDN', '')}":
+        failures.append("WEB_API_BASE_URL must target the production API FQDN")
+    if prod_example.get("CORS_ORIGINS") != f"https://{prod_example.get('WEB_FQDN', '')}":
+        failures.append("CORS_ORIGINS must target the production WEB_FQDN")
 
     weak_placeholder = re.compile(r"^(change-this|postgres_password|edu_password)$", re.IGNORECASE)
-    for key in ("PLATFORM_SECRET", "SERVER_FINGERPRINT_SALT", "APP_DB_PASSWORD", "POSTGRES_SUPERUSER_PASSWORD"):
+    for key in (
+        "PLATFORM_SECRET",
+        "SERVER_FINGERPRINT_SALT",
+        "APP_DB_PASSWORD",
+        "POSTGRES_SUPERUSER_PASSWORD",
+        "REDIS_PASSWORD",
+    ):
         value = prod_example.get(key, "")
         if not value or weak_placeholder.search(value):
             failures.append(f"{key} must not use a weak placeholder in production example")

@@ -2,14 +2,13 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../../core/services/app_secure_storage.dart';
 import '../../../../core/services/ntfy_service.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
   final ApiService _api = ApiService.instance;
-  final _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
+  final _storage = appSecureStorage;
 
   static const String _accessTokenKey = 'access_token';
   static const String _refreshTokenKey = 'refresh_token';
@@ -79,11 +78,13 @@ class AuthRepository {
   /// Initial password setup for migrated/invited users.
   Future<void> setPassword({
     required String email,
+    required String inviteCode,
     required String password,
     required bool termsAccepted,
   }) async {
     await _api.post('/auth/set-password', data: {
       'email': email,
+      'invite_code': inviteCode,
       'password': password,
       'terms_accepted': termsAccepted,
     });

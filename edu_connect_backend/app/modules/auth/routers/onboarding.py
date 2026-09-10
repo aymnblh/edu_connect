@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.rls import set_auth_lookup_email, set_request_rls_context
@@ -8,6 +8,8 @@ from app.db.database import get_db
 from app.models import School, User, UserRole, Course, Semester
 from app.schemas import SchoolRegistration, UserOut
 from app.core.security import get_password_hash
+from app.core.rate_limit import check_rate_limit
+import hashlib
 
 router = APIRouter(prefix="/onboarding", tags=["Onboarding"])
 TERMS_VERSION = "privacy-terms-2026-05-13"
@@ -30,6 +32,7 @@ ALGERIAN_TRIMESTERS = [
 @router.post("/register-school", status_code=status.HTTP_201_CREATED)
 async def register_school(
     payload: SchoolRegistration,
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -39,6 +42,13 @@ async def register_school(
     3. Create Principal user.
     4. Seed Algerian subjects and trimesters.
     """
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    await check_rate_limit(
+        f"register_school:{ip_address}:{hashlib.sha256(str(payload.admin_email).lower().encode()).hexdigest()}",
+        limit=3,
+        window_seconds=3600,
+    )
+
     # 1. Check existing user
     if not payload.terms_accepted:
         raise HTTPException(

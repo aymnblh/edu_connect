@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SECRET_BYTES = {
     "POSTGRES_SUPERUSER_PASSWORD": 36,
     "APP_DB_PASSWORD": 36,
+    "REDIS_PASSWORD": 36,
     "PLATFORM_SECRET": 64,
     "SERVER_FINGERPRINT_SALT": 64,
     "NTFY_AUTH_TOKEN": 48,
@@ -41,6 +42,13 @@ def _replace_env_line(line: str, values: dict[str, str]) -> str:
         current = re.sub(
             r"YOUR_[A-Z_]*APP_DATABASE_PASSWORD",
             values["APP_DB_PASSWORD"],
+            current,
+        )
+        return f"{key}={current}"
+    if key == "REDIS_URL":
+        current = re.sub(
+            r"YOUR_[A-Z_]*REDIS_PASSWORD",
+            values["REDIS_PASSWORD"],
             current,
         )
         return f"{key}={current}"
@@ -83,6 +91,14 @@ def validate_generated_env(content: str) -> list[str]:
         failures.append("DATABASE_URL still contains a placeholder password.")
     elif values.get("APP_DB_PASSWORD") and values["APP_DB_PASSWORD"] not in database_url:
         failures.append("DATABASE_URL password does not match APP_DB_PASSWORD.")
+
+    redis_url = values.get("REDIS_URL", "")
+    if not redis_url:
+        failures.append("REDIS_URL is missing.")
+    elif PLACEHOLDER_RE.search(redis_url):
+        failures.append("REDIS_URL still contains a placeholder password.")
+    elif values.get("REDIS_PASSWORD") and values["REDIS_PASSWORD"] not in redis_url:
+        failures.append("REDIS_URL password does not match REDIS_PASSWORD.")
 
     return failures
 

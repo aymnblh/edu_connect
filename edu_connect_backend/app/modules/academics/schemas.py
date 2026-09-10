@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, model_validator
 from datetime import datetime
 from typing import List, Optional, Any
 from app.models import UserRole, AttendanceStatus, RemarkType, ConversationType
@@ -14,7 +14,7 @@ class ClassOut(BaseModel):
     school_id: str
     name: str
     subject: str | None
-    join_code: str
+    join_code: str | None = None
     created_at: datetime
     teachers: list[UserOut] = []
     members: list[StudentOut] = []
@@ -41,13 +41,19 @@ class ClassStudentEnroll(BaseModel):
     student_ids: list[str]
 
 class GradeCreate(BaseModel):
-    student_id: str
-    student_name: str
-    course_id: str | None = None
-    subject: str
-    score: float
-    max_score: float = 20.0
+    student_id: str = Field(min_length=1, max_length=36)
+    student_name: str = Field(min_length=1, max_length=255)
+    course_id: str | None = Field(default=None, max_length=36)
+    subject: str = Field(min_length=1, max_length=255)
+    score: float = Field(ge=0)
+    max_score: float = Field(default=20.0, gt=0)
     comment: str | None = None
+
+    @model_validator(mode="after")
+    def score_must_fit_scale(self):
+        if self.score > self.max_score:
+            raise ValueError("La note ne peut pas depasser le bareme maximal.")
+        return self
 
 class GradeOut(GradeCreate):
     id: str

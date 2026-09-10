@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
+from jwt import InvalidTokenError, decode as decode_jwt, encode as encode_jwt
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
@@ -28,13 +28,38 @@ def get_password_hash(password: str) -> str:
 
 # ─── JWT Security ──────────────────────────────────────────────────────────
 bearer_scheme = HTTPBearer()
+JWT_ISSUER = "wasel-edu-api"
+JWT_AUDIENCE = "wasel-edu-client"
+JWTError = InvalidTokenError
+
+
+def _decode_jwt(token: str, key: str, *, expected_type: str | None = None) -> dict:
+    """Decode a token with an explicit issuer, audience and token purpose."""
+    payload = decode_jwt(
+        token,
+        key,
+        algorithms=["RS256"],
+        issuer=JWT_ISSUER,
+        audience=JWT_AUDIENCE,
+    )
+    if expected_type and payload.get("typ") != expected_type:
+        raise JWTError("Unexpected token type")
+    if not payload.get("sub"):
+        raise JWTError("Missing subject")
+    return payload
 
 def create_access_token(data: dict) -> str:
     """Issue a short-lived access token (RS256)."""
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.private_key, algorithm="RS256")
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+        "typ": "access",
+        "iss": JWT_ISSUER,
+        "aud": JWT_AUDIENCE,
+    })
+    return encode_jwt(to_encode, settings.private_key, algorithm="RS256")
 
 def access_payload_for_user(user: User) -> dict:
     """Build the canonical access-token payload used by API and tenant middleware."""
@@ -51,18 +76,22 @@ def create_refresh_token(user_id: str, family_id: str) -> str:
     to_encode = {
         "sub": user_id, 
         "family": family_id,
-        "exp": datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+        "exp": datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days),
+        "iat": datetime.now(timezone.utc),
+        "typ": "refresh",
+        "iss": JWT_ISSUER,
+        "aud": JWT_AUDIENCE,
     }
-    return jwt.encode(to_encode, settings.private_key, algorithm="RS256")
+    return encode_jwt(to_encode, settings.private_key, algorithm="RS256")
 
 def decode_token(token: str) -> dict:
     """Decode and verify a raw JWT string (used for WebSocket auth)."""
     try:
-        return jwt.decode(token, settings.public_key, algorithms=["RS256"])
+        return _decode_jwt(token, settings.public_key, expected_type="access")
     except JWTError:
         if settings.previous_public_key:
             try:
-                return jwt.decode(token, settings.previous_public_key, algorithms=["RS256"])
+                return _decode_jwt(token, settings.previous_public_key, expected_type="access")
             except JWTError:
                 pass
         raise ValueError("Invalid or expired token")
@@ -76,13 +105,13 @@ async def get_token_claims(
     """
     # 1. Try Current Public Key
     try:
-        payload = jwt.decode(token.credentials, settings.public_key, algorithms=["RS256"])
+        payload = _decode_jwt(token.credentials, settings.public_key, expected_type="access")
         return payload
     except JWTError:
         # 2. Key failed, try Previous Public Key (Rotation Support)
         if settings.previous_public_key:
             try:
-                payload = jwt.decode(token.credentials, settings.previous_public_key, algorithms=["RS256"])
+                payload = _decode_jwt(token.credentials, settings.previous_public_key, expected_type="access")
                 return payload
             except JWTError:
                 pass # Both failed
@@ -110,6 +139,15 @@ async def get_current_user(
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
+
+    expected_role = claims.get("role")
+    expected_school_id = claims.get("school_id")
+    if expected_role != user.role.value:
+        raise HTTPException(status_code=401, detail="Session role is no longer valid.")
+    if user.role.value != "system_admin" and expected_school_id != user.school_id:
+        raise HTTPException(status_code=401, detail="Session tenant is no longer valid.")
+    if user.password_hash is None:
+        raise HTTPException(status_code=403, detail="Password setup is required.")
     
     return user
 
@@ -137,13 +175,13 @@ async def rotate_refresh_token(
     4. If IN DB -> Invalidate current one, issue new pair.
     """
     try:
-        payload = jwt.decode(old_refresh_token_str, settings.public_key, algorithms=["RS256"])
+        payload = _decode_jwt(old_refresh_token_str, settings.public_key, expected_type="refresh")
         user_id = payload.get("sub")
         family_id = payload.get("family")
     except JWTError:
         if settings.previous_public_key:
             try:
-                payload = jwt.decode(old_refresh_token_str, settings.previous_public_key, algorithms=["RS256"])
+                payload = _decode_jwt(old_refresh_token_str, settings.previous_public_key, expected_type="refresh")
                 user_id = payload.get("sub")
                 family_id = payload.get("family")
             except JWTError:
@@ -156,7 +194,11 @@ async def rotate_refresh_token(
 
     # 1. Look for this token's hash
     token_hash = await set_refresh_token_lookup(db, old_refresh_token_str)
-    result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
+    result = await db.execute(
+        select(RefreshToken)
+        .where(RefreshToken.token_hash == token_hash)
+        .with_for_update()
+    )
     db_token = result.scalar_one_or_none()
 
     if not db_token:

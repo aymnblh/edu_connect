@@ -27,10 +27,27 @@ IPA_DIR="build/ios/ipa"
 [[ -f "$DART_DEFINE_FILE" ]] || error "$DART_DEFINE_FILE missing. Copy config/production.example.json and update it."
 command -v flutter >/dev/null 2>&1 || error "flutter not found in PATH."
 command -v xcodebuild >/dev/null 2>&1 || error "xcodebuild not found. Install Xcode."
+command -v pod >/dev/null 2>&1 || error "CocoaPods not found. Install it before archiving."
+command -v plutil >/dev/null 2>&1 || error "plutil not found. Install the Xcode command-line tools."
 
 info "Using Dart defines: $DART_DEFINE_FILE"
 flutter pub get
+dart run tool/validate_mobile_config.dart "$DART_DEFINE_FILE"
 flutter analyze
+flutter test --no-pub
+
+info "Validating Apple project files..."
+plutil -lint ios/Runner/Info.plist
+if [[ -f "ios/ExportOptions.plist" ]]; then
+  plutil -lint ios/ExportOptions.plist
+fi
+
+info "Installing CocoaPods dependencies..."
+(
+  cd ios
+  pod install
+)
+xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -list >/dev/null
 
 BUILD_ARGS=(
   build ipa

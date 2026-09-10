@@ -1,4 +1,4 @@
-import random
+import secrets
 import string
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -46,7 +46,7 @@ class TemporaryAccessOut(BaseModel):
 
 
 def _random_code(length: int = 6) -> str:
-    return "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
+    return "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(length))
 
 
 def _aware_datetime(value: datetime) -> datetime:
@@ -59,7 +59,12 @@ def _course_coefficient(course: Course | None) -> float:
     return 1.0
 
 
-def _class_out(cls: Class, *, member_filter: set[str] | None = None) -> dict:
+def _class_out(
+    cls: Class,
+    *,
+    member_filter: set[str] | None = None,
+    include_join_code: bool = True,
+) -> dict:
     visible_members = []
     for member in cls.members or []:
         if member.student is None:
@@ -73,7 +78,7 @@ def _class_out(cls: Class, *, member_filter: set[str] | None = None) -> dict:
         "school_id": cls.school_id,
         "name": cls.name,
         "subject": cls.subject,
-        "join_code": cls.join_code,
+        "join_code": cls.join_code if include_join_code else None,
         "created_at": cls.created_at,
         "teachers": [
             {
@@ -158,6 +163,9 @@ async def join_class(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if current_user.role != UserRole.teacher:
+        raise HTTPException(status_code=403, detail="Seuls les enseignants peuvent rejoindre une classe.")
+
     result = await db.execute(
         select(Class)
         .where(Class.join_code == payload.join_code)
@@ -172,10 +180,9 @@ async def join_class(
     if current_user.role.value != "system_admin" and cls.school_id != current_user.school_id:
         raise HTTPException(status_code=403, detail="Acces refuse.")
     
-    if current_user.role.value == "teacher":
-        if current_user not in cls.teachers:
-            cls.teachers.append(current_user)
-            await db.commit()
+    if current_user not in cls.teachers:
+        cls.teachers.append(current_user)
+        await db.commit()
     return _class_out(cls)
 
 
@@ -254,7 +261,10 @@ async def list_classes(
             parent_id=current_user.id,
             db=db,
         )
-        return [_class_out(cls, member_filter=visible_student_ids) for cls in classes]
+        return [
+            _class_out(cls, member_filter=visible_student_ids, include_join_code=False)
+            for cls in classes
+        ]
     return [_class_out(cls) for cls in classes]
 
 
@@ -306,7 +316,11 @@ async def get_class(
     elif current_user.role.value != "system_admin" and cls.school_id != current_user.school_id:
         raise HTTPException(status_code=403, detail="Accès refusé.")
 
-    return _class_out(cls, member_filter=member_filter)
+    return _class_out(
+        cls,
+        member_filter=member_filter,
+        include_join_code=current_user.role.value != "parent",
+    )
 
 
 @router.get("/{class_id}/students", response_model=list[StudentOut])

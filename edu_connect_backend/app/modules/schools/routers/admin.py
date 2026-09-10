@@ -1,7 +1,8 @@
 import csv
 import io
 import uuid
-import random
+import secrets
+import string
 from collections import defaultdict
 from fastapi import APIRouter, Depends, HTTPException, Request, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +10,7 @@ from sqlalchemy import select, func, delete, update
 from app.db.database import get_db
 from app.models import User, UserRole, School, Course, Student, Class, Semester, PendingLink, StudentParent, RefreshToken, Grade, Attendance, AttendanceStatus
 from app.schemas import (
-    SchoolCreate, SchoolOut, CourseCreate, CourseOut, StudentOut,
+    SchoolCreate, SchoolOut, CourseCreate, CourseOut, StudentAdminOut,
     StudentRegeneratePin, SemesterOut, SemesterUpdate,
     TokenGenerationRequest, ParentLinkAuditOut, AnalyticsOverview, ClassPerformance
 )
@@ -19,6 +20,7 @@ from app.modules.academics.averages import (
     weighted_averages_by_group,
 )
 from app.core.audit import record_audit_event
+from app.core.config import settings
 from app.core.security import get_current_user, get_password_hash
 from app.utils.notifications import create_notification
 from datetime import datetime, timedelta, timezone
@@ -70,12 +72,9 @@ ALLOWED_STUDENT_ARCHIVE_REASONS = {"graduated", "transferred", "other"}
 
 # ── Create Teacher (Invite-Only Flow) ─────────────────────────────────────────
 
-import string
-import random
-
-def generate_invite_code(length=8):
+def generate_invite_code(length: int = 32) -> str:
     alphabet = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(alphabet) for _ in range(length))
+    return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 async def _create_invited_staff_user(
@@ -109,6 +108,7 @@ async def _create_invited_staff_user(
         school_id=current_user.school_id,
         password_hash=None,
         invite_code=generate_invite_code(),
+        invite_expires_at=datetime.now(timezone.utc) + timedelta(hours=72),
     )
     db.add(invited_user)
     await db.commit()
@@ -240,9 +240,11 @@ async def create_school(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Only existing admins can create new schools, or this could be an open endpoint for platform owners."""
-    # For now, let's assume any registered principal can create their school profile
-    school = School(name=payload.name)
+    """Create a school only from the authenticated platform administration workspace."""
+    if current_user.role != UserRole.system_admin:
+        raise HTTPException(status_code=403, detail="Seul le super administrateur peut creer un etablissement.")
+
+    school = School(name=payload.name, is_active=False)
     db.add(school)
     await db.flush() # Ensure school.id is generated
     
@@ -338,7 +340,7 @@ async def list_courses(
     return result.scalars().all()
 
 
-@router.get("/students", response_model=list[StudentOut])
+@router.get("/students", response_model=list[StudentAdminOut])
 async def list_students(
     include_archived: bool = False,
     current_user: User = Depends(get_current_user),
@@ -516,7 +518,9 @@ async def import_students(
     school = await db.get(School, current_user.school_id)
     prefix = school.student_id_prefix if school and school.student_id_prefix else ""
 
-    content = await file.read()
+    content = await file.read(settings.media_max_upload_bytes + 1)
+    if len(content) > settings.media_max_upload_bytes:
+        raise HTTPException(status_code=413, detail="CSV file is too large.")
     decoded = content.decode("utf-8-sig")
     try:
         dialect = csv.Sniffer().sniff(decoded[:4096], delimiters=",;\t")
@@ -550,7 +554,7 @@ async def import_students(
                 serial += 1
             
             # Generate 6-digit random PIN
-            pin = "".join([str(random.randint(0, 9)) for _ in range(6)])
+            pin = f"{secrets.randbelow(1_000_000):06d}"
             
             student = Student(
                 full_name=name, 
@@ -586,7 +590,7 @@ async def regenerate_pin(
     if student.archived_at:
         raise HTTPException(status_code=400, detail="Archived students cannot receive new linking PINs")
         
-    pin = "".join([str(random.randint(0, 9)) for _ in range(6)])
+    pin = f"{secrets.randbelow(1_000_000):06d}"
     student.linking_pin = pin
     
     if payload and payload.notify:
@@ -627,7 +631,9 @@ async def import_teachers(
     if not current_user.school_id:
         raise HTTPException(status_code=400, detail="User not assigned to a school")
 
-    content = await file.read()
+    content = await file.read(settings.media_max_upload_bytes + 1)
+    if len(content) > settings.media_max_upload_bytes:
+        raise HTTPException(status_code=413, detail="CSV file is too large.")
     decoded = content.decode("utf-8")
     reader = csv.DictReader(io.StringIO(decoded))
     

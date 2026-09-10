@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/services/app_secure_storage.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -127,12 +127,12 @@ class DmRepository {
   // ── WebSocket ──────────────────────────────────────────────────────────────
 
   Future<void> connect(String conversationId) async {
-    const storage = FlutterSecureStorage();
-    final token = await storage.read(key: 'access_token');
+    final token = await appSecureStorage.read(key: 'access_token');
+    await _channel?.sink.close();
     final uri = Uri.parse(
-            '${AppConstants.wsBaseUrl}/dm/conversations/$conversationId/ws')
-        .replace(queryParameters: {'token': token ?? ''});
+        '${AppConstants.wsBaseUrl}/dm/conversations/$conversationId/ws');
     _channel = WebSocketChannel.connect(uri);
+    _channel!.sink.add(jsonEncode({'type': 'auth', 'token': token ?? ''}));
 
     _channel!.stream.listen(
       (raw) {
@@ -154,10 +154,7 @@ class DmRepository {
   }
 
   Future<void> sendWs(String content) async {
-    const storage = FlutterSecureStorage();
-    final token = await storage.read(key: 'access_token');
     _channel?.sink.add(jsonEncode({
-      'token': token ?? '',
       'content': content,
     }));
   }

@@ -16,8 +16,10 @@ from scripts.generate_production_env import env_values, validate_generated_env
 
 SENSITIVE_KEYS = {
     "DATABASE_URL",
+    "REDIS_URL",
     "POSTGRES_SUPERUSER_PASSWORD",
     "APP_DB_PASSWORD",
+    "REDIS_PASSWORD",
     "PLATFORM_SECRET",
     "SERVER_FINGERPRINT_SALT",
     "NTFY_AUTH_TOKEN",
@@ -27,6 +29,8 @@ DISPLAY_KEYS = [
     "APP_ENV",
     "POSTGRES_DB",
     "FQDN",
+    "WEB_FQDN",
+    "WEB_API_BASE_URL",
     "CORS_ORIGINS",
     "NTFY_TOPIC_PREFIX",
     "CREATE_TABLES_ON_STARTUP",
@@ -53,6 +57,9 @@ def _secret_summary(values: dict[str, str], key: str) -> str:
     if not value:
         return "missing"
     if key == "DATABASE_URL":
+        redacted = _redact_database_url(value)
+        return f"set, fingerprint={_fingerprint(value)}, redacted={redacted}"
+    if key == "REDIS_URL":
         redacted = _redact_database_url(value)
         return f"set, fingerprint={_fingerprint(value)}, redacted={redacted}"
     return f"set, length={len(value)}, fingerprint={_fingerprint(value)}"

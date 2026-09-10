@@ -216,6 +216,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
   }) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
@@ -264,6 +265,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       BuildContext context, WidgetRef ref, ScheduleSlotModel slot) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
@@ -556,6 +558,7 @@ class _TimelineSlotCard extends StatelessWidget {
     final colors = context.appColors;
     showModalBottomSheet(
         context: context,
+        useSafeArea: true,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
         builder: (_) {

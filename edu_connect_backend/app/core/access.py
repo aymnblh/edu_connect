@@ -11,6 +11,17 @@ ADMIN_ROLES = {UserRole.principal, UserRole.secretary}
 STAFF_ROLES = {UserRole.teacher, UserRole.principal, UserRole.secretary}
 
 
+def assert_school_is_active(current_user: User) -> None:
+    """Apply activation and subscription checks to non-HTTP entry points."""
+    if current_user.role == UserRole.system_admin:
+        return
+    school = current_user.school
+    if not school or not school.is_active:
+        raise HTTPException(status_code=403, detail="School is not active.")
+    if school.subscription_expires_at and school.subscription_expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=402, detail="School subscription has expired.")
+
+
 async def get_class_or_404(class_id: str, db: AsyncSession) -> Class:
     cls = await db.get(Class, class_id)
     if not cls:

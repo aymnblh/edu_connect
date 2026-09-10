@@ -1,6 +1,6 @@
 # EduConnect Operations Runbook
 
-This runbook is the minimum production operating procedure for EduConnect. It is written for a self-hosted Docker deployment with PostgreSQL, Redis-compatible services where configured, Traefik, ntfy, ClamAV, private media storage, and the FastAPI backend.
+This runbook is the minimum production operating procedure for EduConnect. It is written for a self-hosted Docker deployment with PostgreSQL, Redis, Caddy, ClamAV, private media storage, the React web app, and the FastAPI backend.
 
 ## Release Gate
 
@@ -60,8 +60,8 @@ Back up these assets together so database rows, private media, and signing mater
 - PostgreSQL database: `pgdata`
 - Private uploaded files: `private_media`
 - RSA signing keys: `edu_connect_backend/secrets`
-- Traefik certificate state: `letsencrypt`
-- ntfy data: `ntfy_data`, if push topics must survive rebuilds
+- Caddy certificate state: the `caddy_data` Docker volume (Caddy can also reissue certificates after a restore)
+- Redis data: the `redis_data` Docker volume is operational state; the application source of truth remains PostgreSQL
 - Production env file: `.env.production`, stored in the secrets manager or backup vault, not in git
 
 JWT key rotation rehearsal:
@@ -81,12 +81,14 @@ Recommended minimum schedule:
 - Retention: 35 daily restore points, 12 monthly restore points, adjusted to the school's legal retention policy
 - Encryption: backups encrypted before leaving the production host
 
-Example database backup:
+Example encrypted database, media, environment, and signing-key backup:
 
 ```bash
 cd edu_connect_backend
 ENV_FILE=.env.production ./scripts/backup_educonnect.sh
 ```
+
+`BACKUP_AGE_RECIPIENT` is mandatory. Keep the matching private age identity off the production VPS.
 
 Validate backup and restore script guardrails in CI:
 
@@ -107,7 +109,7 @@ Perform a restore drill at least monthly and after any migration that changes st
 
 1. Provision a staging host or clean local Docker volume.
 2. Copy `.env.staging.example` to `.env.staging`, fill staging-only secrets, and verify `APP_ENV=staging`.
-3. Restore the latest backup archive:
+3. Decrypt the latest `.tar.gz.age` backup outside production, then restore the resulting archive:
 
 ```bash
 cd edu_connect_backend
@@ -138,7 +140,7 @@ Keep restore evidence in `RESTORE_DRILL_LOG.md` or a private operations system w
 Application rollback:
 
 1. Keep the previous container image tag available.
-2. If the new API fails after deploy, scale or restart the API with the previous tag.
+2. If the new API fails after deploy, restart the API with the previous tested image tag.
 3. Keep the database at the migrated version unless the migration has a tested downgrade and no new writes depend on it.
 4. If the migration itself failed before app traffic resumed, restore the pre-deploy database snapshot rather than hand-editing production data.
 
@@ -186,7 +188,7 @@ Immediate actions for suspected data exposure:
 
 1. Freeze deploys except emergency fixes.
 2. Preserve audit logs and database snapshots.
-3. Disable affected endpoint or route at Traefik/API level.
+3. Disable the affected endpoint or route at the Caddy/API level.
 4. Rotate platform secret, JWT keys, and affected user sessions if auth is involved.
 5. Export relevant audit events from `/security/audit-events`.
 6. Notify school owner and legal/privacy contact according to the applicable contract and law.

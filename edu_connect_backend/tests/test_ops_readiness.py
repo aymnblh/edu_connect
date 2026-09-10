@@ -127,13 +127,46 @@ def test_backup_and_restore_scripts_preserve_core_safety_controls():
     assert "database_dump_sha256" in backup_script
     assert "manifest.txt" in backup_script
     assert "find \"$LOCAL_BACKUP_DIR\"" in backup_script
+    assert "BACKUP_AGE_RECIPIENT" in backup_script
+    assert "age -r" in backup_script
+    assert "private_media.tar.gz" in backup_script
 
     assert "APP_ENV=production" in restore_script
     assert "Refusing to restore into APP_ENV=production" in restore_script
     assert "pg_restore" in restore_script
     assert "alembic upgrade head" in restore_script
     assert "database ok" in restore_script
+    assert "private_media.tar.gz" in restore_script
     assert "DRILL_REPORT_PATH" in restore_script
+
+
+def test_vps_compose_keeps_data_services_private_and_serves_web():
+    compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+    caddyfile = (ROOT / "Caddyfile").read_text(encoding="utf-8")
+    web_dockerfile = (ROOT.parent / "edu_connect_web" / "Dockerfile").read_text(
+        encoding="utf-8"
+    )
+
+    assert "internal: true" in compose
+    assert "/var/run/docker.sock" not in compose
+    assert '"5432:5432"' not in compose
+    assert '"6379:6379"' not in compose
+    assert '"3310:3310"' not in compose
+    assert "REDIS_PASSWORD" in compose
+    assert "WEB_API_BASE_URL" in compose
+    assert "condition: service_healthy" in compose
+    assert "{$WEB_FQDN}" in caddyfile
+    assert "{$FQDN}" in caddyfile
+    assert "nginx-unprivileged" in web_dockerfile
+
+
+def test_manage_cli_defines_secure_superadmin_bootstrap():
+    manage_source = (ROOT / "manage.py").read_text(encoding="utf-8")
+
+    assert '"create-superadmin"' in manage_source
+    assert "getpass.getpass" in manage_source
+    assert "validate_admin_password" in manage_source
+    assert "--password-env" in manage_source
 
 
 def test_operations_docs_name_required_recovery_and_incident_artifacts():
@@ -275,6 +308,18 @@ def test_alembic_release_check_generates_sql(tmp_path):
     assert "INSERT INTO alembic_version" in generated_sql
 
 
+def test_staff_invite_migration_preserves_auth_lookup_rls_policy():
+    migration = (
+        ROOT / "alembic" / "versions" / "20260807_0012_harden_staff_invites.py"
+    ).read_text(encoding="utf-8")
+
+    assert migration.count("_drop_auth_lookup_policy()") == 3
+    assert migration.count("_create_auth_lookup_policy()") == 3
+    assert "DROP POLICY IF EXISTS users_auth_lookup_select ON users" in migration
+    assert "CREATE POLICY users_auth_lookup_select ON users" in migration
+    assert "ADD COLUMN IF NOT EXISTS" in migration
+
+
 def test_web_gitignore_protects_real_environment_files():
     gitignore = (ROOT.parent / "edu_connect_web" / ".gitignore").read_text(encoding="utf-8")
 
@@ -299,6 +344,7 @@ def test_generate_production_env_replaces_all_secret_placeholders(tmp_path):
     values = {
         "POSTGRES_SUPERUSER_PASSWORD": "postgres-secret-value-with-32-plus-chars",
         "APP_DB_PASSWORD": "app-secret-value-with-32-plus-chars",
+        "REDIS_PASSWORD": "redis-secret-value-with-32-plus-chars",
         "PLATFORM_SECRET": "platform-secret-value-with-32-plus-chars",
         "SERVER_FINGERPRINT_SALT": "fingerprint-salt-value-with-32-plus-chars",
         "NTFY_AUTH_TOKEN": "ntfy-token-value-with-32-plus-chars",
@@ -312,6 +358,7 @@ def test_generate_production_env_replaces_all_secret_placeholders(tmp_path):
     assert "YOUR_" not in rendered
     assert "REPLACE_WITH" not in rendered
     assert values["APP_DB_PASSWORD"] in module.env_values(rendered)["DATABASE_URL"]
+    assert values["REDIS_PASSWORD"] in module.env_values(rendered)["REDIS_URL"]
 
     result = subprocess.run(
         [
@@ -380,6 +427,7 @@ def test_env_readiness_review_redacts_secrets(tmp_path):
         {
             "POSTGRES_SUPERUSER_PASSWORD": "prod-postgres-secret-value-with-32-plus-chars",
             "APP_DB_PASSWORD": "prod-app-secret-value-with-32-plus-chars",
+            "REDIS_PASSWORD": "prod-redis-secret-value-with-32-plus-chars",
             "PLATFORM_SECRET": production_secret,
             "SERVER_FINGERPRINT_SALT": "prod-fingerprint-salt-value-with-32-plus-chars",
             "NTFY_AUTH_TOKEN": "prod-ntfy-token-value-with-32-plus-chars",
@@ -390,6 +438,7 @@ def test_env_readiness_review_redacts_secrets(tmp_path):
         {
             "POSTGRES_SUPERUSER_PASSWORD": "staging-postgres-secret-value-with-32-plus-chars",
             "APP_DB_PASSWORD": "staging-app-secret-value-with-32-plus-chars",
+            "REDIS_PASSWORD": "staging-redis-secret-value-with-32-plus-chars",
             "PLATFORM_SECRET": staging_secret,
             "SERVER_FINGERPRINT_SALT": "staging-fingerprint-salt-value-with-32-plus-chars",
             "NTFY_AUTH_TOKEN": "staging-ntfy-token-value-with-32-plus-chars",

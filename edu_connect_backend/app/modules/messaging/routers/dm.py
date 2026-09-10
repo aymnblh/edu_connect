@@ -31,6 +31,7 @@ from app.models import (
     StudentParent, ClassTeacher
 )
 from app.core.security import get_current_user, decode_token
+from app.core.access import assert_school_is_active
 from app.ws_manager import manager
 
 router = APIRouter(prefix="/dm", tags=["Direct Messaging"])
@@ -1125,14 +1126,19 @@ async def dm_websocket(
     """
     Real-time WebSocket for a DM conversation room.
 
-    Flutter connects with ?token=<jwt> and sends:
-      {"token": "<jwt>", "content": "Bonjour !"}
+    Clients authenticate with the first WebSocket frame instead of putting the
+    JWT in the URL, then send message frames.
 
     Server broadcasts to all room members:
       {"id": "...", "conversation_id": "...", "sender_id": "...",
        "sender_name": "...", "content": "...", "created_at": "..."}
     """
-    token = websocket.query_params.get("token")
+    await websocket.accept()
+    try:
+        auth_frame = await websocket.receive_json()
+        token = auth_frame.get("token") if auth_frame.get("type") == "auth" else None
+    except Exception:
+        token = None
     try:
         payload = decode_token(token or "")
         uid = payload.get("sub")
@@ -1147,12 +1153,20 @@ async def dm_websocket(
         await websocket.close(code=1008)
         return
 
-    user_stmt = select(User).where(User.id == uid)
+    user_stmt = select(User).options(selectinload(User.school)).where(User.id == uid)
     if payload.get("role") != "system_admin":
         user_stmt = user_stmt.where(User.school_id == payload.get("school_id"))
     user_res = await db.execute(user_stmt)
     sender = user_res.scalar_one_or_none()
     if not sender:
+        await websocket.close(code=1008)
+        return
+    if sender.role.value != payload.get("role"):
+        await websocket.close(code=1008)
+        return
+    try:
+        assert_school_is_active(sender)
+    except HTTPException:
         await websocket.close(code=1008)
         return
 
@@ -1167,6 +1181,10 @@ async def dm_websocket(
     try:
         while True:
             data = await websocket.receive_json()
+
+            # Reuse only the token authenticated in the first frame. A client
+            # cannot switch identity by sending a second token later.
+            data["token"] = token
 
             # Authenticate via JWT in the WS message
             token = data.get("token", "")
@@ -1185,13 +1203,18 @@ async def dm_websocket(
                 continue
 
             # Resolve user
-            user_stmt = select(User).where(User.id == uid)
+            user_stmt = select(User).options(selectinload(User.school)).where(User.id == uid)
             if payload.get("role") != "system_admin":
                 user_stmt = user_stmt.where(User.school_id == payload.get("school_id"))
             user_res = await db.execute(user_stmt)
             sender = user_res.scalar_one_or_none()
             if not sender:
                 await websocket.send_json({"error": "Utilisateur introuvable"})
+                continue
+            try:
+                assert_school_is_active(sender)
+            except HTTPException as exc:
+                await websocket.send_json({"error": exc.detail})
                 continue
 
             # Check participation

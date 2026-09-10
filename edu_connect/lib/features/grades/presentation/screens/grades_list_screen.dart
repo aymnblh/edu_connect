@@ -187,6 +187,7 @@ class GradesListScreen extends ConsumerWidget {
   void _showAddGradeDialog(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       backgroundColor:
           Theme.of(context).colorScheme.surface.withValues(alpha: 0),

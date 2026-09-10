@@ -4,6 +4,7 @@ import {
   getCurrentSessionPersistence,
   notifyWorkspaceSessionChanged,
   readWorkspaceSessionItem,
+  removeWorkspaceSessionItem,
   setRememberDevicePreference,
   storeWorkspaceSessionItem,
 } from './workspace';
@@ -17,6 +18,7 @@ if (import.meta.env.PROD && !apiBaseURL) {
 
 export const api = axios.create({
   baseURL: apiBaseURL || fallbackApiBaseURL,
+  withCredentials: true,
 });
 
 type SessionRequestConfig = InternalAxiosRequestConfig & {
@@ -33,7 +35,11 @@ export function storeSessionTokens(
 ): void {
   setRememberDevicePreference(rememberDevice);
   storeWorkspaceSessionItem('access_token', accessToken, rememberDevice);
-  storeWorkspaceSessionItem('refresh_token', refreshToken, rememberDevice);
+  if (rememberDevice) {
+    removeWorkspaceSessionItem('refresh_token');
+  } else {
+    storeWorkspaceSessionItem('refresh_token', refreshToken, false);
+  }
   notifyWorkspaceSessionChanged();
 }
 
@@ -43,16 +49,12 @@ function isAuthRefreshPath(url: string | undefined): boolean {
 
 async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = readWorkspaceSessionItem('refresh_token');
-  if (!refreshToken) {
-    clearWorkspaceStorage();
-    return null;
-  }
 
   if (!refreshPromise) {
     refreshPromise = api
       .post(
         '/auth/refresh',
-        { refresh_token: refreshToken },
+        refreshToken ? { refresh_token: refreshToken } : {},
         { _skipAuthRefresh: true } as AxiosRequestConfig,
       )
       .then((response) => {
@@ -79,16 +81,14 @@ async function refreshAccessToken(): Promise<string | null> {
 
 export async function logoutSession(): Promise<void> {
   const refreshToken = readWorkspaceSessionItem('refresh_token');
-  if (refreshToken) {
-    try {
-      await api.post(
-        '/auth/logout',
-        { refresh_token: refreshToken },
-        { _skipAuthRefresh: true } as AxiosRequestConfig,
-      );
-    } catch {
-      // Local logout must still complete if the network is unavailable.
-    }
+  try {
+    await api.post(
+      '/auth/logout',
+      refreshToken ? { refresh_token: refreshToken } : {},
+      { _skipAuthRefresh: true } as AxiosRequestConfig,
+    );
+  } catch {
+    // Local logout must still complete if the network is unavailable.
   }
   clearWorkspaceStorage();
 }

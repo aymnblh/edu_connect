@@ -289,16 +289,16 @@ class _AttendanceRecordCard extends ConsumerWidget {
                       ? text.justified
                       : hasPendingJustification
                           ? text.pendingApproval
-                      : needsJustification
-                          ? text.toJustify
-                          : text.ok,
+                          : needsJustification
+                              ? text.toJustify
+                              : text.ok,
                   tone: record.isJustified
                       ? colors.successGreen
                       : hasPendingJustification
                           ? colors.warningAmber
-                      : needsJustification
-                          ? colors.dangerRed
-                          : colors.tealDark,
+                          : needsJustification
+                              ? colors.dangerRed
+                              : colors.tealDark,
                 ),
               ],
             ),
@@ -345,6 +345,7 @@ class _AttendanceRecordCard extends ConsumerWidget {
   void _showJustifySheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       backgroundColor:
           Theme.of(context).colorScheme.surface.withValues(alpha: 0),

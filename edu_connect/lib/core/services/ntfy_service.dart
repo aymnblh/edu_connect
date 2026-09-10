@@ -3,11 +3,11 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../constants/app_constants.dart';
+import 'app_secure_storage.dart';
 import 'api_service.dart';
 
 class NtfyService {
@@ -35,8 +35,7 @@ class NtfyService {
 
   Future<void> initialize() async {
     _disposedByUser = false;
-    const storage = FlutterSecureStorage();
-    final userStr = await storage.read(key: 'user_profile');
+    final userStr = await appSecureStorage.read(key: 'user_profile');
 
     if (userStr == null) return;
 
@@ -46,9 +45,19 @@ class NtfyService {
       if (userId == null || userId.isEmpty) return;
 
       final topic = _topicForUser(userId);
-      if (_activeTopic == topic && _channel != null) return;
+      try {
+        await _ensureLocalNotificationsReady();
+      } catch (e) {
+        if (kDebugMode) debugPrint('[Ntfy] local setup error: $e');
+      }
+      await _primeBackendNotifications();
+      _startBackendPolling();
 
-      await _ensureLocalNotificationsReady();
+      if (!AppConstants.hasNtfyTransport ||
+          (_activeTopic == topic && _channel != null)) {
+        return;
+      }
+
       _closeChannel();
       await ApiService.instance
           .patch('/users/me/push-token', data: {'push_token': topic});
@@ -71,9 +80,6 @@ class NtfyService {
           _scheduleReconnect();
         },
       );
-
-      await _primeBackendNotifications();
-      _startBackendPolling();
     } catch (e) {
       if (kDebugMode) debugPrint('[Ntfy] init error: $e');
       _scheduleReconnect();
@@ -85,14 +91,26 @@ class NtfyService {
 
     const initializationSettings = InitializationSettings(
       android: AndroidInitializationSettings('ic_notification'),
+      iOS: DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      ),
     );
     await _localNotifications.initialize(settings: initializationSettings);
 
-    final android = _localNotifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final android = _localNotifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     await android?.createNotificationChannel(_androidChannel);
     await android?.requestNotificationsPermission();
+
+    final ios = _localNotifications.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    await ios?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
     _localNotificationsReady = true;
   }
@@ -141,6 +159,13 @@ class NtfyService {
           importance: Importance.high,
           priority: Priority.high,
           icon: 'ic_notification',
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          presentBanner: true,
+          presentList: true,
         ),
       ),
     );
@@ -219,7 +244,7 @@ class NtfyService {
   String _notificationKey(String title, String body) => '$title\n$body';
 
   void _scheduleReconnect() {
-    if (_disposedByUser) return;
+    if (_disposedByUser || !AppConstants.hasNtfyTransport) return;
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(const Duration(seconds: 5), () {
       unawaited(initialize());
@@ -233,6 +258,12 @@ class NtfyService {
   }
 
   void dispose() {
+    suspend();
+    _seenBackendNotificationIds.clear();
+    _recentLocalNotifications.clear();
+  }
+
+  void suspend() {
     _disposedByUser = true;
     _reconnectTimer?.cancel();
     _reconnectTimer = null;

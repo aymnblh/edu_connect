@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# EduConnect production deployment script.
-# Run on the VPS after copying .env.production and the secrets/ directory.
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -14,78 +11,80 @@ warn() { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 compose() { docker compose --env-file .env.production -f docker-compose.yml "$@"; }
 
-info "Running preflight checks..."
+info "Running VPS preflight checks..."
 
-[[ -f ".env.production" ]] || error ".env.production not found. Copy .env.production.example and fill it in."
-[[ -f "secrets/private_key.pem" ]] || error "secrets/private_key.pem missing. Run: python manage.py generate-keys"
-[[ -f "secrets/public_key.pem" ]] || error "secrets/public_key.pem missing. Run: python manage.py generate-keys"
+[[ -f ".env.production" ]] || error ".env.production not found. Generate and review it first."
+[[ -f "secrets/private_key.pem" ]] || error "secrets/private_key.pem is missing."
+[[ -f "secrets/public_key.pem" ]] || error "secrets/public_key.pem is missing."
 
 set -a
 source .env.production
 set +a
 
-if grep -Eq "REPLACE_WITH_|YOUR_" .env.production; then
+if grep -Eq "REPLACE_WITH|YOUR_|change-this" .env.production; then
     error ".env.production still contains placeholder values."
 fi
 
-[[ "${APP_ENV:-}" == "production" ]] || error "APP_ENV must be production."
-[[ "${CREATE_TABLES_ON_STARTUP:-false}" == "false" ]] || error "CREATE_TABLES_ON_STARTUP must be false in production."
-
-command -v docker >/dev/null 2>&1 || error "Docker not found. Install Docker first."
-docker compose version >/dev/null 2>&1 || error "Docker Compose v2 not found."
-python scripts/check_production_posture.py
-
-info "Preflight OK."
-
-info "Pulling base images..."
-compose pull db ntfy clamav || warn "Pull had warnings - continuing."
-
-info "Building API image..."
-compose build --no-cache api
-
-info "Starting database..."
-compose up -d db
-info "Waiting for database to be healthy (up to 60s)..."
-for i in $(seq 1 12); do
-    if compose exec db pg_isready -U "${POSTGRES_SUPERUSER:-postgres}" -d "${POSTGRES_DB:-edu_connect}" >/dev/null 2>&1; then
-        break
-    fi
-    sleep 5
-    [[ $i -eq 12 ]] && error "Database did not become healthy in 60 seconds."
+for name in APP_ENV FQDN WEB_FQDN WEB_API_BASE_URL CORS_ORIGINS REDIS_PASSWORD \
+    BACKUP_AGE_RECIPIENT BACKUP_REMOTE_HOST BACKUP_REMOTE_PATH; do
+    [[ -n "${!name:-}" ]] || error "$name is required."
 done
 
-info "Running database migrations..."
-compose run --rm api alembic upgrade head
-info "Migrations complete."
+[[ "$APP_ENV" == "production" ]] || error "APP_ENV must be production."
+[[ "${CREATE_TABLES_ON_STARTUP:-false}" == "false" ]] || error "CREATE_TABLES_ON_STARTUP must be false."
+[[ "$FQDN" != "$WEB_FQDN" ]] || error "FQDN and WEB_FQDN must be different hostnames."
+[[ "$WEB_API_BASE_URL" == "https://${FQDN}" ]] || error "WEB_API_BASE_URL must equal https://${FQDN}."
+[[ "$CORS_ORIGINS" == *"https://${WEB_FQDN}"* ]] || error "CORS_ORIGINS must include https://${WEB_FQDN}."
+[[ "$BACKUP_AGE_RECIPIENT" == age1* ]] || error "BACKUP_AGE_RECIPIENT must be a valid age public recipient."
 
-info "Starting all services..."
-compose up -d
+command -v docker >/dev/null 2>&1 || error "Docker is not installed."
+docker compose version >/dev/null 2>&1 || error "Docker Compose v2 is not installed."
+command -v curl >/dev/null 2>&1 || error "curl is not installed."
+command -v age >/dev/null 2>&1 || error "age is not installed."
+command -v rsync >/dev/null 2>&1 || error "rsync is not installed."
+getent ahosts "$FQDN" >/dev/null 2>&1 || error "DNS does not resolve for $FQDN."
+getent ahosts "$WEB_FQDN" >/dev/null 2>&1 || error "DNS does not resolve for $WEB_FQDN."
 
-info "Waiting 10s for API to start..."
-sleep 10
+python scripts/check_production_posture.py --actual-env .env.production
+compose config --quiet
 
-HEALTH_URL="https://${FQDN}/health/ready"
+info "Pulling production images..."
+compose pull caddy db redis clamav
 
-info "Checking readiness at ${HEALTH_URL}..."
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${HEALTH_URL}" || echo "000")
+info "Building API and web images..."
+compose build --pull api web
 
-if [[ "$HTTP_STATUS" == "200" ]]; then
-    info "Readiness check passed (HTTP 200)."
-else
-    warn "Readiness check returned HTTP ${HTTP_STATUS}. Check logs: docker compose --env-file .env.production -f docker-compose.yml logs api"
-fi
+info "Validating Caddy configuration..."
+compose run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
+info "Starting private dependencies..."
+compose up -d --wait --wait-timeout 240 db redis clamav
+
+info "Applying database migrations..."
+compose run --rm --no-deps api alembic upgrade head
+
+info "Starting the complete stack..."
+compose up -d --wait --wait-timeout 240
+
+API_HEALTH_URL="https://${FQDN}/health/ready"
+WEB_HEALTH_URL="https://${WEB_FQDN}/login"
+
+info "Checking API readiness at ${API_HEALTH_URL}..."
+curl --fail --silent --show-error --max-time 20 "$API_HEALTH_URL" >/dev/null \
+    || error "API readiness failed. Run: docker compose --env-file .env.production logs api"
+
+info "Checking web application at ${WEB_HEALTH_URL}..."
+curl --fail --silent --show-error --max-time 20 "$WEB_HEALTH_URL" >/dev/null \
+    || error "Web readiness failed. Run: docker compose --env-file .env.production logs web caddy"
 
 echo ""
-echo -e "${GREEN}============================================================${NC}"
-echo -e "${GREEN} Deployment complete${NC}"
-echo -e "${GREEN}============================================================${NC}"
-echo ""
+echo -e "${GREEN}Deployment complete${NC}"
+echo "  Web:       https://${WEB_FQDN}"
 echo "  API:       https://${FQDN}"
-echo "  Health:    https://${FQDN}/health"
-echo "  Readiness: https://${FQDN}/health/ready"
-echo "  Logs:      docker compose --env-file .env.production -f docker-compose.yml logs -f api"
+echo "  Readiness: ${API_HEALTH_URL}"
 echo ""
-echo "  Next: Create superadmin account:"
-echo "  docker compose --env-file .env.production -f docker-compose.yml exec api python manage.py create-superadmin \\"
-echo "    --email admin@${FQDN#api.} --password '<STRONG_PASSWORD>'"
+echo "Create the first platform administrator with an interactive password prompt:"
+echo '  docker compose --env-file .env.production exec api python manage.py create-superadmin \'
+echo "    --email admin@${WEB_FQDN#app.} --full-name 'Platform Administrator'"
 echo ""
+echo "Then verify everything: ./scripts/verify_deployment.sh"

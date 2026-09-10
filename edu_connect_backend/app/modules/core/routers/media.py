@@ -231,7 +231,7 @@ async def _load_authorized_attachment(
 
 
 async def _read_upload(file: UploadFile) -> bytes:
-    content = await file.read()
+    content = await file.read(settings.media_max_upload_bytes + 1)
     if not content:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
     if len(content) > settings.media_max_upload_bytes:
@@ -240,6 +240,17 @@ async def _read_upload(file: UploadFile) -> bytes:
     content_type = (file.content_type or mimetypes.guess_type(file.filename or "")[0] or "").lower()
     if content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(status_code=400, detail="Unsupported file type.")
+    signatures = {
+        "application/pdf": (b"%PDF-",),
+        "image/jpeg": (b"\xff\xd8\xff",),
+        "image/png": (b"\x89PNG\r\n\x1a\n",),
+        "image/webp": (b"RIFF",),
+    }
+    expected = signatures.get(content_type)
+    if expected and not any(content.startswith(signature) for signature in expected):
+        raise HTTPException(status_code=400, detail="File content does not match its declared type.")
+    if content_type == "image/webp" and content[8:12] != b"WEBP":
+        raise HTTPException(status_code=400, detail="Invalid WebP file.")
     return content
 
 
@@ -330,6 +341,7 @@ async def download_attachment(
         path,
         media_type=attachment.mime_type or "application/octet-stream",
         filename=attachment.original_filename or "attachment",
+        headers={"X-Content-Type-Options": "nosniff"},
     )
 
 

@@ -11,10 +11,12 @@ async def _notification_preference(
     db: AsyncSession,
     user_id: str,
     notification_type: str,
+    school_id: str,
 ) -> tuple[bool, bool]:
     result = await db.execute(
         select(NotificationPreference).where(
             NotificationPreference.user_id == user_id,
+            NotificationPreference.school_id == school_id,
             NotificationPreference.notification_type.in_([notification_type, "ALL"]),
         )
     )
@@ -37,13 +39,10 @@ async def create_notification(
     """Creates an in-app notification and triggers local push if a topic exists."""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    notification_type = (type or "INFO").strip().upper() or "INFO"
-    is_critical = notification_type in CRITICAL_NOTIFICATION_TYPES
-    in_app_enabled, push_enabled = await _notification_preference(db, user_id, notification_type)
-    if not in_app_enabled and not is_critical:
-        return None
+    if user is None:
+        raise ValueError("Cannot create notification for an unknown user.")
 
-    resolved_school_id = school_id or (user.school_id if user else None)
+    resolved_school_id = school_id or user.school_id
     if resolved_school_id is None:
         link_result = await db.execute(
             select(StudentParent.school_id).where(StudentParent.parent_id == user_id).limit(1)
@@ -51,6 +50,17 @@ async def create_notification(
         resolved_school_id = link_result.scalar_one_or_none()
     if resolved_school_id is None:
         raise ValueError("Cannot create notification without a school_id.")
+
+    notification_type = (type or "INFO").strip().upper() or "INFO"
+    is_critical = notification_type in CRITICAL_NOTIFICATION_TYPES
+    in_app_enabled, push_enabled = await _notification_preference(
+        db,
+        user_id,
+        notification_type,
+        resolved_school_id,
+    )
+    if not in_app_enabled and not is_critical:
+        return None
 
     notification = Notification(
         id=str(uuid.uuid4()),
