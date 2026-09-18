@@ -151,6 +151,19 @@ class AdminRepository {
     });
   }
 
+  Future<Map<String, dynamic>> createStaff({
+    required String email,
+    required String fullName,
+    required String role,
+  }) async {
+    final response = await _api.post('/admin/create-staff', data: {
+      'email': email,
+      'full_name': fullName,
+      'role': role,
+    });
+    return response as Map<String, dynamic>;
+  }
+
   Future<StudentImportResult> importStudents(String filePath) async {
     final formData = FormData.fromMap({
       'file': await MultipartFile.fromFile(

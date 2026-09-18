@@ -196,6 +196,11 @@ export default function Login() {
               {t('login.policiesLink')}
             </Link>
           </div>
+          <div className="login-footer" style={{ marginTop: '1rem', justifyContent: 'center' }}>
+            <Link to="/register-school" className="link-hover-primary">
+              {t('login.registerSchool')}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

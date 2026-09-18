@@ -1,4 +1,4 @@
-﻿{
+{
   "@@locale": "ar",
   "appTitle": "Wasel Edu",
   "login": "تسجيل الدخول",
@@ -117,5 +117,28 @@
   "inviteOnlyInfo": "يتم إنشاء حسابك من طرف إدارة المدرسة. عند أول تسجيل دخول سيُطلب منك تعيين كلمة المرور.",
   "registerSchoolCta": "تسجيل مؤسستي",
   "unstableConnection": "الاتصال غير مستقر",
-  "retry": "إعادة المحاولة"
+  "retry": "إعادة المحاولة",
+  "superadminCreateSchool": "إنشاء مؤسسة",
+  "superadminSchoolName": "اسم المؤسسة",
+  "superadminCreate": "إنشاء",
+  "superadminCreating": "جارٍ الإنشاء...",
+  "superadminSchoolCreated": "تم إنشاء المؤسسة بنجاح",
+  "superadminActivate": "تفعيل",
+  "superadminSuspend": "تعليق",
+  "superadminActivated": "تم تفعيل المؤسسة",
+  "superadminSuspended": "تم تعليق المؤسسة",
+  "superadminConfirmSuspend": "هل تريد حقاً تعليق هذه المؤسسة؟",
+  "createStaffTitle": "إنشاء حساب",
+  "createStaffHelp": "قم بدعوة أحد أعضاء الطاقم. سيقوم بتعيين كلمة المرور الخاصة به عند أول تسجيل دخول.",
+  "staffRole": "الدور",
+  "roleTeacher": "معلم",
+  "roleSecretary": "أمين",
+  "staffCreated": "تم إنشاء حساب {name} بنجاح",
+  "@staffCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

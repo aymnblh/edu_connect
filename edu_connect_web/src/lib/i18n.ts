@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export type Locale = 'fr' | 'ar' | 'en';
 
@@ -184,6 +184,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'تفعيل حساب',
     en: 'Activate an account',
   },
+  'login.registerSchool': {
+    fr: 'Inscrire mon établissement',
+    ar: 'تسجيل مؤسستي',
+    en: 'Register my school',
+  },
   'activate.heroTitle': {
     fr: 'Activez votre',
     ar: 'فعّلوا',
@@ -278,6 +283,86 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'Retour à la connexion',
     ar: 'العودة إلى تسجيل الدخول',
     en: 'Back to sign in',
+  },
+  'register.title': {
+    fr: 'Inscrire un établissement',
+    ar: 'تسجيل مؤسسة',
+    en: 'Register a school',
+  },
+  'register.subtitle': {
+    fr: 'Créez votre espace scolaire sur EduConnect',
+    ar: 'أنشئ فضاءك المدرسي على EduConnect',
+    en: 'Create your school workspace on EduConnect',
+  },
+  'register.schoolName': {
+    fr: 'Nom de l\'établissement',
+    ar: 'اسم المؤسسة',
+    en: 'School name',
+  },
+  'register.schoolNamePlaceholder': {
+    fr: 'Ex: Lycée El Amel',
+    ar: 'مثال: ثانوية الأمل',
+    en: 'E.g.: El Amel High School',
+  },
+  'register.directorName': {
+    fr: 'Nom complet du directeur',
+    ar: 'الاسم الكامل للمدير',
+    en: 'Director full name',
+  },
+  'register.email': {
+    fr: 'Adresse email',
+    ar: 'البريد الإلكتروني',
+    en: 'Email address',
+  },
+  'register.password': {
+    fr: 'Mot de passe',
+    ar: 'كلمة المرور',
+    en: 'Password',
+  },
+  'register.confirmPassword': {
+    fr: 'Confirmer le mot de passe',
+    ar: 'تأكيد كلمة المرور',
+    en: 'Confirm password',
+  },
+  'register.termsLabel': {
+    fr: 'J\'accepte la politique de confidentialité et les conditions d\'utilisation',
+    ar: 'أوافق على سياسة الخصوصية وشروط الاستخدام',
+    en: 'I accept the privacy policy and terms of use',
+  },
+  'register.submit': {
+    fr: 'Créer l\'établissement',
+    ar: 'إنشاء المؤسسة',
+    en: 'Create school',
+  },
+  'register.submitting': {
+    fr: 'Création en cours...',
+    ar: 'جارٍ الإنشاء...',
+    en: 'Creating...',
+  },
+  'register.success': {
+    fr: 'Établissement créé avec succès ! Votre compte est en attente d\'activation par l\'administrateur.',
+    ar: 'تم إنشاء المؤسسة بنجاح! حسابك في انتظار التفعيل من قبل المسؤول.',
+    en: 'School created successfully! Your account is pending activation by the administrator.',
+  },
+  'register.backToLogin': {
+    fr: 'Retour à la connexion',
+    ar: 'العودة إلى تسجيل الدخول',
+    en: 'Back to login',
+  },
+  'register.alreadyHaveAccount': {
+    fr: 'Vous avez déjà un compte ?',
+    ar: 'لديك حساب بالفعل؟',
+    en: 'Already have an account?',
+  },
+  'register.passwordMismatch': {
+    fr: 'Les mots de passe ne correspondent pas',
+    ar: 'كلمات المرور غير متطابقة',
+    en: 'Passwords do not match',
+  },
+  'register.termsRequired': {
+    fr: 'Vous devez accepter les conditions',
+    ar: 'يجب عليك قبول الشروط',
+    en: 'You must accept the terms',
   },
   'language.label': {
     fr: 'Langue',
@@ -503,6 +588,61 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'Chargement des écoles...',
     ar: 'جار تحميل المدارس...',
     en: 'Loading schools...',
+  },
+  'superadmin.createSchool': {
+    fr: 'Créer un établissement',
+    ar: 'إنشاء مؤسسة',
+    en: 'Create school',
+  },
+  'superadmin.schoolNameLabel': {
+    fr: 'Nom de l\'établissement',
+    ar: 'اسم المؤسسة',
+    en: 'School name',
+  },
+  'superadmin.createSchoolSubmit': {
+    fr: 'Créer',
+    ar: 'إنشاء',
+    en: 'Create',
+  },
+  'superadmin.creating': {
+    fr: 'Création...',
+    ar: 'جارٍ الإنشاء...',
+    en: 'Creating...',
+  },
+  'superadmin.toastSchoolCreated': {
+    fr: 'Établissement créé avec succès',
+    ar: 'تم إنشاء المؤسسة بنجاح',
+    en: 'School created successfully',
+  },
+  'superadmin.toastSchoolCreateError': {
+    fr: 'Erreur lors de la création',
+    ar: 'خطأ أثناء الإنشاء',
+    en: 'Error creating school',
+  },
+  'superadmin.activateSchool': {
+    fr: 'Activer',
+    ar: 'تفعيل',
+    en: 'Activate',
+  },
+  'superadmin.suspendSchool': {
+    fr: 'Suspendre',
+    ar: 'تعليق',
+    en: 'Suspend',
+  },
+  'superadmin.toastActivated': {
+    fr: 'Établissement activé',
+    ar: 'تم تفعيل المؤسسة',
+    en: 'School activated',
+  },
+  'superadmin.toastSuspended': {
+    fr: 'Établissement suspendu',
+    ar: 'تم تعليق المؤسسة',
+    en: 'School suspended',
+  },
+  'superadmin.confirmSuspend': {
+    fr: 'Voulez-vous vraiment suspendre cet établissement ?',
+    ar: 'هل تريد حقاً تعليق هذه المؤسسة؟',
+    en: 'Are you sure you want to suspend this school?',
   },
   'superadmin.loadError': {
     fr: 'Erreur lors du chargement des écoles.',

@@ -16,6 +16,19 @@ class PlatformRepository {
     return (response.data as List).map((x) => SchoolModel.fromJson(x)).toList();
   }
 
+  Future<Map<String, dynamic>> createSchool(String name) async {
+    final response = await _dio.post('/admin/schools', data: {'name': name});
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<void> activateSchool(String schoolId) async {
+    await _dio.post('/system/schools/$schoolId/activate');
+  }
+
+  Future<void> deactivateSchool(String schoolId) async {
+    await _dio.post('/system/schools/$schoolId/deactivate');
+  }
+
   Future<void> addSubscriptionPayment({
     required String schoolId,
     required double amount,

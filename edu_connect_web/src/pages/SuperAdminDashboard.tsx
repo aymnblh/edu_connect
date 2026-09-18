@@ -165,10 +165,13 @@ function buildSchoolSignals(school: School, t: (key: string, values?: Record<str
 export default function SuperAdminDashboard() {
   const queryClient = useQueryClient();
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newSchoolName, setNewSchoolName] = useState('');
   const [amount, setAmount] = useState('');
   const [months, setMonths] = useState('12');
   const [toasts, setToasts] = useState<Toast[]>([]);
   const paymentModalRef = useRef<HTMLDivElement>(null);
+  const createModalRef = useRef<HTMLDivElement>(null);
   const { locale, t } = useLocale();
 
   const addToast = useCallback((message: string, type: Toast['type']) => {
@@ -192,6 +195,14 @@ export default function SuperAdminDashboard() {
     );
     firstFocusable?.focus();
   }, [selectedSchool]);
+
+  useEffect(() => {
+    if (!isCreateModalOpen) return;
+    const firstFocusable = createModalRef.current?.querySelector<HTMLElement>(
+      'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])'
+    );
+    firstFocusable?.focus();
+  }, [isCreateModalOpen]);
 
   const handlePaymentModalKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
@@ -289,6 +300,56 @@ export default function SuperAdminDashboard() {
     }
   });
 
+  const createSchoolMutation = useMutation({
+    mutationFn: async (name: string) => {
+      return api.post('/admin/schools', { name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['schools'] });
+      setIsCreateModalOpen(false);
+      setNewSchoolName('');
+      addToast(t('superadmin.toastSchoolCreated'), 'success');
+    },
+    onError: (err: unknown) => {
+      const message = isAxiosError(err)
+        ? err.response?.data?.detail || err.message
+        : t('auth.connectionError');
+      addToast(t('superadmin.toastSchoolCreateError') + ': ' + message, 'error');
+    }
+  });
+
+  const activateSchoolMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return api.post(`/system/schools/${id}/activate`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['schools'] });
+      addToast(t('superadmin.toastActivated'), 'success');
+    },
+    onError: (err: unknown) => {
+      const message = isAxiosError(err)
+        ? err.response?.data?.detail || err.message
+        : t('auth.connectionError');
+      addToast(t('common.errorGeneric') + ': ' + message, 'error');
+    }
+  });
+
+  const suspendSchoolMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return api.post(`/system/schools/${id}/deactivate`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['schools'] });
+      addToast(t('superadmin.toastSuspended'), 'success');
+    },
+    onError: (err: unknown) => {
+      const message = isAxiosError(err)
+        ? err.response?.data?.detail || err.message
+        : t('auth.connectionError');
+      addToast(t('common.errorGeneric') + ': ' + message, 'error');
+    }
+  });
+
   if (isLoading) {
     return (
       <div className="loading-spinner screen-min-height">
@@ -324,12 +385,17 @@ export default function SuperAdminDashboard() {
         </div>
       )}
 
-      <header className="dashboard-header">
-        <div className="badge dashboard-eyebrow">
-          <Activity size={14} /> {t('superadmin.eyebrow')}
+      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <div className="badge dashboard-eyebrow">
+            <Activity size={14} /> {t('superadmin.eyebrow')}
+          </div>
+          <h1>{t('superadmin.title')}</h1>
+          <p>{t('superadmin.subtitle')}</p>
         </div>
-        <h1>{t('superadmin.title')}</h1>
-        <p>{t('superadmin.subtitle')}</p>
+        <button className="btn btn-primary" onClick={() => setIsCreateModalOpen(true)}>
+          <PlusCircle size={18} /> {t('superadmin.createSchool')}
+        </button>
       </header>
 
       <section className="glass-card dashboard-card-pad superadmin-platform-panel">
@@ -518,13 +584,32 @@ export default function SuperAdminDashboard() {
                 </strong>
               </div>
 
-              <button 
-                className="btn btn-primary btn-full" 
-                onClick={() => setSelectedSchool(school)}
-                aria-label={t('superadmin.addPaymentFor', { school: school.name })}
-              >
-                <DollarSign size={18} /> {t('superadmin.addPayment')}
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                <button 
+                  className="btn btn-primary" 
+                  style={{ flex: 1 }}
+                  onClick={() => setSelectedSchool(school)}
+                  aria-label={t('superadmin.addPaymentFor', { school: school.name })}
+                >
+                  <DollarSign size={18} /> {t('superadmin.addPayment')}
+                </button>
+                <button
+                  className={`btn ${school.is_active ? 'btn-danger' : 'btn-success'}`}
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    if (school.is_active) {
+                      if (window.confirm(t('superadmin.confirmSuspend'))) {
+                        suspendSchoolMutation.mutate(school.id);
+                      }
+                    } else {
+                      activateSchoolMutation.mutate(school.id);
+                    }
+                  }}
+                  disabled={suspendSchoolMutation.isPending || activateSchoolMutation.isPending}
+                >
+                  {school.is_active ? t('superadmin.suspendSchool') : t('superadmin.activateSchool')}
+                </button>
+              </div>
             </div>
           );
         })}
@@ -592,6 +677,56 @@ export default function SuperAdminDashboard() {
                   aria-busy={paymentMutation.isPending}
                 >
                   <PlusCircle size={18} /> {t('superadmin.validatePayment')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create School Modal */}
+      {isCreateModalOpen && (
+        <div
+          className="workspace-modal-backdrop"
+          onClick={(e) => { if (e.target === e.currentTarget) setIsCreateModalOpen(false); }}
+        >
+          <div
+            ref={createModalRef}
+            className="workspace-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-modal-title"
+          >
+            <h2 id="create-modal-title" className="payment-modal-title">{t('superadmin.createSchool')}</h2>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!newSchoolName.trim()) return;
+              createSchoolMutation.mutate(newSchoolName);
+            }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="new-school-name">{t('superadmin.schoolNameLabel')}</label>
+                <input 
+                  id="new-school-name"
+                  type="text" 
+                  className="input-field" 
+                  value={newSchoolName} 
+                  onChange={e => setNewSchoolName(e.target.value)} 
+                  required
+                />
+              </div>
+
+              <div className="payment-actions">
+                <button type="button" className="btn btn-outline" onClick={() => setIsCreateModalOpen(false)}>
+                  Annuler
+                </button>
+                <button 
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={createSchoolMutation.isPending || !newSchoolName.trim()}
+                  aria-busy={createSchoolMutation.isPending}
+                >
+                  <PlusCircle size={18} /> {createSchoolMutation.isPending ? t('superadmin.creating') : t('superadmin.createSchoolSubmit')}
                 </button>
               </div>
             </form>

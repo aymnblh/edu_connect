@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../data/repositories/platform_repository.dart';
 import '../providers/system_provider.dart';
 
 class SuperAdminDashboardScreen extends ConsumerWidget {
@@ -39,6 +40,11 @@ class SuperAdminDashboardScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showCreateSchoolDialog(context, ref),
+        tooltip: text.createSchool,
+        child: const Icon(Icons.add),
       ),
       body: SafeArea(
         child: schoolsAsyncValue.when(
@@ -90,6 +96,74 @@ class SuperAdminDashboardScreen extends ConsumerWidget {
     await ref.read(authNotifierProvider.notifier).signOut();
   }
 
+  Future<void> _showCreateSchoolDialog(BuildContext context, WidgetRef ref) {
+    final text = _SuperAdminText.of(context);
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController();
+    bool isSubmitting = false;
+
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(text.createSchool),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: text.schoolName,
+              ),
+              validator: (val) {
+                if (val == null || val.trim().isEmpty) return '*';
+                return null;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+              child: Text(text.cancel),
+            ),
+            ElevatedButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() => isSubmitting = true);
+                      try {
+                        await ref
+                            .read(platformRepositoryProvider)
+                            .createSchool(nameController.text.trim());
+                        ref.invalidate(systemSchoolsProvider);
+                        if (ctx.mounted) {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(text.schoolCreated)),
+                          );
+                        }
+                      } catch (e) {
+                        setDialogState(() => isSubmitting = false);
+                        if (ctx.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(text.actionFailed(e)),
+                              backgroundColor: context.appColors.dangerRed,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: Text(isSubmitting ? text.creating : text.create),
+            ),
+          ],
+        ),
+      ),
+    ).whenComplete(() {
+      nameController.dispose();
+    });
+  }
+
   Future<void> _toggleSchool(
     BuildContext context,
     WidgetRef ref,
@@ -101,12 +175,35 @@ class SuperAdminDashboardScreen extends ConsumerWidget {
     final id = school['id']?.toString();
     if (id == null || id.isEmpty) return;
 
+    final isActive = school['is_active'] == true;
+
+    if (isActive) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(text.suspend),
+          content: Text(text.confirmSuspend),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(text.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(foregroundColor: errorColor),
+              child: Text(text.suspend),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
+
     try {
-      final isActive = school['is_active'] == true;
       if (isActive) {
-        await ref.read(systemRepositoryProvider).deactivateSchool(id);
+        await ref.read(platformRepositoryProvider).deactivateSchool(id);
       } else {
-        await ref.read(systemRepositoryProvider).activateSchool(id);
+        await ref.read(platformRepositoryProvider).activateSchool(id);
       }
       ref.invalidate(systemSchoolsProvider);
       messenger.showSnackBar(
@@ -481,13 +578,24 @@ class _SchoolTile extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: onToggleActive,
-                      icon: Icon(isActive
-                          ? Icons.pause_circle_outline
-                          : Icons.play_circle_outline),
-                      label: Text(isActive ? text.suspend : text.activate),
-                    ),
+                    child: isActive
+                        ? TextButton.icon(
+                            onPressed: onToggleActive,
+                            icon: const Icon(Icons.pause_circle_outline),
+                            label: Text(text.suspend),
+                            style: TextButton.styleFrom(
+                              foregroundColor: colors.dangerRed,
+                            ),
+                          )
+                        : ElevatedButton.icon(
+                            onPressed: onToggleActive,
+                            icon: const Icon(Icons.play_circle_outline),
+                            label: Text(text.activate),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colors.successGreen,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -659,6 +767,12 @@ class _SuperAdminText {
       : _fr
           ? 'Suivi des établissements, abonnements et activations.'
           : 'Track schools, subscriptions, and activations.';
+  String get createSchool => _ar ? 'إنشاء مؤسسة' : _fr ? 'Créer un établissement' : 'Create school';
+  String get schoolName => _ar ? 'اسم المؤسسة' : _fr ? 'Nom de l\'établissement' : 'School name';
+  String get create => _ar ? 'إنشاء' : _fr ? 'Créer' : 'Create';
+  String get creating => _ar ? 'جارٍ الإنشاء...' : _fr ? 'Création en cours...' : 'Creating...';
+  String get schoolCreated => _ar ? 'تم إنشاء المؤسسة بنجاح' : _fr ? 'Établissement créé avec succès' : 'School created successfully';
+  String get confirmSuspend => _ar ? 'هل تريد حقاً تعليق هذه المؤسسة؟' : _fr ? 'Voulez-vous vraiment suspendre cet établissement ?' : 'Are you sure you want to suspend this school?';
   String get schools => _ar
       ? 'المدارس'
       : _fr

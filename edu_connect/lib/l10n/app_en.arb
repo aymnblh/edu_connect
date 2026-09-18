@@ -1,4 +1,4 @@
-﻿{
+{
   "@@locale": "en",
   "appTitle": "Wasel Edu",
   "login": "Login",
@@ -117,5 +117,28 @@
   "inviteOnlyInfo": "Your account is created by your school administrator. On your first login, you will be asked to set your password.",
   "registerSchoolCta": "Register my school",
   "unstableConnection": "Unstable connection",
-  "retry": "Retry"
+  "retry": "Retry",
+  "superadminCreateSchool": "Create school",
+  "superadminSchoolName": "School name",
+  "superadminCreate": "Create",
+  "superadminCreating": "Creating...",
+  "superadminSchoolCreated": "School created successfully",
+  "superadminActivate": "Activate",
+  "superadminSuspend": "Suspend",
+  "superadminActivated": "School activated",
+  "superadminSuspended": "School suspended",
+  "superadminConfirmSuspend": "Are you sure you want to suspend this school?",
+  "createStaffTitle": "Create account",
+  "createStaffHelp": "Invite a staff member. They will set their password on first login.",
+  "staffRole": "Role",
+  "roleTeacher": "Teacher",
+  "roleSecretary": "Secretary",
+  "staffCreated": "{name} account created successfully",
+  "@staffCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

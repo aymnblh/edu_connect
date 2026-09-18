@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'package:edu_connect/features/class/data/repositories/admin_repository.dart';
 import 'package:edu_connect/features/class/data/repositories/student_repository.dart';
+import 'package:edu_connect/features/auth/presentation/providers/auth_provider.dart';
 
 class AdminToolsScreen extends ConsumerStatefulWidget {
   const AdminToolsScreen({super.key});
@@ -68,7 +69,7 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
     return '${text.importSuccess} (${result.imported} imported, ${result.skipped} skipped)';
   }
 
-  Future<void> _showCreateTeacherDialog() async {
+  Future<void> _showCreateStaffDialog() async {
     final text = _AdminToolsText.of(context);
     final colors = context.appColors;
     final colorScheme = Theme.of(context).colorScheme;
@@ -76,6 +77,10 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
     final emailCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
     bool isLoading = false;
+    String selectedRole = 'teacher';
+
+    final user = ref.read(authNotifierProvider).value;
+    final isPrincipal = user?.role == 'principal';
 
     await showDialog(
       context: context,
@@ -88,7 +93,7 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
             children: [
               Icon(Icons.person_add_rounded, color: colors.tealDark),
               const SizedBox(width: 10),
-              Text(text.createTeacherTitle,
+              Text(text.createStaffTitle,
                   style: const TextStyle(fontSize: 18)),
             ],
           ),
@@ -98,10 +103,34 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  text.createTeacherHelp,
+                  text.createStaffHelp,
                   style: TextStyle(fontSize: 13, color: colors.mutedText),
                 ),
                 const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedRole,
+                  decoration: InputDecoration(
+                    labelText: text.staffRole,
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'teacher',
+                      child: Text(text.roleTeacher),
+                    ),
+                    if (isPrincipal)
+                      DropdownMenuItem(
+                        value: 'secretary',
+                        child: Text(text.roleSecretary),
+                      ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setDialogState(() => selectedRole = val);
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: nameCtrl,
                   textCapitalization: TextCapitalization.words,
@@ -145,9 +174,10 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
                       if (!formKey.currentState!.validate()) return;
                       setDialogState(() => isLoading = true);
                       try {
-                        await ref.read(adminRepositoryProvider).createTeacher(
+                        await ref.read(adminRepositoryProvider).createStaff(
                               email: emailCtrl.text.trim(),
                               fullName: nameCtrl.text.trim(),
+                              role: selectedRole,
                             );
                         if (!mounted) return;
                         if (ctx.mounted) {
@@ -155,7 +185,7 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                  text.teacherCreated(nameCtrl.text.trim())),
+                                  text.staffCreated(nameCtrl.text.trim())),
                               backgroundColor: colors.successGreen,
                             ),
                           );
@@ -305,7 +335,7 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
                     subtitle: text.createTeacherCardSubtitle,
                     icon: Icons.person_add_rounded,
                     color: colorScheme.onSurface,
-                    onTap: _showCreateTeacherDialog,
+                    onTap: _showCreateStaffDialog,
                   ).animate().fadeIn(delay: 100.ms).slideX(begin: 0.1),
                   _buildToolCard(
                     title: text.bulkImportTitle,
@@ -550,15 +580,25 @@ class _AdminToolsText {
           ? 'Outils de gestion'
           : 'Management tools';
   String get createTeacherCardTitle => _ar
-      ? 'إنشاء حساب معلم'
+      ? 'إنشاء حساب'
       : _fr
-          ? 'Créer un compte enseignant'
-          : 'Create teacher account';
+          ? 'Créer un compte'
+          : 'Create account';
   String get createTeacherCardSubtitle => _ar
-      ? 'ادعُ معلماً ليحدد كلمة المرور عند أول اتصال.'
+      ? 'قم بدعوة أحد أعضاء الطاقم. سيقوم بتعيين كلمة المرور الخاصة به عند أول تسجيل دخول.'
       : _fr
-          ? 'Invitez un enseignant. Il définira son mot de passe lors de sa première connexion.'
-          : 'Invite a teacher. They will set their password on first login.';
+          ? 'Invitez un membre du personnel. Il définira son mot de passe lors de sa première connexion.'
+          : 'Invite a staff member. They will set their password on first login.';
+  String get staffRole => _ar ? 'الدور' : _fr ? 'Rôle' : 'Role';
+  String get roleTeacher => _ar ? 'معلم' : _fr ? 'Enseignant' : 'Teacher';
+  String get roleSecretary => _ar ? 'أمين' : _fr ? 'Secrétaire' : 'Secretary';
+  String get createStaffTitle => _ar ? 'إنشاء حساب' : _fr ? 'Créer un compte' : 'Create account';
+  String get createStaffHelp => _ar
+      ? 'قم بدعوة أحد أعضاء الطاقم. سيقوم بتعيين كلمة المرور الخاصة به عند أول تسجيل دخول.'
+      : _fr
+          ? 'Invitez un membre du personnel. Il définira son mot de passe lors de sa première connexion.'
+          : 'Invite a staff member. They will set their password on first login.';
+  String staffCreated(String name) => _ar ? 'تم إنشاء حساب $name بنجاح' : _fr ? 'Compte $name créé avec succès' : '$name account created successfully';
   String get bulkImportTitle => _ar
       ? 'استيراد التلاميذ'
       : _fr
@@ -715,17 +755,17 @@ class _CleanAdminToolsText extends _AdminToolsText {
 
   @override
   String get createTeacherCardTitle => _ar
-      ? 'إنشاء حساب أستاذ'
+      ? 'إنشاء حساب'
       : _fr
-          ? 'Créer un compte enseignant'
-          : 'Create teacher account';
+          ? 'Créer un compte'
+          : 'Create account';
 
   @override
   String get createTeacherCardSubtitle => _ar
-      ? 'ادع أستاذا ليحدد كلمة المرور عند أول تسجيل دخول.'
+      ? 'قم بدعوة أحد أعضاء الطاقم. سيقوم بتعيين كلمة المرور الخاصة به عند أول تسجيل دخول.'
       : _fr
-          ? 'Invitez un enseignant. Il définira son mot de passe lors de sa première connexion.'
-          : 'Invite a teacher. They will set their password on first login.';
+          ? 'Invitez un membre du personnel. Il définira son mot de passe lors de sa première connexion.'
+          : 'Invite a staff member. They will set their password on first login.';
 
   @override
   String get bulkImportTitle => _ar
