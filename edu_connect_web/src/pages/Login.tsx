@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isAxiosError } from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldAlert, Sparkles, BookOpen, HeartHandshake, ShieldCheck } from 'lucide-react';
+import { ShieldAlert, GraduationCap, BookOpen, HeartHandshake, ShieldCheck } from 'lucide-react';
 import LocaleSwitcher from '../components/LocaleSwitcher';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { api, storeSessionTokens } from '../lib/api';
@@ -78,7 +78,7 @@ export default function Login() {
       <div className="login-brand-side">
         <div className="login-brand-content">
           <div className="login-kicker animate-fade-in">
-            <Sparkles size={14} /> {t('login.kicker')}
+            <GraduationCap size={14} /> {t('login.kicker')}
           </div>
           <h1 className="login-hero-title animate-fade-in delay-1">
             {t('login.heroTitleLine')} <br />

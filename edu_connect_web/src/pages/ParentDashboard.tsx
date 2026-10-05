@@ -68,6 +68,25 @@ interface Homework {
   created_at: string;
 }
 
+interface ScheduleSlot {
+  id: string;
+  class_id: string;
+  course_name: string;
+  teacher_id?: string | null;
+  teacher_name?: string | null;
+  day_of_week: number;
+  day_name: string;
+  start_time: string;
+  end_time: string;
+  room?: string | null;
+  cancellations?: Array<{
+    id: string;
+    slot_id: string;
+    cancelled_date: string;
+    reason?: string | null;
+  }>;
+}
+
 interface ScheduleExam {
   id: string;
   class_id: string;
@@ -91,6 +110,15 @@ function localeToIntl(locale: Locale) {
   if (locale === 'ar') return 'ar-DZ';
   if (locale === 'en') return 'en-US';
   return 'fr-DZ';
+}
+
+function formatDayOfWeek(dayIndex: number, locale: Locale): string {
+  const days: Record<Locale, string[]> = {
+    fr: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
+    ar: ['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'],
+    en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+  };
+  return days[locale]?.[dayIndex] ?? days.fr[dayIndex] ?? `Jour ${dayIndex}`;
 }
 
 function formatDate(value: string, locale: Locale): string {
@@ -151,6 +179,7 @@ export default function ParentDashboard() {
   const { t, locale } = useLocale();
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'message'>('grades');
+  const [scheduleSubView, setScheduleSubView] = useState<'weekly' | 'exams'>('weekly');
 
   const childrenQuery = useQuery<Student[]>({
     queryKey: ['parent', 'children'],
@@ -220,6 +249,15 @@ export default function ParentDashboard() {
     },
   });
 
+  const scheduleSlotsQuery = useQuery<ScheduleSlot[]>({
+    queryKey: ['parent', 'schedule-slots', activeChild?.classId],
+    enabled: Boolean(activeChild?.classId),
+    queryFn: async () => {
+      const response = await api.get(`/schedule/class/${activeChild?.classId}`);
+      return response.data;
+    },
+  });
+
   const grades = gradesQuery.data ?? [];
   const attendance = attendanceQuery.data ?? [];
   const homework = homeworkQuery.data ?? [];
@@ -227,6 +265,13 @@ export default function ParentDashboard() {
   const average = weightedAverage(grades);
   const todayIso = new Date().toISOString().slice(0, 10);
   const upcomingExamsCount = exams.filter((item) => item.exam_date >= todayIso).length;
+
+  const sortedSlots = useMemo(() => {
+    return [...(scheduleSlotsQuery.data ?? [])].sort((a, b) => {
+      if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week;
+      return a.start_time.localeCompare(b.start_time);
+    });
+  }, [scheduleSlotsQuery.data]);
 
   const chartData = grades
     .slice()
@@ -482,39 +527,121 @@ export default function ParentDashboard() {
                       {t('parent.scheduleCopy', { className: activeChild.className })}
                     </p>
                   </div>
-                  <span className="badge badge-success">
-                    {t('parent.scheduleExamCount', { count: upcomingExamsCount })}
-                  </span>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <span className="badge badge-primary">
+                      {t('parent.scheduleSlotsCount', { count: sortedSlots.length })}
+                    </span>
+                    <span className="badge badge-success">
+                      {t('parent.scheduleExamCount', { count: upcomingExamsCount })}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="dashboard-list homework-parent-list">
-                  {examsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
-                  {!examsQuery.isLoading && exams.length === 0 && (
-                    <p className="empty-list-copy">{t('parent.emptyScheduleExams')}</p>
-                  )}
-                  {exams.map((exam) => (
-                    <div key={exam.id} className="homework-announcement-card homework-announcement-card--parent exam-schedule-card">
-                      <div className="homework-announcement-header">
-                        <span className="badge badge-compact badge-success">{formatDate(exam.exam_date, locale)}</span>
-                        <span className="homework-due-date">
-                          {formatClock(exam.start_time, locale)} - {formatClock(exam.end_time, locale)}
-                        </span>
-                      </div>
-                      <h4>{exam.course_name}</h4>
-                      <p>{t('parent.scheduleExamFor', { className: activeChild.className })}</p>
-                      {exam.room && (
-                        <div className="homework-preparation-note">
-                          {t('parent.scheduleRoom')}: {exam.room}
-                        </div>
-                      )}
-                      {exam.description && (
-                        <div className="homework-preparation-note">
-                          {t('parent.scheduleInstructions')}: {exam.description}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                <div className="tab-bar" style={{ marginBottom: '1.25rem', width: 'fit-content' }}>
+                  <button
+                    type="button"
+                    onClick={() => setScheduleSubView('weekly')}
+                    className={`tab-button ${scheduleSubView === 'weekly' ? 'tab-button--active' : ''}`}
+                  >
+                    <Calendar size={14} /> {t('parent.scheduleWeeklyTab')} ({sortedSlots.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScheduleSubView('exams')}
+                    className={`tab-button ${scheduleSubView === 'exams' ? 'tab-button--active' : ''}`}
+                  >
+                    <NotebookText size={14} /> {t('parent.scheduleExamsTab')} ({exams.length})
+                  </button>
                 </div>
+
+                {scheduleSubView === 'weekly' && (
+                  <div>
+                    {scheduleSlotsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                    {!scheduleSlotsQuery.isLoading && sortedSlots.length === 0 && (
+                      <p className="empty-list-copy">{t('parent.emptyScheduleWeekly')}</p>
+                    )}
+                    {!scheduleSlotsQuery.isLoading && sortedSlots.length > 0 && (
+                      <div className="premium-table-wrapper">
+                        <table className="premium-table">
+                          <thead>
+                            <tr>
+                              <th>{t('parent.scheduleDay')}</th>
+                              <th>{t('parent.scheduleTime')}</th>
+                              <th>{t('parent.scheduleCourse')}</th>
+                              <th>{t('parent.scheduleTeacher')}</th>
+                              <th>{t('parent.scheduleRoomCol')}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sortedSlots.map((slot) => {
+                              const dayLabel = formatDayOfWeek(slot.day_of_week, locale);
+                              const isCancelledToday = slot.cancellations?.some(
+                                (c) => c.cancelled_date === todayIso,
+                              );
+                              return (
+                                <tr key={slot.id}>
+                                  <td className="table-cell-primary">
+                                    <span className="badge badge-compact badge-primary" style={{ fontWeight: 600 }}>
+                                      {dayLabel}
+                                    </span>
+                                  </td>
+                                  <td style={{ fontWeight: 500 }}>
+                                    {formatClock(slot.start_time, locale)} - {formatClock(slot.end_time, locale)}
+                                  </td>
+                                  <td className="table-cell-strong">
+                                    {slot.course_name}
+                                    {isCancelledToday && (
+                                      <span className="badge badge-danger" style={{ marginLeft: '0.5rem', fontSize: '0.75rem' }}>
+                                        {t('parent.scheduleCancelled')}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td style={{ color: 'var(--text-muted)' }}>
+                                    {slot.teacher_name || '-'}
+                                  </td>
+                                  <td>
+                                    <span className="badge badge-compact">{slot.room || '-'}</span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {scheduleSubView === 'exams' && (
+                  <div className="dashboard-list homework-parent-list">
+                    {examsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                    {!examsQuery.isLoading && exams.length === 0 && (
+                      <p className="empty-list-copy">{t('parent.emptyScheduleExams')}</p>
+                    )}
+                    {exams.map((exam) => (
+                      <div key={exam.id} className="homework-announcement-card homework-announcement-card--parent exam-schedule-card">
+                        <div className="homework-announcement-header">
+                          <span className="badge badge-compact badge-success">{formatDate(exam.exam_date, locale)}</span>
+                          <span className="homework-due-date">
+                            {formatClock(exam.start_time, locale)} - {formatClock(exam.end_time, locale)}
+                          </span>
+                        </div>
+                        <h4>{exam.course_name}</h4>
+                        <p>{t('parent.scheduleExamFor', { className: activeChild.className })}</p>
+                        {exam.room && (
+                          <div className="homework-preparation-note">
+                            {t('parent.scheduleRoom')}: {exam.room}
+                          </div>
+                        )}
+                        {exam.description && (
+                          <div className="homework-preparation-note">
+                            {t('parent.scheduleInstructions')}: {exam.description}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

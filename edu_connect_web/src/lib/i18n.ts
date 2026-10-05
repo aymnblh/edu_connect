@@ -2695,14 +2695,64 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: 'No homework or exam has been published yet.',
   },
   'parent.scheduleTitle': {
-    fr: 'Planning des examens',
-    ar: 'جدول الاختبارات',
-    en: 'Exam schedule',
+    fr: 'Emploi du temps & Examens',
+    ar: 'التوقيت الأسبوعي والاختبارات',
+    en: 'Weekly Timetable & Exams',
   },
   'parent.scheduleCopy': {
-    fr: 'Examens planifiés pour {className}.',
-    ar: 'الاختبارات المبرمجة لقسم {className}.',
-    en: 'Scheduled exams for {className}.',
+    fr: 'Emploi du temps hebdomadaire et examens pour {className}.',
+    ar: 'التوقيت الأسبوعي والاختبارات المبرمجة لقسم {className}.',
+    en: 'Weekly timetable and scheduled exams for {className}.',
+  },
+  'parent.scheduleWeeklyTab': {
+    fr: 'Emploi du temps',
+    ar: 'التوقيت الأسبوعي',
+    en: 'Weekly Timetable',
+  },
+  'parent.scheduleExamsTab': {
+    fr: 'Examens programmés',
+    ar: 'الاختبارات المبرمجة',
+    en: 'Scheduled Exams',
+  },
+  'parent.scheduleSlotsCount': {
+    fr: '{count} cours / semaine',
+    ar: '{count} حصص / أسبوعياً',
+    en: '{count} classes / week',
+  },
+  'parent.emptyScheduleWeekly': {
+    fr: "Aucun cours programmé dans l'emploi du temps pour le moment.",
+    ar: 'لا توجد حصص مبرمجة في التوقيت الأسبوعي حاليا.',
+    en: 'No classes scheduled in the timetable yet.',
+  },
+  'parent.scheduleDay': {
+    fr: 'Jour',
+    ar: 'اليوم',
+    en: 'Day',
+  },
+  'parent.scheduleTime': {
+    fr: 'Horaire',
+    ar: 'التوقيت',
+    en: 'Time',
+  },
+  'parent.scheduleCourse': {
+    fr: 'Matière',
+    ar: 'المادة',
+    en: 'Subject',
+  },
+  'parent.scheduleTeacher': {
+    fr: 'Enseignant',
+    ar: 'الأستاذ',
+    en: 'Teacher',
+  },
+  'parent.scheduleRoomCol': {
+    fr: 'Salle',
+    ar: 'القاعة',
+    en: 'Room',
+  },
+  'parent.scheduleCancelled': {
+    fr: 'Séance annulée',
+    ar: 'حصة ملغاة',
+    en: 'Cancelled',
   },
   'parent.scheduleExamCount': {
     fr: '{count} examens à venir',

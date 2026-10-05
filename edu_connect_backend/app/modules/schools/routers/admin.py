@@ -254,7 +254,8 @@ async def create_school(
         db.add(course)
     
     # Assign current user to this school if they don't have one
-    if not current_user.school_id:
+    # Never assign a system_admin to a school — they must remain school-agnostic
+    if not current_user.school_id and current_user.role != UserRole.system_admin:
         current_user.school_id = school.id
         
     # Seed Algerian standard semesters (Trimesters)
@@ -738,6 +739,52 @@ async def list_student_links(
             parent_name=parent_name
         ))
     return out
+
+
+class StudentParentOut(BaseModel):
+    id: str
+    full_name: str
+    email: str
+    label: str | None = None
+    model_config = {"from_attributes": True}
+
+
+@router.get("/students/{student_id}/parents", response_model=list[StudentParentOut])
+async def get_student_parents(
+    student_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all parents linked to a student."""
+    if current_user.role.value not in ["principal", "secretary"]:
+        raise HTTPException(status_code=403, detail="Unprivileged")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="User not assigned to a school")
+
+    student = await db.get(Student, student_id)
+    if not student or student.school_id != current_user.school_id:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    stmt = (
+        select(User.id, User.full_name, User.email)
+        .join(StudentParent, StudentParent.parent_id == User.id)
+        .where(
+            StudentParent.student_id == student_id,
+            StudentParent.school_id == current_user.school_id,
+            User.school_id == current_user.school_id,
+        )
+        .order_by(User.full_name)
+    )
+    result = await db.execute(stmt)
+    return [
+        StudentParentOut(
+            id=row.id,
+            full_name=row.full_name,
+            email=row.email,
+        )
+        for row in result.all()
+    ]
+
 
 @router.delete("/students/{student_id}/parents/{parent_id}")
 async def unlink_parent_from_student(

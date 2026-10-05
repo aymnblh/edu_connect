@@ -1018,6 +1018,50 @@ def test_admin_unlink_parent_revokes_relationship_sessions_and_audits():
     assert audit_events[0].event_metadata["parent_id"] == "parent-a"
 
 
+def test_admin_list_student_parents_is_scoped_to_school():
+    student = Student(
+        id="student-a",
+        school_id="school-a",
+        student_id="S-001",
+        full_name="Student A",
+    )
+    row = SimpleNamespace(id="parent-a", full_name="Parent A", email="parent-a@example.test")
+    db = FakeDb(get_map={(Student, "student-a"): student}, results=[FakeResult([row])])
+
+    result = run(
+        admin.get_student_parents(
+            "student-a",
+            current_user=make_user("secretary-a", UserRole.secretary),
+            db=db,
+        )
+    )
+
+    assert [parent.id for parent in result] == ["parent-a"]
+    assert result[0].label is None
+    sql = compiled_sql(db.executed[0])
+    assert "student_parents.school_id = 'school-a'" in sql
+    assert "users.school_id = 'school-a'" in sql
+
+
+def test_admin_list_student_parents_rejects_other_roles_and_schools():
+    other_school_student = Student(
+        id="student-b",
+        school_id="school-b",
+        student_id="S-002",
+        full_name="Student B",
+    )
+    db = FakeDb(get_map={(Student, "student-b"): other_school_student})
+
+    with pytest.raises(HTTPException) as exc:
+        run(admin.get_student_parents("student-b", current_user=make_user("teacher-a", UserRole.teacher), db=db))
+    assert exc.value.status_code == 403
+
+    with pytest.raises(HTTPException) as exc:
+        run(admin.get_student_parents("student-b", current_user=make_user("principal-a", UserRole.principal), db=db))
+    assert exc.value.status_code == 404
+    assert db.executed == []
+
+
 def test_only_system_admin_can_activate_school():
     school = School(id="school-a", name="School A", is_active=False)
     db = FakeDb(get_map={(School, "school-a"): school})

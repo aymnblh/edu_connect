@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import 'package:edu_connect/features/class/data/repositories/admin_repository.dart';
 import 'package:edu_connect/features/class/data/repositories/student_repository.dart';
 import 'package:edu_connect/features/auth/presentation/providers/auth_provider.dart';
+import 'package:edu_connect/features/auth/data/models/user_model.dart';
 
 class AdminToolsScreen extends ConsumerStatefulWidget {
   const AdminToolsScreen({super.key});
@@ -80,7 +81,7 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
     String selectedRole = 'teacher';
 
     final user = ref.read(authNotifierProvider).value;
-    final isPrincipal = user?.role == 'principal';
+    final isPrincipal = user?.role == UserRole.principal;
 
     await showDialog(
       context: context,
@@ -108,7 +109,7 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   decoration: InputDecoration(
                     labelText: text.staffRole,
                     prefixIcon: const Icon(Icons.badge_outlined),
