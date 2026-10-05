@@ -1,11 +1,12 @@
 import csv
 import io
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, select
+from sqlalchemy import and_, false, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -17,7 +18,20 @@ from app.core.access import (
 )
 from app.core.security import get_current_user
 from app.db.database import get_db
-from app.models import Class, ClassCourse, ClassMember, Course, Grade, School, Semester, Student, StudentParent, User
+from app.models import (
+    Class,
+    ClassCourse,
+    ClassMember,
+    ClassTemporaryAccess,
+    Course,
+    Grade,
+    School,
+    Semester,
+    Student,
+    StudentParent,
+    User,
+    UserRole,
+)
 from app.schemas import GradeApprovalOut, GradeCreate, GradeOut
 from app.modules.academics.averages import (
     grade_response,
@@ -95,6 +109,69 @@ _ARABIC_SUBJECT_LABELS = {
 
 async def _assert_grade_writer(class_id: str, current_user: User, db: AsyncSession) -> Class:
     return await assert_class_write_access(class_id, current_user, db)
+
+
+@dataclass(frozen=True)
+class TeacherCourseScope:
+    """Courses a teacher is responsible for in one class."""
+
+    course_ids: frozenset[str]
+    subject_names: frozenset[str]
+    display_names: tuple[str, ...] = ()
+
+    def allows(self, course_id: str | None, subject: str | None) -> bool:
+        if course_id:
+            return course_id in self.course_ids
+        return _normalized_subject(subject) in self.subject_names
+
+    def grade_filter(self):
+        clauses = []
+        if self.course_ids:
+            clauses.append(Grade.course_id.in_(self.course_ids))
+        if self.subject_names:
+            clauses.append(and_(Grade.course_id.is_(None), func.lower(Grade.subject).in_(self.subject_names)))
+        return or_(*clauses) if clauses else false()
+
+
+async def _teacher_course_scope(cls: Class, current_user: User, db: AsyncSession) -> TeacherCourseScope | None:
+    """Return the subjects a teacher may see in this class, or None when unrestricted.
+
+    Administrators are unrestricted. A teacher is limited to the courses assigned
+    to them through ``class_courses``. A substitute holding only temporary class
+    access covers the whole class, so they are unrestricted for that window.
+    """
+    if current_user.role != UserRole.teacher:
+        return None
+
+    result = await db.execute(
+        select(Course.id, Course.name)
+        .join(ClassCourse, ClassCourse.course_id == Course.id)
+        .where(
+            ClassCourse.school_id == cls.school_id,
+            ClassCourse.class_id == cls.id,
+            ClassCourse.teacher_id == current_user.id,
+            Course.school_id == cls.school_id,
+        )
+    )
+    rows = result.all()
+    if not rows:
+        now = datetime.now(timezone.utc)
+        temp_res = await db.execute(
+            select(ClassTemporaryAccess.user_id).where(
+                ClassTemporaryAccess.school_id == cls.school_id,
+                ClassTemporaryAccess.class_id == cls.id,
+                ClassTemporaryAccess.user_id == current_user.id,
+                ClassTemporaryAccess.starts_at <= now,
+                ClassTemporaryAccess.expires_at >= now,
+            )
+        )
+        if temp_res.scalar_one_or_none():
+            return None
+    return TeacherCourseScope(
+        course_ids=frozenset(course_id for course_id, _ in rows),
+        subject_names=frozenset(_normalized_subject(name) for _, name in rows),
+        display_names=tuple(sorted(name for _, name in rows)),
+    )
 
 
 def _format_decimal(value: float | None, digits: int = 2) -> str:
@@ -233,6 +310,13 @@ async def add_grade(
         school_id=cls.school_id,
     )
     course = await _resolve_grade_course(cls, payload, db)
+    scope = await _teacher_course_scope(cls, current_user, db)
+    if scope is not None and not (course and scope.allows(course.id, course.name)):
+        own = ", ".join(scope.display_names) or "aucune"
+        raise HTTPException(
+            status_code=403,
+            detail=f"Vous n'enseignez pas cette matiere dans cette classe. Vos matieres : {own}.",
+        )
     grade_data = payload.model_dump(exclude={"student_name"})
     if course:
         grade_data["course_id"] = course.id
@@ -266,6 +350,9 @@ async def list_grades(
         stmt = select(Grade).where(Grade.school_id == cls.school_id, Grade.class_id == class_id)
     elif current_user.role.value == "teacher":
         stmt = select(Grade).where(Grade.school_id == cls.school_id, Grade.class_id == class_id)
+        scope = await _teacher_course_scope(cls, current_user, db)
+        if scope is not None:
+            stmt = stmt.where(scope.grade_filter())
     else:
         stmt = (
             select(Grade)
@@ -311,6 +398,9 @@ async def student_grades(
             Grade.class_id == class_id,
             Grade.student_id == student_id,
         )
+        scope = await _teacher_course_scope(cls, current_user, db)
+        if scope is not None:
+            stmt = stmt.where(scope.grade_filter())
     else:
         stmt = select(Grade).join(StudentParent, StudentParent.student_id == Grade.student_id).where(
             Grade.school_id == cls.school_id,
@@ -386,13 +476,15 @@ async def export_grades_raw(
     school = school_res.scalar_one_or_none()
     prefix = school.student_id_prefix if school and school.student_id_prefix else ""
 
-    grades_res = await db.execute(
-        select(Grade).where(
-            Grade.school_id == cls.school_id,
-            Grade.class_id == class_id,
-            Grade.is_approved == True,
-        )
+    scope = await _teacher_course_scope(cls, current_user, db)
+    grades_stmt = select(Grade).where(
+        Grade.school_id == cls.school_id,
+        Grade.class_id == class_id,
+        Grade.is_approved == True,
     )
+    if scope is not None:
+        grades_stmt = grades_stmt.where(scope.grade_filter())
+    grades_res = await db.execute(grades_stmt)
     grades = grades_res.scalars().all()
     coefficients = await load_grade_coefficients(db, grades)
 
@@ -499,8 +591,11 @@ async def export_grades(
     )
     modules: list[dict[str, object]] = []
     seen_courses: set[str] = set()
+    scope = await _teacher_course_scope(cls, current_user, db)
     for class_course, course, teacher_name in courses_res.all():
         if course.id in seen_courses:
+            continue
+        if scope is not None and not scope.allows(course.id, course.name):
             continue
         seen_courses.add(course.id)
         modules.append(
@@ -512,13 +607,14 @@ async def export_grades(
             }
         )
 
-    grades_res = await db.execute(
-        select(Grade).where(
-            Grade.school_id == cls.school_id,
-            Grade.class_id == class_id,
-            Grade.is_approved == True,
-        ).order_by(Grade.student_name, Grade.subject, Grade.date)
+    grades_stmt = select(Grade).where(
+        Grade.school_id == cls.school_id,
+        Grade.class_id == class_id,
+        Grade.is_approved == True,
     )
+    if scope is not None:
+        grades_stmt = grades_stmt.where(scope.grade_filter())
+    grades_res = await db.execute(grades_stmt.order_by(Grade.student_name, Grade.subject, Grade.date))
     grades = grades_res.scalars().all()
     coefficients = await load_grade_coefficients(db, grades)
 

@@ -14,7 +14,10 @@ from app.models import (
     Attendance,
     AttendanceStatus,
     Class,
+    ClassCourse,
     ClassMember,
+    ClassTeacher,
+    Course,
     ClassTemporaryAccess,
     Conversation,
     ConversationParticipant,
@@ -471,6 +474,135 @@ def test_teachers_cannot_write_grades_or_attendance_for_unassigned_classes():
         )
 
     assert attendance_exc.value.status_code == 403
+
+
+def test_teacher_grade_list_is_limited_to_their_own_courses():
+    cls = Class(id="class-a", school_id="school-a", name="3A", join_code="ABC123")
+    db = FakeDb(
+        get_map={(Class, "class-a"): cls},
+        results=[
+            FakeResult(["teacher-a"]),
+            FakeResult([("course-math", "Math")]),
+            FakeResult(),
+        ],
+    )
+
+    run(grades_router.list_grades("class-a", current_user=make_user("teacher-a", UserRole.teacher), db=db))
+
+    sql = compiled_sql(db.executed[2])
+    assert "grades.course_id IN ('course-math')" in sql
+    assert "lower(grades.subject) IN ('math')" in sql
+
+
+def test_teacher_without_courses_in_class_sees_no_grades():
+    cls = Class(id="class-a", school_id="school-a", name="3A", join_code="ABC123")
+    db = FakeDb(
+        get_map={(Class, "class-a"): cls},
+        results=[FakeResult(["teacher-a"]), FakeResult(), FakeResult(), FakeResult()],
+    )
+
+    run(grades_router.list_grades("class-a", current_user=make_user("teacher-a", UserRole.teacher), db=db))
+
+    assert "false" in compiled_sql(db.executed[3]).lower()
+
+
+def test_substitute_with_temporary_access_sees_whole_class_grades():
+    now = datetime.now(timezone.utc)
+    cls = Class(id="class-a", school_id="school-a", name="3A", join_code="ABC123")
+    temp_access = ClassTemporaryAccess(
+        school_id="school-a",
+        class_id="class-a",
+        user_id="teacher-a",
+        access_level="read",
+        starts_at=now - timedelta(hours=1),
+        expires_at=now + timedelta(hours=1),
+    )
+    db = FakeDb(
+        get_map={(Class, "class-a"): cls},
+        results=[FakeResult(), FakeResult([temp_access]), FakeResult(), FakeResult(["temp-a"]), FakeResult()],
+    )
+
+    run(grades_router.list_grades("class-a", current_user=make_user("teacher-a", UserRole.teacher), db=db))
+
+    sql = compiled_sql(db.executed[4])
+    assert "course_id IN" not in sql
+    assert "false" not in sql.lower()
+
+
+def test_teacher_cannot_add_grade_for_another_teachers_course():
+    cls = Class(id="class-a", school_id="school-a", name="3A", join_code="ABC123")
+    student = Student(id="student-a", school_id="school-a", student_id="S-001", full_name="Student A")
+    physics = Course(id="course-physics", school_id="school-a", name="Physique")
+    db = FakeDb(
+        get_map={(Class, "class-a"): cls},
+        results=[
+            FakeResult(["teacher-a"]),
+            FakeResult([student]),
+            FakeResult([physics]),
+            FakeResult([("course-math", "Math")]),
+        ],
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        run(
+            grades_router.add_grade(
+                "class-a",
+                grades_router.GradeCreate(
+                    student_id="student-a",
+                    student_name="Student A",
+                    course_id="course-physics",
+                    subject="Physique",
+                    score=12,
+                ),
+                current_user=make_user("teacher-a", UserRole.teacher),
+                db=db,
+            )
+        )
+
+    assert exc.value.status_code == 403
+    assert db.added == []
+    assert db.commits == 0
+
+
+def test_reassigning_a_course_removes_previous_teacher_class_access():
+    cls = Class(id="class-a", school_id="school-a", name="3A", join_code="ABC123")
+    course = Course(id="course-math", school_id="school-a", name="Math")
+    new_teacher = make_user("teacher-b", UserRole.teacher)
+    assignment = ClassCourse(
+        class_id="class-a",
+        course_id="course-math",
+        teacher_id="teacher-a",
+        school_id="school-a",
+        coefficient=2.0,
+    )
+    db = FakeDb(
+        get_map={(User, "teacher-b"): new_teacher},
+        results=[
+            FakeResult([cls]),
+            FakeResult([course]),
+            FakeResult([new_teacher]),
+            FakeResult([assignment]),
+            FakeResult(),
+            FakeResult(),
+            FakeResult(),
+        ],
+    )
+
+    result = run(
+        classes_router.assign_course_to_class(
+            "class-a",
+            classes_router.ClassCourseAssign(course_id="course-math", teacher_id="teacher-b"),
+            current_user=make_user("principal-a", UserRole.principal),
+            db=db,
+        )
+    )
+
+    assert result.teacher_id == "teacher-b"
+    added_teachers = [item for item in db.added if isinstance(item, ClassTeacher)]
+    assert [item.teacher_id for item in added_teachers] == ["teacher-b"]
+    delete_sql = compiled_sql(db.executed[-1])
+    assert delete_sql.startswith("DELETE FROM class_teachers")
+    assert "class_teachers.teacher_id = 'teacher-a'" in delete_sql
 
 
 def test_parent_grade_queries_are_limited_to_linked_students_in_same_school():

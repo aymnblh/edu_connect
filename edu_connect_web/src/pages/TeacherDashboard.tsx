@@ -210,6 +210,14 @@ export default function TeacherDashboard() {
     },
   });
 
+  const meQuery = useQuery<{ id: string }>({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const response = await api.get('/users/me');
+      return response.data;
+    },
+  });
+
   const classCoursesQuery = useQuery<ClassCourse[]>({
     queryKey: ['teacher', 'courses', selectedClass?.id],
     enabled: Boolean(selectedClass?.id),
@@ -250,7 +258,14 @@ export default function TeacherDashboard() {
     () => studentsQuery.data ?? selectedClass?.members ?? [],
     [selectedClass?.members, studentsQuery.data],
   );
-  const classCourses = useMemo(() => classCoursesQuery.data ?? [], [classCoursesQuery.data]);
+  const myId = meQuery.data?.id;
+  // Teachers only work on the subjects assigned to them; substitutes with no
+  // assigned subject keep the full list (the API enforces the same rule).
+  const classCourses = useMemo(() => {
+    const all = classCoursesQuery.data ?? [];
+    const mine = myId ? all.filter((course) => course.teacher_id === myId) : [];
+    return mine.length > 0 ? mine : all;
+  }, [classCoursesQuery.data, myId]);
   const grades = useMemo(() => gradesQuery.data ?? [], [gradesQuery.data]);
   const homework = useMemo(() => homeworkQuery.data ?? [], [homeworkQuery.data]);
   const exams = useMemo(() => examsQuery.data ?? [], [examsQuery.data]);
