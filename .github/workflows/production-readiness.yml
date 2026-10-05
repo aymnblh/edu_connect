@@ -222,3 +222,34 @@ jobs:
           --target-platform android-arm64
           --no-pub
           --dart-define-from-file=config/production.example.json
+
+  ios:
+    name: Flutter iOS build
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: edu_connect
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Validate iOS property lists
+        run: plutil -lint ios/Runner/Info.plist ios/Runner/PrivacyInfo.xcprivacy ios/ExportOptions.plist
+
+      - name: Build unsigned iOS release
+        run: >-
+          flutter build ios
+          --release
+          --no-codesign
+          --no-pub
+          --dart-define-from-file=config/production.example.json
