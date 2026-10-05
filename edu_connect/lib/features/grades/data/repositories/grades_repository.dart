@@ -11,6 +11,7 @@ class GradesRepository {
     required String studentName,
     required String subject,
     required double score,
+    String? courseId,
     double maxScore = 20.0,
     String? comment,
   }) async {
@@ -18,6 +19,7 @@ class GradesRepository {
       'student_id': studentId,
       'student_name': studentName,
       'subject': subject,
+      if (courseId != null) 'course_id': courseId,
       'score': score,
       'max_score': maxScore,
       if (comment != null) 'comment': comment,
