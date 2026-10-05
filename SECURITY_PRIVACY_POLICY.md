@@ -34,7 +34,7 @@ This file is the implementation contract for access control, audit, retention, c
 - Bulk DM fan-out creates separate private conversations; it must never create a shared parent room.
 - Bulk sends are capped at 50 recipients per request.
 - Parent replies to class-wide/group broadcasts are blocked; parents must reply in private DMs.
-- Blocking/reporting workflows are still a product requirement and should be added before wide public rollout.
+- Users can block other users (`/dm/blocks`) and report conversations (`/dm/conversations/{id}/reports`); school admins review reports through `GET /dm/reports`. Parents cannot block school administration accounts.
 
 ## Notification Consent
 

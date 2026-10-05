@@ -12,7 +12,7 @@ from app.core.rate_limit import check_rate_limit
 import hashlib
 
 router = APIRouter(prefix="/onboarding", tags=["Onboarding"])
-TERMS_VERSION = "privacy-terms-2026-05-13"
+TERMS_VERSION = "privacy-terms-2026-10-05"
 
 ALGERIAN_CORE_SUBJECTS = [
     "اللغة العربية (Arabic)", "الرياضيات (Mathematics)", "اللغة الفرنسية (French)",

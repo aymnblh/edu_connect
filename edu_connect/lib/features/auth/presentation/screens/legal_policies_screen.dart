@@ -7,9 +7,9 @@ import '../../../../core/theme/app_theme.dart';
 class LegalPoliciesScreen extends StatelessWidget {
   const LegalPoliciesScreen({super.key});
 
-  static const _contactEmail = 'privacy@educonnect.dz';
+  static const _contactEmail = 'privacy@waseledu.dz';
   static const _policyUrl = 'https://app.educonnect.dz/policies';
-  static final _updatedAt = DateTime(2026, 5, 13);
+  static final _updatedAt = DateTime(2026, 10, 5);
 
   @override
   Widget build(BuildContext context) {
@@ -282,10 +282,10 @@ class _LegalText {
           ? 'Icône de confidentialité'
           : 'Privacy icon';
   String get notice => _ar
-      ? 'هذا النص نموذج تشغيلي لـ Wasel Edu. قبل النشر الرسمي، استبدلوا جهات الاتصال والعنوان والمضيف ومدد الاحتفاظ بمعلوماتكم النهائية، ثم اعرضوا الوثيقة على مستشار قانوني.'
+      ? 'تنطبق هذه السياسة على منصة Wasel Edu بأكملها. يمكن لكل مؤسسة أن تكملها بنظامها الداخلي وقواعد الاحتفاظ الخاصة بها، مع احترام القانون الجزائري المعمول به.'
       : _fr
-          ? 'Ce texte est un modèle opérationnel pour Wasel Edu. Avant publication officielle, remplacez les contacts, l’adresse, l’hébergeur et les durées de conservation par vos informations finales, puis faites relire le document par un conseil juridique.'
-          : 'This text is an operational template for Wasel Edu. Before official publication, replace contacts, address, host, and retention periods with your final information, then have the document reviewed by legal counsel.';
+          ? 'Cette politique s’applique à l’ensemble de la plateforme Wasel Edu. Chaque établissement peut la compléter par son règlement intérieur et ses propres règles de conservation, dans le respect du droit algérien applicable.'
+          : 'This policy applies to the whole Wasel Edu platform. Each school may supplement it with its own internal rules and retention practices, in line with applicable Algerian law.';
   String get contactTitle => _ar
       ? 'التواصل والنسخة الويب'
       : _fr
@@ -375,10 +375,10 @@ class _LegalText {
                 : 'Data subjects may request information, access, correction, objection on legitimate grounds, and, where compatible with school or legal obligations, deletion or restriction of certain data.';
       case 'deletion':
         return _ar
-            ? 'لطلب حذف حساب أو بيانات شخصية، تواصلوا مع privacy@educonnect.dz أو إدارة مؤسستكم. قد يُطلب التحقق من الهوية قبل أي إجراء.'
+            ? 'لطلب حذف حساب أو بيانات شخصية، تواصلوا مع privacy@waseledu.dz أو إدارة مؤسستكم. قد يُطلب التحقق من الهوية قبل أي إجراء.'
             : _fr
-                ? 'Pour demander la suppression d’un compte ou de données personnelles, contactez privacy@educonnect.dz ou l’administration de votre établissement. Une vérification d’identité peut être demandée avant toute action.'
-                : 'To request deletion of an account or personal data, contact privacy@educonnect.dz or your school administration. Identity verification may be required before any action.';
+                ? 'Pour demander la suppression d’un compte ou de données personnelles, contactez privacy@waseledu.dz ou l’administration de votre établissement. Une vérification d’identité peut être demandée avant toute action.'
+                : 'To request deletion of an account or personal data, contact privacy@waseledu.dz or your school administration. Identity verification may be required before any action.';
       case 'terms':
         return _ar
             ? 'يقتصر الوصول على المستخدمين المصرح لهم من طرف مؤسسة أو مدير المنصة. يجب استخدام الخدمة فقط لأغراض تعليمية مشروعة. قد يؤدي أي محتوى غير قانوني أو مسيء أو تمييزي أو غير مرتبط بالدراسة إلى التعليق.'

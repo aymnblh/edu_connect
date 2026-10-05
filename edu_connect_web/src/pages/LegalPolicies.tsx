@@ -4,7 +4,7 @@ import { type Locale, useLocale } from '../lib/i18n';
 
 const supportEmail = 'privacy@waseledu.dz';
 const legalEntity = 'Wasel Edu';
-const lastUpdatedAt = new Date(2026, 4, 25);
+const lastUpdatedAt = new Date(2026, 9, 5);
 const locales: Locale[] = ['fr', 'ar', 'en'];
 
 type PolicySection = {
@@ -49,7 +49,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
     contactLabel: 'Contact confidentialité',
     hostingLocation: 'Algérie',
     notice:
-      "Ce document est un modèle opérationnel destiné à présenter les règles de confidentialité de la plateforme. Il doit être relu et adapté par un conseil juridique avant publication officielle, notamment pour confirmer l'identité du responsable du traitement, l'adresse de contact, l'hébergeur, les durées de conservation et les obligations propres à chaque établissement.",
+      "Cette politique s'applique à l'ensemble de la plateforme Wasel Edu. Chaque établissement peut la compléter par son règlement intérieur et ses propres règles de conservation, dans le respect du droit algérien applicable.",
     sections: [
       {
         id: 'responsibilities',
@@ -57,7 +57,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         paragraphs: [
           "Wasel Edu fournit une plateforme de communication et de suivi scolaire permettant aux écoles de gérer des comptes, des classes, des messages, des absences, des notes, des notifications et des documents pédagogiques.",
           "Lorsqu'un établissement utilise Wasel Edu pour ses propres élèves, parents et équipes pédagogiques, l'établissement reste responsable de l'exactitude des données qu'il importe, valide ou modifie. Wasel Edu agit comme fournisseur technique pour exécuter les instructions de l'établissement, sauf lorsqu'il traite certaines données pour la sécurité, la facturation, l'administration de la plateforme ou le respect d'obligations légales.",
-          "L'accès à la plateforme est réservé aux utilisateurs autorisés. Un compte parent, enseignant, élève ou personnel administratif ne doit pas être créé librement par le public sans validation de l'établissement concerné.",
+          "L'accès à la plateforme est réservé aux utilisateurs autorisés. Un compte parent, enseignant ou personnel administratif ne doit pas être créé librement par le public sans validation de l'établissement concerné.",
         ],
       },
       {
@@ -114,7 +114,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         id: 'access',
         title: '6. Confidentialité, accès et séparation des profils',
         paragraphs: [
-          "Les accès sont fondés sur les relations réelles dans la base de données : un enseignant voit les classes qu'il enseigne, un parent voit ses enfants liés, un élève voit ses propres informations, et l'administration agit dans le périmètre de son établissement.",
+          "Les accès sont fondés sur les relations réelles dans la base de données : un enseignant voit les classes qu'il enseigne, un parent voit ses enfants liés, et l'administration agit dans le périmètre de son établissement.",
           "Les messages directs sont visibles uniquement par l'expéditeur et les destinataires désignés. Un autre parent ne doit pas pouvoir lire une conversation parent-enseignant. L'administration ne consulte pas un message privé sauf si elle fait partie des destinataires ou si une procédure exceptionnelle, documentée et autorisée par l'établissement le permet.",
           "Lorsqu'un utilisateur possède plusieurs profils, par exemple enseignant et parent dans le même établissement, l'interface doit imposer un espace actif pour éviter le mélange des contextes. Les droits serveur restent appliqués indépendamment du choix affiché dans l'interface.",
         ],
@@ -126,7 +126,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
           "Les données sont accessibles uniquement aux personnes et services qui en ont besoin pour une finalité scolaire, administrative, technique ou légale. Chaque accès doit rester proportionné au rôle de la personne et au contexte de l'établissement.",
         ],
         bullets: [
-          "Établissements scolaires : direction, enseignants, administration, élèves et parents selon leurs relations autorisées.",
+          "Établissements scolaires : direction, enseignants, administration et parents selon leurs relations autorisées.",
           'Prestataires techniques : hébergement, sauvegarde, envoi de notifications, journalisation, support et maintenance, avec accès limité aux besoins du service.',
           'Autorités compétentes : uniquement lorsque la loi, une décision officielle ou une demande juridiquement valable l’exige.',
           'Exports : les exports de données doivent être limités, tracés et remis uniquement aux personnes habilitées.',
@@ -146,7 +146,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         title: '9. Conservation, suppression et archivage',
         paragraphs: [
           "Les données sont conservées pendant la durée nécessaire au service scolaire, à la sécurité, aux obligations administratives, comptables ou légales, puis supprimées, archivées ou anonymisées selon une procédure contrôlée.",
-          "Lorsqu'un élève quitte un établissement, l'accès courant des parents, enseignants et élèves peut être désactivé, mais certains dossiers scolaires peuvent devoir rester archivés par l'établissement. Lorsqu'un parent est délié d'un élève, son accès doit être retiré, sans effacer les traces nécessaires à l'audit.",
+          "Lorsqu'un élève quitte un établissement, l'accès courant des parents et enseignants peut être désactivé, mais certains dossiers scolaires peuvent devoir rester archivés par l'établissement. Lorsqu'un parent est délié d'un élève, son accès doit être retiré, sans effacer les traces nécessaires à l'audit.",
           "Les demandes de suppression sont étudiées au cas par cas. Une suppression ne doit pas compromettre les obligations de l'établissement, la sécurité, les droits d'autres personnes ou la conservation légale de documents scolaires.",
         ],
       },
@@ -207,7 +207,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
     contactLabel: 'التواصل بخصوص الخصوصية',
     hostingLocation: 'الجزائر',
     notice:
-      'هذه الوثيقة نموذج عملي لشرح قواعد الخصوصية داخل المنصة. يجب مراجعتها وتكييفها من طرف مستشار قانوني قبل النشر الرسمي، خصوصا لتأكيد هوية مسؤول المعالجة، عنوان التواصل، مزود الاستضافة، مدد الاحتفاظ، والالتزامات الخاصة بكل مؤسسة.',
+      'تنطبق هذه السياسة على منصة Wasel Edu بأكملها. يمكن لكل مؤسسة أن تكملها بنظامها الداخلي وقواعد الاحتفاظ الخاصة بها، مع احترام القانون الجزائري المعمول به.',
     sections: [
       {
         id: 'responsibilities',
@@ -215,7 +215,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         paragraphs: [
           'توفر Wasel Edu منصة للتواصل والمتابعة المدرسية، تشمل الحسابات والأقسام والرسائل والغيابات والدرجات والإشعارات والوثائق التربوية.',
           'عندما تستخدم مؤسسة تعليمية المنصة لإدارة بيانات طلابها وأولياء الأمور والطاقم التربوي، تبقى المؤسسة مسؤولة عن دقة البيانات التي تدخلها أو تعدلها أو تعتمدها. تعمل Wasel Edu كمزود تقني لتنفيذ تعليمات المؤسسة، إلا في بعض المعالجات المتعلقة بالأمن أو الفوترة أو إدارة المنصة أو الالتزامات القانونية.',
-          'الوصول إلى المنصة مخصص للمستخدمين المصرح لهم فقط. لا ينبغي إنشاء حساب ولي أمر أو معلم أو طالب أو إداري دون تحقق من المؤسسة المعنية.',
+          'الوصول إلى المنصة مخصص للمستخدمين المصرح لهم فقط. لا ينبغي إنشاء حساب ولي أمر أو معلم أو إداري دون تحقق من المؤسسة المعنية.',
         ],
       },
       {
@@ -271,7 +271,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         id: 'access',
         title: '6. السرية والوصول وفصل الملفات',
         paragraphs: [
-          'تعتمد الصلاحيات على العلاقات الحقيقية في قاعدة البيانات: يرى المعلم الأقسام التي يدرسها، ويرى ولي الأمر أطفاله المرتبطين، ويرى الطالب معلوماته الخاصة، وتعمل الإدارة داخل نطاق مؤسستها.',
+          'تعتمد الصلاحيات على العلاقات الحقيقية في قاعدة البيانات: يرى المعلم الأقسام التي يدرسها، ويرى ولي الأمر أطفاله المرتبطين، وتعمل الإدارة داخل نطاق مؤسستها.',
           'الرسائل المباشرة مرئية فقط للمرسل والمستلمين المحددين. يجب ألا يتمكن ولي أمر آخر من قراءة محادثة بين ولي أمر ومعلم. لا تطلع الإدارة على رسالة خاصة إلا إذا كانت ضمن المستلمين أو وفق إجراء استثنائي موثق ومصرح به من المؤسسة.',
           'إذا كان للمستخدم أكثر من صفة، مثل معلم وولي أمر، يجب أن تفرض الواجهة مساحة نشطة لمنع اختلاط السياقات، مع استمرار تطبيق الصلاحيات على مستوى الخادم.',
         ],
@@ -283,7 +283,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
           'لا تكون البيانات متاحة إلا للأشخاص أو الخدمات التي تحتاج إليها لغرض مدرسي أو إداري أو تقني أو قانوني، وبقدر يتناسب مع الدور والسياق.',
         ],
         bullets: [
-          'المؤسسة التعليمية: الإدارة، المعلمون، الموظفون، الطلاب وأولياء الأمور حسب الصلاحيات.',
+          'المؤسسة التعليمية: الإدارة، المعلمون، الموظفون وأولياء الأمور حسب الصلاحيات.',
           'المزودون التقنيون: الاستضافة، النسخ الاحتياطي، الإشعارات، السجلات، الدعم والصيانة مع تقييد الوصول.',
           'السلطات المختصة: فقط عند وجود التزام قانوني أو طلب رسمي صالح.',
           'التصدير: يجب أن يكون محدودا، موثقا، وموجها للأشخاص المخولين فقط.',
@@ -364,7 +364,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
     contactLabel: 'Privacy contact',
     hostingLocation: 'Algeria',
     notice:
-      'This document is an operational template for explaining the platform privacy rules. It must be reviewed and adapted by legal counsel before official publication, especially to confirm the data controller identity, contact address, hosting provider, retention periods and obligations specific to each school.',
+      'This policy applies to the whole Wasel Edu platform. Each school may supplement it with its own internal rules and retention practices, in line with applicable Algerian law.',
     sections: [
       {
         id: 'responsibilities',
@@ -372,7 +372,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         paragraphs: [
           'Wasel Edu provides a school communication and student monitoring platform for accounts, classes, messages, attendance, grades, notifications and educational documents.',
           'When a school uses Wasel Edu for its students, families and staff, the school remains responsible for the accuracy of the data it imports, validates or changes. Wasel Edu acts as a technical provider following the school’s instructions, except where it processes data for security, billing, platform administration or legal compliance.',
-          'Platform access is limited to authorized users. Parent, teacher, student and staff accounts should not be freely created by the public without validation by the relevant school.',
+          'Platform access is limited to authorized users. Parent, teacher and staff accounts should not be freely created by the public without validation by the relevant school.',
         ],
       },
       {
@@ -429,7 +429,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         id: 'access',
         title: '6. Confidentiality, access and profile separation',
         paragraphs: [
-          'Access is based on real database relationships: teachers see the classes they teach, parents see their linked children, students see their own information, and administrators act within their school scope.',
+          'Access is based on real database relationships: teachers see the classes they teach, parents see their linked children, and administrators act within their school scope.',
           'Direct messages are visible only to the sender and designated recipients. Another parent must not be able to read a parent-teacher conversation. Administration does not read a private message unless it is a recipient or an exceptional, documented school-authorized process applies.',
           'When a user has multiple profiles, such as teacher and parent, the interface must require an active workspace to prevent context mixing. Server-side permissions remain enforced regardless of the displayed workspace.',
         ],
@@ -441,7 +441,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
           'Data is available only to people and services that need it for a school, administrative, technical or legal purpose. Access must remain proportionate to the person’s role and school context.',
         ],
         bullets: [
-          'Schools: directors, teachers, administration, students and parents according to authorized relationships.',
+          'Schools: directors, teachers, administration and parents according to authorized relationships.',
           'Technical providers: hosting, backup, notifications, logging, support and maintenance with access limited to service needs.',
           'Competent authorities: only where required by law, official decision or legally valid request.',
           'Exports: exports must be limited, logged and provided only to authorized people.',

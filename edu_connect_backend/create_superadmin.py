@@ -13,7 +13,7 @@ from app.db.database import AsyncSessionLocal
 from app.models import User, UserRole
 
 
-TERMS_VERSION = "privacy-terms-2026-05-13"
+TERMS_VERSION = "privacy-terms-2026-10-05"
 
 
 def required_env(name: str) -> str:

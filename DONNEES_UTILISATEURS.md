@@ -179,7 +179,7 @@ Un utilisateur peut demander :
 
 Pour les donnees scolaires, certaines demandes doivent etre verifiees ou traitees avec l'etablissement concerne afin de confirmer l'identite du demandeur et son droit d'acces.
 
-Contact a remplacer avant publication : `privacy@educonnect.dz`
+Contact confidentialite : `privacy@waseledu.dz`
 
 ## 11. Hebergement et sauvegardes
 

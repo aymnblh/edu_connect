@@ -30,7 +30,7 @@ from app.core.security import (
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-TERMS_VERSION = "privacy-terms-2026-05-13"
+TERMS_VERSION = "privacy-terms-2026-10-05"
 
 def require_terms_accepted(accepted: bool):
     if not accepted:
