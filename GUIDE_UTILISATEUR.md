@@ -30,7 +30,9 @@ Leur création de compte est fermée/stricte : ils ne peuvent pas s'inscrire lib
 - **Le Premier Accès** : Une fois enregistré par son directeur, l'enseignant reçoit de sa main un **Code d'Invitation**.
 - **Processus de Connexion** : Il lance l'application, choisit *« S'authentifier par Code / QR »* depuis l'accueil, et saisit le code.
 - **Configuration Finale** : Reconnu par le système, l'application lui donne la main pour définir son "Mot de passe", finalisant ainsi l'activation de son profil.
-- **Responsabilités** : Il peut émettre des notes, des remarques de discipline, distribuer des devoirs, ou valider des absences.
+- **Code expiré ou mot de passe oublié** : Le code est valable 72 heures. S'il a expiré, ou si l'enseignant a oublié son mot de passe, le directeur (ou le secrétariat) clique sur **« Réinitialiser l'accès »** dans la liste de l'équipe. Un nouveau code est généré, l'ancien mot de passe ne fonctionne plus et toutes les sessions sont fermées. L'enseignant refait l'activation avec ce nouveau code.
+- **Affectation aux classes** : L'enseignant ne rejoint pas une classe lui-même. C'est l'administration qui lui attribue une ou plusieurs matières dans une classe ; il n'accède qu'à ces classes et ne voit que les notes de ses propres matières.
+- **Responsabilités** : Il peut émettre des notes dans ses matières, des remarques de discipline, distribuer des devoirs, ou valider des absences.
 
 ### 3. Les Parents
 Incroyablement intuitif : le compte d'un parent prend vie pile au moment où il scanne et relie son profil à un élève existant de la base !

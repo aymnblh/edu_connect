@@ -604,6 +604,24 @@ export default function DirectorDashboard() {
     onError: (error) => addToast(getErrorMessage(error), 'error'),
   });
 
+  const resetStaffAccessMutation = useMutation({
+    mutationFn: async (member: StaffMember) => {
+      const res = await api.post<CreateTeacherResponse>(`/admin/staff/${member.id}/reset-access`);
+      return res.data;
+    },
+    onSuccess: (staffMember) => {
+      queryClient.invalidateQueries({ queryKey: ['director-staff'] });
+      setStaffInvite(staffMember);
+      addToast(t('director.toast.staffAccessReset'), 'success');
+    },
+    onError: (error) => addToast(getErrorMessage(error), 'error'),
+  });
+
+  const resetStaffAccess = (member: StaffMember) => {
+    if (!window.confirm(t('director.team.resetAccessConfirm', { name: member.full_name }))) return;
+    resetStaffAccessMutation.mutate(member);
+  };
+
   const createClassMutation = useMutation({
     mutationFn: async () => {
       if (!schoolId) throw new Error(t('director.error.missingSchoolId'));
@@ -1645,11 +1663,12 @@ export default function DirectorDashboard() {
                 <th>{t('director.team.email')}</th>
                 <th>{t('director.team.role')}</th>
                 <th>{t('director.team.status')}</th>
+                <th aria-label={t('director.team.actions')} />
               </tr>
             </thead>
             <tbody>
               {staffQuery.isLoading && (
-                <tr><td colSpan={4}>{t('director.team.loading')}</td></tr>
+                <tr><td colSpan={5}>{t('director.team.loading')}</td></tr>
               )}
               {!staffQuery.isLoading && staffMembers.map((member) => (
                 <tr key={member.id}>
@@ -1663,10 +1682,22 @@ export default function DirectorDashboard() {
                       <span className="status-badge status-badge--active">{t('director.team.activeAccount')}</span>
                     )}
                   </td>
+                  <td>
+                    {(member.role === 'teacher' || (member.role === 'secretary' && currentUserRole === 'principal')) && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-compact"
+                        onClick={() => resetStaffAccess(member)}
+                        disabled={resetStaffAccessMutation.isPending}
+                      >
+                        <KeyRound size={14} /> {t('director.team.resetAccess')}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
               {!staffQuery.isLoading && staffMembers.length === 0 && (
-                <tr><td colSpan={4}>{t('director.team.empty')}</td></tr>
+                <tr><td colSpan={5}>{t('director.team.empty')}</td></tr>
               )}
             </tbody>
           </table>

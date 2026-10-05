@@ -1659,6 +1659,26 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'الحالة',
     en: 'Status',
   },
+  'director.team.actions': {
+    fr: 'Actions',
+    ar: 'إجراءات',
+    en: 'Actions',
+  },
+  'director.team.resetAccess': {
+    fr: "Réinitialiser l'accès",
+    ar: 'إعادة تعيين الدخول',
+    en: 'Reset access',
+  },
+  'director.team.resetAccessConfirm': {
+    fr: "Générer un nouveau code pour {name} ? Son mot de passe actuel cessera de fonctionner et toutes ses sessions seront fermées.",
+    ar: 'إنشاء رمز جديد لـ {name}؟ ستتوقف كلمة المرور الحالية وسيتم إغلاق جميع الجلسات.',
+    en: 'Generate a new code for {name}? Their current password will stop working and all their sessions will be signed out.',
+  },
+  'director.toast.staffAccessReset': {
+    fr: "Nouveau code d'activation généré.",
+    ar: 'تم إنشاء رمز تفعيل جديد.',
+    en: 'New activation code generated.',
+  },
   'director.team.activeAccount': {
     fr: 'Actif',
     ar: 'نشط',

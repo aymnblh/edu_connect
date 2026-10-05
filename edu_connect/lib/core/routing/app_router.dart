@@ -197,6 +197,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/join-class',
         name: 'join-class',
+        redirect: (ctx, state) {
+          final user = ref.read(authNotifierProvider).valueOrNull;
+          if (user != null && !user.isParent) return '/classes';
+          return null;
+        },
         builder: (ctx, state) => const JoinClassScreen(),
       ),
       GoRoute(

@@ -1194,6 +1194,64 @@ def test_admin_list_student_parents_rejects_other_roles_and_schools():
     assert db.executed == []
 
 
+def test_admin_reset_staff_access_issues_new_code_and_signs_out():
+    teacher = make_user("teacher-a", UserRole.teacher)
+    teacher.password_hash = "old-hash"
+    db = FakeDb(get_map={(User, "teacher-a"): teacher}, results=[FakeResult(), FakeResult(), FakeResult()])
+
+    result = run(
+        admin.reset_staff_access(
+            "teacher-a",
+            request=make_request("/admin/staff/teacher-a/reset-access"),
+            current_user=make_user("secretary-a", UserRole.secretary),
+            db=db,
+        )
+    )
+
+    assert result is teacher
+    assert teacher.password_hash is None
+    assert teacher.invite_code
+    assert teacher.invite_expires_at > datetime.now(timezone.utc)
+    assert compiled_sql(db.executed[0]).startswith("DELETE FROM refresh_tokens")
+    audit_events = [item for item in db.added if isinstance(item, AuditEvent)]
+    assert [event.action for event in audit_events] == ["staff.access_reset"]
+    assert db.commits == 1
+
+
+def test_reset_staff_access_respects_role_and_school_boundaries():
+    secretary = make_user("secretary-b", UserRole.secretary)
+    other_school_teacher = make_user("teacher-z", UserRole.teacher, school_id="school-z")
+    parent = make_user("parent-a", UserRole.parent)
+    db = FakeDb(
+        get_map={
+            (User, "secretary-b"): secretary,
+            (User, "teacher-z"): other_school_teacher,
+            (User, "parent-a"): parent,
+        }
+    )
+    request = make_request("/admin/staff/x/reset-access")
+    secretary_actor = make_user("secretary-a", UserRole.secretary)
+
+    cases = [
+        ("secretary-b", secretary_actor, 403),
+        ("teacher-z", make_user("principal-a", UserRole.principal), 404),
+        ("parent-a", make_user("principal-a", UserRole.principal), 404),
+        ("secretary-b", make_user("teacher-a", UserRole.teacher), 403),
+    ]
+    for user_id, actor, expected in cases:
+        with pytest.raises(HTTPException) as exc:
+            run(admin.reset_staff_access(user_id, request=request, current_user=actor, db=db))
+        assert exc.value.status_code == expected
+
+    assert secretary.invite_code is None
+    assert db.commits == 0
+
+
+def test_teachers_cannot_self_join_classes_with_a_code():
+    paths = {route.path for route in classes_router.router.routes}
+    assert "/classes/join" not in paths
+
+
 def test_only_system_admin_can_activate_school():
     school = School(id="school-a", name="School A", is_active=False)
     db = FakeDb(get_map={(School, "school-a"): school})

@@ -7,7 +7,7 @@ from sqlalchemy import and_, select, delete as sa_delete, or_
 from app.core.access import assert_class_read_access, assert_school_admin_for_class
 from app.db.database import get_db
 from app.models import Class, ClassMember, ClassTemporaryAccess, User, UserRole, Student, ClassTeacher, StudentParent, ClassCourse, Course
-from app.schemas import ClassCreate, ClassOut, JoinClassRequest, ClassCourseAssign, ClassCourseOut, ClassStudentEnroll, TeacherSimpleOut
+from app.schemas import ClassCreate, ClassOut, ClassCourseAssign, ClassCourseOut, ClassStudentEnroll, TeacherSimpleOut
 from app.core.security import get_current_user
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
@@ -155,35 +155,6 @@ async def create_class(
         )
     )
     return _class_out(result.scalar_one())
-
-
-@router.post("/join", response_model=ClassOut)
-async def join_class(
-    payload: JoinClassRequest,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    if current_user.role != UserRole.teacher:
-        raise HTTPException(status_code=403, detail="Seuls les enseignants peuvent rejoindre une classe.")
-
-    result = await db.execute(
-        select(Class)
-        .where(Class.join_code == payload.join_code)
-        .options(
-            selectinload(Class.teachers),
-            selectinload(Class.members).selectinload(ClassMember.student),
-        )
-    )
-    cls = result.scalar_one_or_none()
-    if not cls:
-        raise HTTPException(status_code=404, detail="Invalid join code.")
-    if current_user.role.value != "system_admin" and cls.school_id != current_user.school_id:
-        raise HTTPException(status_code=403, detail="Acces refuse.")
-    
-    if current_user not in cls.teachers:
-        cls.teachers.append(current_user)
-        await db.commit()
-    return _class_out(cls)
 
 
 @router.get("/teachers/all", response_model=list[TeacherSimpleOut])

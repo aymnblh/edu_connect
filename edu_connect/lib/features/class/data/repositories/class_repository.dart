@@ -20,15 +20,6 @@ class ClassRepository {
     return ClassModel.fromJson(data as Map<String, dynamic>);
   }
 
-  Future<ClassModel> joinClass({
-    required String joinCode,
-  }) async {
-    final data = await _api.post('/classes/join', data: {
-      'join_code': joinCode,
-    });
-    return ClassModel.fromJson(data as Map<String, dynamic>);
-  }
-
   Stream<List<ClassModel>> getClassesForUser() async* {
     final data = await _api.get('/classes/') as List<dynamic>;
     yield data

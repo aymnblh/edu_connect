@@ -54,20 +54,6 @@ class ClassNotifier extends StateNotifier<AsyncValue<void>> {
       rethrow;
     }
   }
-
-  Future<ClassModel?> joinClass({
-    required String joinCode,
-  }) async {
-    state = const AsyncValue.loading();
-    try {
-      final result = await _repo.joinClass(joinCode: joinCode);
-      state = const AsyncValue.data(null);
-      return result;
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-      rethrow;
-    }
-  }
 }
 
 final classNotifierProvider =

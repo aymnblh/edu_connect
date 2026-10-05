@@ -189,6 +189,59 @@ async def create_staff(
     return await _create_invited_staff_user(payload=payload, current_user=current_user, db=db)
 
 
+@router.post("/staff/{user_id}/reset-access", response_model=UserSimpleOut)
+async def reset_staff_access(
+    user_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Issue a new first-login code for a teacher or secretary.
+
+    Used when an invitation expired or a staff member lost their password.
+    The current password stops working and every session is signed out until
+    the code is redeemed on the activation page.
+    """
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Only school administration can reset staff access.")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+
+    staff = await db.get(User, user_id)
+    if (
+        not staff
+        or staff.school_id != current_user.school_id
+        or staff.role not in [UserRole.teacher, UserRole.secretary]
+    ):
+        raise HTTPException(status_code=404, detail="Staff member not found.")
+    if staff.role == UserRole.secretary and current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Only the director can reset secretary accounts.")
+
+    staff.password_hash = None
+    staff.invite_code = generate_invite_code()
+    staff.invite_expires_at = datetime.now(timezone.utc) + timedelta(hours=72)
+    await db.execute(
+        delete(RefreshToken).where(
+            RefreshToken.school_id == current_user.school_id,
+            RefreshToken.user_id == staff.id,
+        )
+    )
+    await record_audit_event(
+        db,
+        action="staff.access_reset",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="user",
+        resource_id=staff.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"role": staff.role.value, "sessions_revoked": True},
+    )
+    await db.commit()
+    await db.refresh(staff)
+    return staff
+
+
 @router.get("/staff", response_model=list[UserSimpleOut])
 async def list_staff(
     current_user: User = Depends(get_current_user),
