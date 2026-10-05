@@ -7,7 +7,13 @@ from sqlalchemy import delete, func, select, update
 from pydantic import BaseModel, EmailStr, Field
 
 from app.core.audit import record_audit_event
-from app.core.rate_limit import check_rate_limit
+from app.core.rate_limit import (
+    CODE_LOOKUP_IP_LIMIT,
+    CODE_LOOKUP_WINDOW_SECONDS,
+    STUDENT_PIN_ATTEMPT_LIMIT,
+    check_rate_limit,
+    rate_key_part,
+)
 from app.core.rls import (
     set_auth_invite_code,
     set_auth_lookup_email,
@@ -448,6 +454,26 @@ class VerifyCodeResponse(BaseModel):
     label: str | None = None
     role: str | None = None
 
+async def limit_code_lookup(scope: str, ip_address: str, *, code: str | None, student_id: str | None) -> None:
+    """Throttle invite/QR/PIN lookups so codes cannot be enumerated.
+
+    Counters are keyed on the caller's IP and on the *target* (the student ID
+    for PIN lookups), never on the guessed secret itself; keying on the guess
+    would give every new guess a fresh budget.
+    """
+    await check_rate_limit(
+        f"{scope}:ip:{ip_address}",
+        limit=CODE_LOOKUP_IP_LIMIT,
+        window_seconds=CODE_LOOKUP_WINDOW_SECONDS,
+    )
+    if not code and student_id:
+        await check_rate_limit(
+            f"{scope}:student:{rate_key_part(student_id)}",
+            limit=STUDENT_PIN_ATTEMPT_LIMIT,
+            window_seconds=CODE_LOOKUP_WINDOW_SECONDS,
+        )
+
+
 @router.post("/verify-code", response_model=VerifyCodeResponse)
 async def verify_code(
     req: VerifyCodeRequest,
@@ -457,12 +483,7 @@ async def verify_code(
     from app.models import PendingLink, Student
 
     ip_address = getattr(request.state, "ip_address", "unknown")
-    lookup_value = req.code or f"{req.student_id}:{req.pin}"
-    await check_rate_limit(
-        f"verify_code:{ip_address}:{hashlib.sha256(lookup_value.encode()).hexdigest()}",
-        limit=8,
-        window_seconds=900,
-    )
+    await limit_code_lookup("verify_code", ip_address, code=req.code, student_id=req.student_id)
     
     # 1. Is it a QR Token or Invite Code?
     if req.code:
@@ -549,12 +570,7 @@ async def register_parent_code(
     require_terms_accepted(req.terms_accepted)
 
     ip_address = getattr(request.state, "ip_address", "unknown")
-    lookup_value = req.code or f"{req.student_id}:{req.pin}"
-    await check_rate_limit(
-        f"register_parent_code:{ip_address}:{hashlib.sha256(lookup_value.encode()).hexdigest()}",
-        limit=5,
-        window_seconds=900,
-    )
+    await limit_code_lookup("register_parent_code", ip_address, code=req.code, student_id=req.student_id)
     
     # Verify Email is not taken
     await set_auth_lookup_email(db, str(req.email).lower())

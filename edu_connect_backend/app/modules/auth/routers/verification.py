@@ -4,6 +4,7 @@ from sqlalchemy import select, func
 from app.db.database import get_db
 from app.models import User, Student, VerificationRequest, VerificationStatus, StudentParent, PendingLink, School
 from app.schemas import VerificationRequestOut, LinkStudentRequest, LinkByQrRequest
+from app.core.rate_limit import CODE_LOOKUP_WINDOW_SECONDS, STUDENT_PIN_ATTEMPT_LIMIT, check_rate_limit, rate_key_part
 from app.core.security import get_current_user
 from fastapi import Request
 
@@ -19,6 +20,17 @@ async def request_student_link(
         raise HTTPException(status_code=403, detail="Only parents can request student links")
     if not current_user.school_id:
         raise HTTPException(status_code=400, detail="Parent is not assigned to a school")
+    # Throttle PIN guesses per parent and per targeted student.
+    await check_rate_limit(
+        f"link_request:parent:{current_user.id}",
+        limit=STUDENT_PIN_ATTEMPT_LIMIT,
+        window_seconds=CODE_LOOKUP_WINDOW_SECONDS,
+    )
+    await check_rate_limit(
+        f"link_request:student:{rate_key_part(payload.student_id)}",
+        limit=STUDENT_PIN_ATTEMPT_LIMIT,
+        window_seconds=CODE_LOOKUP_WINDOW_SECONDS,
+    )
 
     # Find the student by human-readable ID and PIN
     stmt = select(Student).where(

@@ -1291,6 +1291,16 @@ def test_audit_middleware_targets_mutations_and_sensitive_reads():
     assert not AuditMiddleware._should_audit("GET", "/classes")
 
 
+def test_student_pin_guesses_are_limited_per_student_across_ips():
+    student_id = f"S-BRUTE-{datetime.now(timezone.utc).timestamp()}"
+    for attempt in range(10):
+        run(auth.limit_code_lookup("verify_code", f"10.0.0.{attempt}", code=None, student_id=student_id))
+
+    with pytest.raises(HTTPException) as exc:
+        run(auth.limit_code_lookup("verify_code", "10.0.1.99", code=None, student_id=student_id))
+    assert exc.value.status_code == 429
+
+
 def test_rate_limit_blocks_after_limit_in_test_memory_fallback():
     key = f"test-limit-{datetime.now(timezone.utc).timestamp()}"
 

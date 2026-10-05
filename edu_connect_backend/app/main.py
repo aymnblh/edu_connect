@@ -46,6 +46,10 @@ app = FastAPI(
     description="Private backend for Wasel Edu - Local JWT Auth + PostgreSQL data",
     version="1.0.0",
     lifespan=lifespan,
+    # The interactive docs map every endpoint; keep them off in production.
+    docs_url=None if settings.is_production else "/docs",
+    redoc_url=None if settings.is_production else "/redoc",
+    openapi_url=None if settings.is_production else "/openapi.json",
 )
 
 app.add_middleware(AuditMiddleware)
