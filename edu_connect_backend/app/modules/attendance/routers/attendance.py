@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -11,6 +12,7 @@ from app.core.access import (
 from app.db.database import get_db
 from app.models import Attendance, AttendanceStatus, User, Student, StudentParent
 from app.schemas import AttendanceCreate, AttendanceOut, JustifyRequest
+from app.core.audit import record_audit_event
 from app.core.security import get_current_user
 from app.utils.notifications import create_notification
 
@@ -186,5 +188,94 @@ async def justify_absence(
     await db.commit()
     result = await db.execute(
         select(Attendance).where(Attendance.id == attendance_id).options(selectinload(Attendance.student))
+    )
+    return result.scalar_one()
+
+
+class AttendanceCorrection(BaseModel):
+    status: AttendanceStatus
+    note: str | None = Field(default=None, max_length=2000)
+
+
+_STATUS_LABELS = {
+    AttendanceStatus.present: "present(e)",
+    AttendanceStatus.absent: "absent(e)",
+    AttendanceStatus.late: "en retard",
+}
+
+
+@router.patch("/{attendance_id}", response_model=AttendanceOut)
+async def correct_attendance(
+    class_id: str,
+    attendance_id: str,
+    payload: AttendanceCorrection,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Correct an attendance record, including past days.
+
+    Parents who were told about an absence or late arrival are told about the
+    correction too, so a wrong alert never stands uncorrected.
+    """
+    cls = await assert_class_write_access(class_id, current_user, db)
+    record = await db.get(Attendance, attendance_id)
+    if not record or record.class_id != class_id or record.school_id != cls.school_id:
+        raise HTTPException(status_code=404, detail="Attendance record not found.")
+
+    previous_status = record.status
+    record.status = payload.status
+    record.note = payload.note
+    if payload.status == AttendanceStatus.present:
+        record.is_justified = False
+        record.justification_text = None
+        record.justification_attachment_url = None
+
+    if previous_status != payload.status and (
+        previous_status in {AttendanceStatus.absent, AttendanceStatus.late}
+        or payload.status in {AttendanceStatus.absent, AttendanceStatus.late}
+    ):
+        parents_result = await db.execute(
+            select(User)
+            .join(StudentParent, StudentParent.parent_id == User.id)
+            .where(
+                StudentParent.student_id == record.student_id,
+                StudentParent.school_id == cls.school_id,
+                User.school_id == cls.school_id,
+            )
+        )
+        day = record.date.strftime("%d/%m/%Y")
+        content = (
+            f"Correction : {record.student_name} est finalement note(e) "
+            f"{_STATUS_LABELS[payload.status]} le {day}."
+        )
+        for parent in parents_result.scalars().all():
+            await create_notification(
+                db,
+                user_id=parent.id,
+                title="Presence corrigee",
+                content=content,
+                type="INFO" if payload.status == AttendanceStatus.present else "WARNING",
+                school_id=cls.school_id,
+            )
+
+    await record_audit_event(
+        db,
+        action="attendance.corrected",
+        actor=current_user,
+        school_id=cls.school_id,
+        resource_type="attendance",
+        resource_id=record.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={
+            "student_id": record.student_id,
+            "before": previous_status.value if previous_status else None,
+            "after": payload.status.value,
+        },
+    )
+    await db.commit()
+    result = await db.execute(
+        select(Attendance).where(Attendance.id == record.id).options(selectinload(Attendance.student))
     )
     return result.scalar_one()

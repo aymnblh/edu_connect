@@ -100,6 +100,7 @@ class HomeworkCreate(BaseModel):
 class HomeworkOut(HomeworkCreate):
     id: str
     class_id: str
+    created_by: str | None = None
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 

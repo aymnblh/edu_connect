@@ -1,21 +1,23 @@
 import csv
 import io
 from collections import defaultdict
-from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 from fastapi.responses import StreamingResponse
 from sqlalchemy import and_, false, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.access import (
+    teacher_course_scope as _teacher_course_scope,
     assert_class_read_access,
     assert_class_write_access,
     assert_parent_linked_to_student,
     assert_student_enrolled_in_class,
 )
+from app.core.audit import record_audit_event
 from app.core.security import get_current_user
 from app.db.database import get_db
 from app.models import (
@@ -109,69 +111,6 @@ _ARABIC_SUBJECT_LABELS = {
 
 async def _assert_grade_writer(class_id: str, current_user: User, db: AsyncSession) -> Class:
     return await assert_class_write_access(class_id, current_user, db)
-
-
-@dataclass(frozen=True)
-class TeacherCourseScope:
-    """Courses a teacher is responsible for in one class."""
-
-    course_ids: frozenset[str]
-    subject_names: frozenset[str]
-    display_names: tuple[str, ...] = ()
-
-    def allows(self, course_id: str | None, subject: str | None) -> bool:
-        if course_id:
-            return course_id in self.course_ids
-        return _normalized_subject(subject) in self.subject_names
-
-    def grade_filter(self):
-        clauses = []
-        if self.course_ids:
-            clauses.append(Grade.course_id.in_(self.course_ids))
-        if self.subject_names:
-            clauses.append(and_(Grade.course_id.is_(None), func.lower(Grade.subject).in_(self.subject_names)))
-        return or_(*clauses) if clauses else false()
-
-
-async def _teacher_course_scope(cls: Class, current_user: User, db: AsyncSession) -> TeacherCourseScope | None:
-    """Return the subjects a teacher may see in this class, or None when unrestricted.
-
-    Administrators are unrestricted. A teacher is limited to the courses assigned
-    to them through ``class_courses``. A substitute holding only temporary class
-    access covers the whole class, so they are unrestricted for that window.
-    """
-    if current_user.role != UserRole.teacher:
-        return None
-
-    result = await db.execute(
-        select(Course.id, Course.name)
-        .join(ClassCourse, ClassCourse.course_id == Course.id)
-        .where(
-            ClassCourse.school_id == cls.school_id,
-            ClassCourse.class_id == cls.id,
-            ClassCourse.teacher_id == current_user.id,
-            Course.school_id == cls.school_id,
-        )
-    )
-    rows = result.all()
-    if not rows:
-        now = datetime.now(timezone.utc)
-        temp_res = await db.execute(
-            select(ClassTemporaryAccess.user_id).where(
-                ClassTemporaryAccess.school_id == cls.school_id,
-                ClassTemporaryAccess.class_id == cls.id,
-                ClassTemporaryAccess.user_id == current_user.id,
-                ClassTemporaryAccess.starts_at <= now,
-                ClassTemporaryAccess.expires_at >= now,
-            )
-        )
-        if temp_res.scalar_one_or_none():
-            return None
-    return TeacherCourseScope(
-        course_ids=frozenset(course_id for course_id, _ in rows),
-        subject_names=frozenset(_normalized_subject(name) for _, name in rows),
-        display_names=tuple(sorted(name for _, name in rows)),
-    )
 
 
 def _format_decimal(value: float | None, digits: int = 2) -> str:
@@ -415,6 +354,107 @@ async def student_grades(
     grades = result.scalars().all()
     coefficients = await load_grade_coefficients(db, grades)
     return [grade_response(grade, coefficients.get(grade.id, 1.0)) for grade in grades]
+
+
+class GradeUpdate(BaseModel):
+    score: float | None = Field(default=None, ge=0)
+    max_score: float | None = Field(default=None, gt=0)
+    comment: str | None = Field(default=None, max_length=2000)
+
+
+def _grade_snapshot(grade: Grade) -> dict:
+    return {"score": grade.score, "max_score": grade.max_score, "comment": grade.comment}
+
+
+async def _grade_for_change(class_id: str, grade_id: str, current_user: User, db: AsyncSession) -> tuple[Class, Grade]:
+    """Load a grade the caller may correct.
+
+    Teachers may only change unapproved grades of the subjects they teach in
+    the class; school administration may change any grade of its school.
+    """
+    cls = await _assert_grade_writer(class_id, current_user, db)
+    grade = await db.get(Grade, grade_id)
+    if not grade or grade.class_id != class_id or grade.school_id != cls.school_id:
+        raise HTTPException(status_code=404, detail="Note introuvable.")
+    if current_user.role == UserRole.teacher:
+        if grade.is_approved:
+            raise HTTPException(
+                status_code=409,
+                detail="Cette note est deja validee : seule l'administration peut la modifier.",
+            )
+        scope = await _teacher_course_scope(cls, current_user, db)
+        if scope is not None and not scope.allows(grade.course_id, grade.subject):
+            raise HTTPException(status_code=403, detail="Vous n'enseignez pas cette matiere dans cette classe.")
+    return cls, grade
+
+
+@router.patch("/{grade_id}", response_model=GradeOut)
+async def update_grade(
+    class_id: str,
+    grade_id: str,
+    payload: GradeUpdate,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    cls, grade = await _grade_for_change(class_id, grade_id, current_user, db)
+    before = _grade_snapshot(grade)
+    changes = payload.model_dump(exclude_unset=True)
+    score = changes.get("score", grade.score)
+    max_score = changes.get("max_score", grade.max_score)
+    if score is None or max_score is None or score > max_score:
+        raise HTTPException(status_code=400, detail="La note doit etre comprise entre 0 et la note maximale.")
+    for field, value in changes.items():
+        if field in ("score", "max_score") and value is None:
+            continue
+        setattr(grade, field, value)
+    await record_audit_event(
+        db,
+        action="grade.updated",
+        actor=current_user,
+        school_id=cls.school_id,
+        resource_type="grade",
+        resource_id=grade.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"student_id": grade.student_id, "before": before, "after": _grade_snapshot(grade)},
+    )
+    await db.commit()
+
+    result = await db.execute(select(Grade).where(Grade.id == grade.id).options(selectinload(Grade.student)))
+    saved_grade = result.scalar_one()
+    coefficients = await load_grade_coefficients(db, [saved_grade])
+    return grade_response(saved_grade, coefficients.get(saved_grade.id, 1.0))
+
+
+@router.delete("/{grade_id}")
+async def delete_grade(
+    class_id: str,
+    grade_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    cls, grade = await _grade_for_change(class_id, grade_id, current_user, db)
+    await record_audit_event(
+        db,
+        action="grade.deleted",
+        actor=current_user,
+        school_id=cls.school_id,
+        resource_type="grade",
+        resource_id=grade.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={
+            "student_id": grade.student_id,
+            "subject": grade.subject,
+            "was_approved": grade.is_approved,
+            **_grade_snapshot(grade),
+        },
+    )
+    await db.delete(grade)
+    await db.commit()
+    return {"status": "deleted"}
 
 
 @router.post("/{grade_id}/approve", response_model=GradeApprovalOut)

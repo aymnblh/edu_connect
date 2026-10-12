@@ -13,6 +13,23 @@ class LessonRepository {
         .toList();
   }
 
+  Future<void> updateLesson({
+    required String classId,
+    required String lessonId,
+    required String content,
+  }) async {
+    await _api.patch('/classes/$classId/lessons/$lessonId', data: {
+      'content': content,
+    });
+  }
+
+  Future<void> deleteLesson({
+    required String classId,
+    required String lessonId,
+  }) async {
+    await _api.delete('/classes/$classId/lessons/$lessonId');
+  }
+
   Future<LessonEntryModel> addLesson({
     required String classId,
     required String subject,

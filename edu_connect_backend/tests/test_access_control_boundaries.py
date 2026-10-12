@@ -24,6 +24,8 @@ from app.models import (
     ConversationType,
     DirectMessage,
     Grade,
+    LessonEntry,
+    Homework,
     MediaAttachment,
     MessageBlock,
     Message,
@@ -1453,6 +1455,174 @@ def test_staff_cannot_self_delete_their_school_account():
         assert exc.value.detail["code"] == "account_deletion_by_school"
         assert user.password_hash == "hash-a"
         assert db.commits == 0
+
+
+def _edit_class():
+    return Class(id="class-a", school_id="school-a", name="3A", join_code="ABC123")
+
+
+def _math_grade(approved: bool = False, course_id: str = "course-math", subject: str = "Math"):
+    return Grade(
+        id="grade-a",
+        school_id="school-a",
+        class_id="class-a",
+        student_id="student-a",
+        student_name="Student A",
+        course_id=course_id,
+        subject=subject,
+        score=21.0 if not approved else 14.0,
+        max_score=20.0,
+        is_approved=approved,
+    )
+
+
+def test_teacher_cannot_change_an_approved_grade():
+    grade = _math_grade(approved=True)
+    db = FakeDb(
+        get_map={(Class, "class-a"): _edit_class(), (Grade, "grade-a"): grade},
+        results=[FakeResult(["teacher-a"])],
+    )
+    with pytest.raises(HTTPException) as exc:
+        run(grades_router.delete_grade(
+            "class-a", "grade-a",
+            request=make_request("/classes/class-a/grades/grade-a", method="DELETE"),
+            current_user=make_user("teacher-a", UserRole.teacher),
+            db=db,
+        ))
+    assert exc.value.status_code == 409
+    assert db.deleted_instances == []
+
+
+def test_teacher_cannot_change_another_teachers_subject_grade():
+    grade = _math_grade(course_id="course-physics", subject="Physique")
+    db = FakeDb(
+        get_map={(Class, "class-a"): _edit_class(), (Grade, "grade-a"): grade},
+        results=[FakeResult(["teacher-a"]), FakeResult([("course-math", "Math")])],
+    )
+    with pytest.raises(HTTPException) as exc:
+        run(grades_router.update_grade(
+            "class-a", "grade-a",
+            grades_router.GradeUpdate(score=12),
+            request=make_request("/classes/class-a/grades/grade-a", method="PATCH"),
+            current_user=make_user("teacher-a", UserRole.teacher),
+            db=db,
+        ))
+    assert exc.value.status_code == 403
+    assert grade.score == 21.0
+
+
+def test_teacher_deletes_own_unapproved_grade_with_audit():
+    grade = _math_grade()
+    db = FakeDb(
+        get_map={(Class, "class-a"): _edit_class(), (Grade, "grade-a"): grade},
+        results=[FakeResult(["teacher-a"]), FakeResult([("course-math", "Math")])] + [FakeResult() for _ in range(4)],
+    )
+    result = run(grades_router.delete_grade(
+        "class-a", "grade-a",
+        request=make_request("/classes/class-a/grades/grade-a", method="DELETE"),
+        current_user=make_user("teacher-a", UserRole.teacher),
+        db=db,
+    ))
+    assert result == {"status": "deleted"}
+    assert db.deleted_instances == [grade]
+    audit = [e for e in db.added if isinstance(e, AuditEvent)]
+    assert [e.action for e in audit] == ["grade.deleted"]
+    assert audit[0].event_metadata["score"] == 21.0
+
+
+def test_grade_correction_rejects_score_above_maximum():
+    grade = _math_grade(approved=True)
+    db = FakeDb(get_map={(Class, "class-a"): _edit_class(), (Grade, "grade-a"): grade})
+    with pytest.raises(HTTPException) as exc:
+        run(grades_router.update_grade(
+            "class-a", "grade-a",
+            grades_router.GradeUpdate(score=25),
+            request=make_request("/classes/class-a/grades/grade-a", method="PATCH"),
+            current_user=make_user("principal-a", UserRole.principal),
+            db=db,
+        ))
+    assert exc.value.status_code == 400
+    assert grade.score == 14.0
+
+
+def test_only_author_or_admin_can_delete_homework():
+    from datetime import datetime as dt
+    homework = Homework(
+        id="hw-a", school_id="school-a", class_id="class-a", subject="Math",
+        homework_content="Ex 3 p.12", due_date=dt.now(timezone.utc), created_by="teacher-b",
+    )
+    db = FakeDb(
+        get_map={(Class, "class-a"): _edit_class(), (Homework, "hw-a"): homework},
+        results=[FakeResult(["teacher-a"])],
+    )
+    request = make_request("/classes/class-a/homework/hw-a", method="DELETE")
+    with pytest.raises(HTTPException) as exc:
+        run(homework_router.delete_homework(
+            "class-a", "hw-a", request=request, current_user=make_user("teacher-a", UserRole.teacher), db=db,
+        ))
+    assert exc.value.status_code == 403
+
+    db_author = FakeDb(
+        get_map={(Class, "class-a"): _edit_class(), (Homework, "hw-a"): homework},
+        results=[FakeResult(["teacher-b"])] + [FakeResult() for _ in range(4)],
+    )
+    run(homework_router.delete_homework(
+        "class-a", "hw-a", request=request, current_user=make_user("teacher-b", UserRole.teacher), db=db_author,
+    ))
+    assert db_author.deleted_instances == [homework]
+
+
+def test_teacher_cannot_edit_another_teachers_lesson_entry():
+    entry = LessonEntry(
+        id="lesson-a", school_id="school-a", class_id="class-a", teacher_id="teacher-b",
+        subject="Math", content="Chapitre 2",
+    )
+    db = FakeDb(
+        get_map={(Class, "class-a"): _edit_class(), (LessonEntry, "lesson-a"): entry},
+        results=[FakeResult(["teacher-a"])],
+    )
+    with pytest.raises(HTTPException) as exc:
+        run(lessons_router.update_lesson_entry(
+            "class-a", "lesson-a",
+            lessons_router.LessonEntryUpdate(content="Changed"),
+            request=make_request("/classes/class-a/lessons/lesson-a", method="PATCH"),
+            current_user=make_user("teacher-a", UserRole.teacher),
+            db=db,
+        ))
+    assert exc.value.status_code == 403
+    assert entry.content == "Chapitre 2"
+
+
+def test_attendance_correction_tells_parents_and_clears_justification(monkeypatch):
+    calls = []
+
+    async def fake_notification(*_args, **kwargs):
+        calls.append(kwargs)
+
+    monkeypatch.setattr(attendance_router, "create_notification", fake_notification)
+    record = Attendance(
+        id="student-a_2026-10-01", school_id="school-a", class_id="class-a",
+        student_id="student-a", student_name="Student A", status=AttendanceStatus.absent,
+        date=datetime(2026, 10, 1, tzinfo=timezone.utc), is_justified=True,
+        justification_text="Certificat",
+    )
+    parent = make_user("parent-a", UserRole.parent)
+    db = FakeDb(
+        get_map={(Class, "class-a"): _edit_class(), (Attendance, "student-a_2026-10-01"): record},
+        results=[FakeResult(["teacher-a"]), FakeResult([parent]), FakeResult(), FakeResult([record])],
+    )
+    run(attendance_router.correct_attendance(
+        "class-a", "student-a_2026-10-01",
+        attendance_router.AttendanceCorrection(status=AttendanceStatus.present),
+        request=make_request("/classes/class-a/attendance/x", method="PATCH"),
+        current_user=make_user("teacher-a", UserRole.teacher),
+        db=db,
+    ))
+    assert record.status == AttendanceStatus.present
+    assert record.is_justified is False and record.justification_text is None
+    assert [call["user_id"] for call in calls] == ["parent-a"]
+    assert "01/10/2026" in calls[0]["content"]
+    assert [e.action for e in db.added if isinstance(e, AuditEvent)] == ["attendance.corrected"]
 
 
 def test_only_system_admin_can_activate_school():

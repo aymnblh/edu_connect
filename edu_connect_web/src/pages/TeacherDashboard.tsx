@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import {
   BookOpen,
   Calendar,
   ClipboardList,
   MessageSquare,
   NotebookText,
+  Pencil,
   RefreshCw,
+  Trash2,
   UserCheck,
   Users,
 } from 'lucide-react';
@@ -63,7 +66,17 @@ interface Homework {
   lesson_content?: string | null;
   homework_content: string;
   due_date: string;
+  created_by?: string | null;
   created_at: string;
+}
+
+function apiErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error)) {
+    const detail = error.response?.data?.detail;
+    if (typeof detail === 'string') return detail;
+    if (detail && typeof detail.message === 'string') return detail.message;
+  }
+  return fallback;
 }
 
 interface ScheduleSlot {
@@ -403,6 +416,65 @@ export default function TeacherDashboard() {
       addToast(error instanceof Error ? error.message : t('auth.connectionError'), 'error');
     },
   });
+
+  const [editingGrade, setEditingGrade] = useState<{ id: string; score: string; comment: string } | null>(null);
+  const [editingHomework, setEditingHomework] = useState<{ id: string; content: string; dueDate: string } | null>(null);
+
+  const updateGradeMutation = useMutation({
+    mutationFn: async (draft: { id: string; score: string; comment: string }) => {
+      await api.patch(`/classes/${selectedClass?.id}/grades/${draft.id}`, {
+        score: Number(draft.score.replace(',', '.')),
+        comment: draft.comment.trim() || null,
+      });
+    },
+    onSuccess: () => {
+      setEditingGrade(null);
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'grades', selectedClass?.id] });
+      addToast(t('teacher.toastSaved'), 'success');
+    },
+    onError: (error) => addToast(apiErrorMessage(error, t('auth.connectionError')), 'error'),
+  });
+
+  const deleteGradeMutation = useMutation({
+    mutationFn: async (gradeId: string) => {
+      await api.delete(`/classes/${selectedClass?.id}/grades/${gradeId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'grades', selectedClass?.id] });
+      addToast(t('teacher.entryDeleted'), 'success');
+    },
+    onError: (error) => addToast(apiErrorMessage(error, t('auth.connectionError')), 'error'),
+  });
+
+  const updateHomeworkMutation = useMutation({
+    mutationFn: async (draft: { id: string; content: string; dueDate: string }) => {
+      await api.patch(`/classes/${selectedClass?.id}/homework/${draft.id}`, {
+        homework_content: draft.content.trim(),
+        due_date: new Date(`${draft.dueDate}T12:00:00`).toISOString(),
+      });
+    },
+    onSuccess: () => {
+      setEditingHomework(null);
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'homework', selectedClass?.id] });
+      addToast(t('teacher.toastSaved'), 'success');
+    },
+    onError: (error) => addToast(apiErrorMessage(error, t('auth.connectionError')), 'error'),
+  });
+
+  const deleteHomeworkMutation = useMutation({
+    mutationFn: async (homeworkId: string) => {
+      await api.delete(`/classes/${selectedClass?.id}/homework/${homeworkId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'homework', selectedClass?.id] });
+      addToast(t('teacher.entryDeleted'), 'success');
+    },
+    onError: (error) => addToast(apiErrorMessage(error, t('auth.connectionError')), 'error'),
+  });
+
+  const confirmDelete = (onConfirm: () => void) => {
+    if (window.confirm(t('teacher.confirmDelete'))) onConfirm();
+  };
 
   const addGradeMutation = useMutation({
     mutationFn: async () => {
@@ -906,13 +978,75 @@ export default function TeacherDashboard() {
                             <div className="grade-date">
                               {grade.student_name} - {formatDate(grade.date, locale)}
                             </div>
-                            {grade.comment && <div className="teacher-grade-comment-text">{grade.comment}</div>}
+                            {editingGrade?.id === grade.id ? (
+                              <form
+                                className="inline-edit-form"
+                                onSubmit={(event) => {
+                                  event.preventDefault();
+                                  updateGradeMutation.mutate(editingGrade);
+                                }}
+                              >
+                                <label className="form-label" htmlFor={`grade-score-${grade.id}`}>
+                                  {t('teacher.gradeScoreOutOf', { max: grade.max_score })}
+                                </label>
+                                <input
+                                  id={`grade-score-${grade.id}`}
+                                  className="form-input"
+                                  inputMode="decimal"
+                                  value={editingGrade.score}
+                                  onChange={(event) => setEditingGrade({ ...editingGrade, score: event.target.value })}
+                                  required
+                                />
+                                <input
+                                  className="form-input"
+                                  aria-label={t('teacher.gradeComment')}
+                                  placeholder={t('teacher.gradeComment')}
+                                  value={editingGrade.comment}
+                                  onChange={(event) => setEditingGrade({ ...editingGrade, comment: event.target.value })}
+                                />
+                                <div className="table-actions">
+                                  <button type="submit" className="btn btn-primary btn-compact" disabled={updateGradeMutation.isPending}>
+                                    {t('common.save')}
+                                  </button>
+                                  <button type="button" className="btn btn-secondary btn-compact" onClick={() => setEditingGrade(null)}>
+                                    {t('common.cancel')}
+                                  </button>
+                                </div>
+                              </form>
+                            ) : (
+                              grade.comment && <div className="teacher-grade-comment-text">{grade.comment}</div>
+                            )}
                           </div>
                           <div className="teacher-grade-status">
                             <span className="grade-score">{score.toFixed(1)}/20</span>
                             <span className={`badge badge-compact ${grade.is_approved ? 'badge-success' : 'badge-warning'}`}>
                               {grade.is_approved ? t('teacher.gradeApproved') : t('teacher.gradePending')}
                             </span>
+                            {!grade.is_approved && editingGrade?.id !== grade.id && (
+                              <div className="table-actions">
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary btn-compact"
+                                  aria-label={t('common.edit')}
+                                  title={t('common.edit')}
+                                  onClick={() =>
+                                    setEditingGrade({ id: grade.id, score: String(grade.score), comment: grade.comment ?? '' })
+                                  }
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-danger btn-compact"
+                                  aria-label={t('common.delete')}
+                                  title={t('common.delete')}
+                                  disabled={deleteGradeMutation.isPending}
+                                  onClick={() => confirmDelete(() => deleteGradeMutation.mutate(grade.id))}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -1082,10 +1216,69 @@ export default function TeacherDashboard() {
                             </span>
                           </div>
                           <h4>{item.subject}</h4>
-                          <p>{item.homework_content}</p>
+                          {editingHomework?.id === item.id ? (
+                            <form
+                              className="inline-edit-form"
+                              onSubmit={(event) => {
+                                event.preventDefault();
+                                updateHomeworkMutation.mutate(editingHomework);
+                              }}
+                            >
+                              <textarea
+                                className="form-input"
+                                aria-label={t('teacher.homeworkContentLabel')}
+                                value={editingHomework.content}
+                                onChange={(event) => setEditingHomework({ ...editingHomework, content: event.target.value })}
+                                required
+                              />
+                              <input
+                                className="form-input"
+                                type="date"
+                                aria-label={t('teacher.homeworkDueLabel')}
+                                value={editingHomework.dueDate}
+                                onChange={(event) => setEditingHomework({ ...editingHomework, dueDate: event.target.value })}
+                                required
+                              />
+                              <div className="table-actions">
+                                <button type="submit" className="btn btn-primary btn-compact" disabled={updateHomeworkMutation.isPending}>
+                                  {t('common.save')}
+                                </button>
+                                <button type="button" className="btn btn-secondary btn-compact" onClick={() => setEditingHomework(null)}>
+                                  {t('common.cancel')}
+                                </button>
+                              </div>
+                            </form>
+                          ) : (
+                            <p>{item.homework_content}</p>
+                          )}
                           {item.lesson_content && (
                             <div className="homework-preparation-note">
                               {t('teacher.homeworkPreparation')}: {item.lesson_content}
+                            </div>
+                          )}
+                          {item.created_by && item.created_by === myId && editingHomework?.id !== item.id && (
+                            <div className="table-actions">
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-compact"
+                                onClick={() =>
+                                  setEditingHomework({
+                                    id: item.id,
+                                    content: item.homework_content,
+                                    dueDate: item.due_date.slice(0, 10),
+                                  })
+                                }
+                              >
+                                <Pencil size={14} /> {t('common.edit')}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-danger btn-compact"
+                                disabled={deleteHomeworkMutation.isPending}
+                                onClick={() => confirmDelete(() => deleteHomeworkMutation.mutate(item.id))}
+                              >
+                                <Trash2 size={14} /> {t('common.delete')}
+                              </button>
                             </div>
                           )}
                         </div>

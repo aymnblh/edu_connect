@@ -48,6 +48,25 @@ class GradesRepository {
     return data.toString();
   }
 
+  Future<void> updateGrade({
+    required String classId,
+    required String gradeId,
+    required double score,
+    String? comment,
+  }) async {
+    await _api.patch('/classes/$classId/grades/$gradeId', data: {
+      'score': score,
+      'comment': comment,
+    });
+  }
+
+  Future<void> deleteGrade({
+    required String classId,
+    required String gradeId,
+  }) async {
+    await _api.delete('/classes/$classId/grades/$gradeId');
+  }
+
   Future<void> approveGrade({
     required String classId,
     required String gradeId,

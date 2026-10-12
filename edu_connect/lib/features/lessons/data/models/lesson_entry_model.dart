@@ -4,6 +4,7 @@ class LessonEntryModel {
   final String subject;
   final String content;
   final String? homeworkSummary;
+  final String? teacherId;
   final DateTime sessionDate;
   final DateTime createdAt;
 
@@ -13,6 +14,7 @@ class LessonEntryModel {
     required this.subject,
     required this.content,
     this.homeworkSummary,
+    this.teacherId,
     required this.sessionDate,
     required this.createdAt,
   });
@@ -24,6 +26,7 @@ class LessonEntryModel {
       subject: json['subject'] as String,
       content: json['content'] as String,
       homeworkSummary: json['homework_summary'] as String?,
+      teacherId: json['teacher_id'] as String?,
       sessionDate: DateTime.parse(json['session_date'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
     );

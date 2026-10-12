@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -104,6 +105,8 @@ class HomeworkListScreen extends ConsumerWidget {
                               homework: entry.value,
                               index: entry.key,
                               isPast: false,
+                              canManage: user.isTeacher &&
+                                  entry.value.createdBy == user.id,
                             ),
                           ),
                       const SizedBox(height: 18),
@@ -115,6 +118,8 @@ class HomeworkListScreen extends ConsumerWidget {
                               homework: entry.value,
                               index: entry.key,
                               isPast: true,
+                              canManage: user.isTeacher &&
+                                  entry.value.createdBy == user.id,
                             ),
                           ),
                     ],
@@ -385,19 +390,118 @@ class _HomeworkSummary extends StatelessWidget {
   }
 }
 
-class _HomeworkCard extends StatelessWidget {
+class _HomeworkCard extends ConsumerWidget {
   final HomeworkModel homework;
   final int index;
   final bool isPast;
+  final bool canManage;
 
   const _HomeworkCard({
     required this.homework,
     required this.index,
     required this.isPast,
+    this.canManage = false,
   });
 
+  String _serverMessage(Object error) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      final detail = data is Map ? data['detail'] : null;
+      if (detail is String) return detail;
+    }
+    return '$error';
+  }
+
+  Future<void> _run(BuildContext context, WidgetRef ref,
+      Future<void> Function() action, String done) async {
+    final text = _HomeworkText.of(context);
+    try {
+      await action();
+      ref.invalidate(homeworkProvider(homework.classId));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(done)));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(text.actionFailed(_serverMessage(e)))));
+      }
+    }
+  }
+
+  Future<void> _edit(BuildContext context, WidgetRef ref) async {
+    final text = _HomeworkText.of(context);
+    final ctrl = TextEditingController(text: homework.homeworkContent);
+    final value = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(text.editHomework),
+        content: TextField(
+          controller: ctrl,
+          minLines: 2,
+          maxLines: 6,
+          decoration: InputDecoration(labelText: text.homeworkToDo),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(text.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
+            child: Text(text.save),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    if (value == null || value.isEmpty || !context.mounted) return;
+    await _run(
+      context,
+      ref,
+      () => ref.read(homeworkRepositoryProvider).updateHomework(
+            classId: homework.classId,
+            homeworkId: homework.id,
+            homeworkContent: value,
+          ),
+      text.updated,
+    );
+  }
+
+  Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final text = _HomeworkText.of(context);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(text.delete),
+        content: Text(text.confirmDelete),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(text.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(text.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !context.mounted) return;
+    await _run(
+      context,
+      ref,
+      () => ref.read(homeworkRepositoryProvider).deleteHomework(
+            classId: homework.classId,
+            homeworkId: homework.id,
+          ),
+      text.deleted,
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = _HomeworkText.of(context);
     final colors = context.appColors;
     final colorScheme = Theme.of(context).colorScheme;
@@ -473,6 +577,28 @@ class _HomeworkCard extends StatelessWidget {
               ],
             ),
           ),
+          if (canManage)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _edit(context, ref),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: Text(text.edit),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _delete(context, ref),
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                    ),
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: Text(text.delete),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     )
@@ -751,6 +877,23 @@ class _HomeworkText {
     if (_fr) return fr;
     return en;
   }
+
+  String get edit => pick('تعديل', 'Modifier', 'Edit');
+  String get delete => pick('حذف', 'Supprimer', 'Delete');
+  String get cancel => pick('إلغاء', 'Annuler', 'Cancel');
+  String get save => pick('حفظ', 'Enregistrer', 'Save');
+  String get editHomework =>
+      pick('تعديل الواجب', 'Modifier le devoir', 'Edit homework');
+  String get confirmDelete => pick(
+      'حذف هذا الواجب نهائيا؟',
+      'Supprimer definitivement ce devoir ?',
+      'Delete this homework permanently?');
+  String get updated =>
+      pick('تم تعديل الواجب.', 'Devoir modifie.', 'Homework updated.');
+  String get deleted =>
+      pick('تم حذف الواجب.', 'Devoir supprime.', 'Homework deleted.');
+  String actionFailed(Object error) => pick('تعذر تنفيذ العملية: $error',
+      'Operation impossible : $error', 'Action failed: $error');
 
   String get title => pick('الواجبات', 'Devoirs', 'Homework');
   String get refresh => pick('تحديث', 'Actualiser', 'Refresh');

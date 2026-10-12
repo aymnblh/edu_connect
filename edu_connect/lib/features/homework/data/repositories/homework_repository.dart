@@ -17,6 +17,23 @@ class HomeworkRepository {
     return HomeworkModel.fromJson(data as Map<String, dynamic>);
   }
 
+  Future<void> updateHomework({
+    required String classId,
+    required String homeworkId,
+    required String homeworkContent,
+  }) async {
+    await _api.patch('/classes/$classId/homework/$homeworkId', data: {
+      'homework_content': homeworkContent,
+    });
+  }
+
+  Future<void> deleteHomework({
+    required String classId,
+    required String homeworkId,
+  }) async {
+    await _api.delete('/classes/$classId/homework/$homeworkId');
+  }
+
   Future<List<HomeworkModel>> getHomework(String classId) async {
     final data = await _api.get('/classes/$classId/homework/') as List<dynamic>;
     return data

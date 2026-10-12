@@ -79,6 +79,46 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'تم تغيير كلمة المرور. تم تسجيل خروج أجهزتك الأخرى.',
     en: 'Password changed. Your other devices have been signed out.',
   },
+  'common.save': {
+    fr: 'Enregistrer',
+    ar: 'حفظ',
+    en: 'Save',
+  },
+  'common.edit': {
+    fr: 'Modifier',
+    ar: 'تعديل',
+    en: 'Edit',
+  },
+  'common.delete': {
+    fr: 'Supprimer',
+    ar: 'حذف',
+    en: 'Delete',
+  },
+  'teacher.confirmDelete': {
+    fr: 'Supprimer définitivement cet élément ?',
+    ar: 'حذف هذا العنصر نهائيا؟',
+    en: 'Delete this entry permanently?',
+  },
+  'teacher.entryDeleted': {
+    fr: 'Élément supprimé.',
+    ar: 'تم الحذف.',
+    en: 'Entry deleted.',
+  },
+  'teacher.gradeScoreOutOf': {
+    fr: 'Note sur {max}',
+    ar: 'النقطة من {max}',
+    en: 'Score out of {max}',
+  },
+  'teacher.homeworkContentLabel': {
+    fr: 'Contenu du devoir',
+    ar: 'محتوى الواجب',
+    en: 'Homework content',
+  },
+  'teacher.homeworkDueLabel': {
+    fr: 'Date limite',
+    ar: 'آخر أجل',
+    en: 'Due date',
+  },
   'common.reload': {
     fr: 'Recharger',
     ar: 'إعادة التحميل',
