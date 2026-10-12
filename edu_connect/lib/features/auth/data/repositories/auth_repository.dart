@@ -205,6 +205,11 @@ class AuthRepository {
     );
   }
 
+  /// Permanently delete (anonymize) the signed-in parent account.
+  Future<void> deleteAccount() async {
+    await _api.delete('/users/me');
+  }
+
   Future<void> _saveTokens(String access, String refresh) async {
     await _storage.write(key: _accessTokenKey, value: access);
     await _storage.write(key: _refreshTokenKey, value: refresh);

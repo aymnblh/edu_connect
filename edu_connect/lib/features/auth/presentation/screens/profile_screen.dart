@@ -145,6 +145,26 @@ class ProfileScreen extends ConsumerWidget {
                                 textStyle: const TextStyle(fontSize: 12),
                               ),
                               onPressed: () async {
+                                if (!user.isParent) {
+                                  await showDialog<void>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: Text(text.deleteAccount),
+                                      content: Text(text.staffDeletionInfo),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(),
+                                          child: Text(
+                                            MaterialLocalizations.of(ctx)
+                                                .okButtonLabel,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  return;
+                                }
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (ctx) => AlertDialog(
@@ -170,10 +190,25 @@ class ProfileScreen extends ConsumerWidget {
                                   ),
                                 );
 
-                                if (confirm == true) {
+                                if (confirm != true) return;
+                                try {
                                   await ref
                                       .read(authNotifierProvider.notifier)
                                       .deleteAccount();
+                                } catch (e) {
+                                  if (!context.mounted) return;
+                                  final data = e is DioException
+                                      ? e.response?.data
+                                      : null;
+                                  final detail =
+                                      data is Map ? data['detail'] : null;
+                                  final message = detail is Map &&
+                                          detail['message'] is String
+                                      ? detail['message'] as String
+                                      : text.deleteAccountFailed;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(message)),
+                                  );
                                 }
                               },
                               child: Text(text.deleteAccount),
@@ -628,10 +663,20 @@ class _ProfileText {
           ? 'Supprimer le compte'
           : 'Delete account';
   String get deleteAccountConfirm => _ar
-      ? 'هل أنت متأكد من حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.'
+      ? 'هل أنت متأكد من حذف حسابك؟ سيتم حذف معلوماتك الشخصية وفك الارتباط بأطفالك. لا يمكن التراجع عن هذا الإجراء.'
       : _fr
-          ? 'Voulez-vous vraiment supprimer votre compte ? Cette action est irreversible.'
-          : 'Are you sure you want to delete your account? This action cannot be undone.';
+          ? 'Voulez-vous vraiment supprimer votre compte ? Vos informations personnelles seront effacees et le lien avec vos enfants supprime. Cette action est irreversible.'
+          : 'Are you sure you want to delete your account? Your personal information will be erased and the link to your children removed. This action cannot be undone.';
+  String get staffDeletionInfo => _ar
+      ? 'حسابات الطاقم تديرها المؤسسة. لإغلاق حسابك، تواصل مع إدارة مؤسستك.'
+      : _fr
+          ? "Les comptes du personnel sont geres par l'etablissement. Pour fermer votre compte, contactez la direction de votre etablissement."
+          : 'Staff accounts are managed by the school. To close your account, contact your school administration.';
+  String get deleteAccountFailed => _ar
+      ? 'تعذر حذف الحساب. حاول مرة أخرى.'
+      : _fr
+          ? 'Impossible de supprimer le compte. Reessayez.'
+          : 'Could not delete the account. Please try again.';
   String avatarLabel(String name) => _ar
       ? 'الصورة الرمزية لـ $name'
       : _fr

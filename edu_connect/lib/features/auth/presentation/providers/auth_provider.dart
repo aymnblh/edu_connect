@@ -115,11 +115,17 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     }
   }
 
+  /// Deletes the account on the server first; the local session is only
+  /// cleared once the server confirmed, so a failure is never hidden.
   Future<void> deleteAccount() async {
-    // Delete account from backend API if needed locally.
-    // For now, we clear the session.
-    await _repo.signOut();
-    state = const AsyncValue.data(null);
+    await _repo.deleteAccount();
+    try {
+      await _repo.signOut();
+    } catch (_) {
+      // Sessions were already revoked server-side; clear locally anyway.
+    } finally {
+      state = const AsyncValue.data(null);
+    }
   }
 
   /// Reloads the cached user from storage and updates the auth state.

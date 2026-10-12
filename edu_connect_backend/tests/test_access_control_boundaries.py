@@ -50,6 +50,7 @@ from app.modules.messaging.routers import chat, dm
 from app.modules.notifications.routers import notifications as notifications_router
 from app.modules.schedule.routers import schedule as schedule_router
 from app.modules.schools.routers import admin, system
+from app.modules.users.routers import users as users_router
 from app.core.rate_limit import check_rate_limit
 from app.utils import notifications
 
@@ -1407,6 +1408,51 @@ def test_change_password_requires_current_password_and_revokes_sessions(monkeypa
     assert compiled_sql(db.executed[0]).startswith("DELETE FROM refresh_tokens")
     claims = security.decode_token(tokens["access_token"])
     assert claims["tv"] == 5
+
+
+def test_parent_account_deletion_anonymizes_and_revokes_everything():
+    parent = make_user("parent-a", UserRole.parent)
+    parent.password_hash = "hash-a"
+    parent.phone = "0550000000"
+    parent.push_token = "push-a"
+    parent.token_version = 2
+    db = FakeDb(results=[FakeResult([1])] + [FakeResult() for _ in range(10)])
+
+    run(users_router.delete_me(request=make_request("/users/me", method="DELETE"), current_user=parent, db=db))
+
+    assert parent.full_name == users_router.DELETED_ACCOUNT_NAME
+    assert parent.email == "deleted-parent-a@deleted.waseledu.dz"
+    assert parent.phone is None and parent.push_token is None and parent.password_hash is None
+    assert parent.deactivated_at is not None
+    assert parent.token_version == 3
+    deleted_tables = [
+        compiled_sql(statement).split()[2]
+        for statement in db.executed
+        if compiled_sql(statement).startswith("DELETE FROM")
+    ]
+    assert deleted_tables == [
+        "student_parents",
+        "verification_requests",
+        "notifications",
+        "notification_preferences",
+        "refresh_tokens",
+    ]
+    assert [e.action for e in db.added if isinstance(e, AuditEvent)] == ["account.deleted"]
+    assert db.deleted_instances == []
+    assert db.commits == 1
+
+
+def test_staff_cannot_self_delete_their_school_account():
+    for role in (UserRole.teacher, UserRole.secretary, UserRole.principal, UserRole.system_admin):
+        user = make_user(f"{role.value}-a", role)
+        user.password_hash = "hash-a"
+        db = FakeDb()
+        with pytest.raises(HTTPException) as exc:
+            run(users_router.delete_me(request=make_request("/users/me", method="DELETE"), current_user=user, db=db))
+        assert exc.value.status_code == 403
+        assert exc.value.detail["code"] == "account_deletion_by_school"
+        assert user.password_hash == "hash-a"
+        assert db.commits == 0
 
 
 def test_only_system_admin_can_activate_school():
