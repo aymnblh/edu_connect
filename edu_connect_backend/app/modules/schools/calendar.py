@@ -1,5 +1,8 @@
 """Algerian school calendar helpers."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+
+# Algeria uses UTC+1 all year (no daylight saving time).
+ALGERIA_TZ = timezone(timedelta(hours=1), "Africa/Algiers")
 
 # (name, start_month, start_day, end_month, end_day); the school year starts in September.
 ALGERIAN_TRIMESTERS = [

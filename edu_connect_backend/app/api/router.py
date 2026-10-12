@@ -13,6 +13,7 @@ from app.modules.finance.routers import finance
 from app.modules.core.routers import media, security
 from app.modules.announcements.routers import announcements
 from app.modules.reports.routers import report_cards
+from app.modules.meetings.routers import meetings
 
 api_router = APIRouter()
 
@@ -47,6 +48,7 @@ api_router.include_router(dm.router)
 # Notifications & announcements
 api_router.include_router(notifications.router)
 api_router.include_router(announcements.router)
+api_router.include_router(meetings.router)
 
 # Schedule
 api_router.include_router(schedule.router)
