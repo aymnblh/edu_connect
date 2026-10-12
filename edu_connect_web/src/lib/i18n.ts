@@ -614,6 +614,171 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'تم حجز الموعد وإعلام الأستاذ.',
     en: 'Meeting booked. The teacher has been told.',
   },
+  'insights.title': {
+    fr: 'Vigilance du trimestre',
+    ar: 'متابعة الفصل',
+    en: 'Term early warning',
+  },
+  'insights.copy': {
+    fr: 'Élèves à suivre, assiduité et tâches en attente.',
+    ar: 'التلاميذ الواجب متابعتهم، المواظبة والمهام المعلقة.',
+    en: 'Students to follow up, attendance and pending tasks.',
+  },
+  'insights.copyCompare': {
+    fr: 'Élèves à suivre (comparaison avec {previous}), assiduité et tâches en attente.',
+    ar: 'التلاميذ الواجب متابعتهم (مقارنة مع {previous})، المواظبة والمهام المعلقة.',
+    en: 'Students to follow up (compared with {previous}), attendance and pending tasks.',
+  },
+  'insights.atRiskCount': {
+    fr: 'élèves à suivre',
+    ar: 'تلميذ للمتابعة',
+    en: 'students to follow up',
+  },
+  'insights.pendingApprovals': {
+    fr: 'notes à valider',
+    ar: 'نقطة للمصادقة',
+    en: 'grades to approve',
+  },
+  'insights.unjustified30d': {
+    fr: 'absences non justifiées (30 j)',
+    ar: 'غياب غير مبرر (30 يوما)',
+    en: 'unexcused absences (30 days)',
+  },
+  'insights.trendTitle': {
+    fr: 'Assiduité par semaine (12 dernières semaines)',
+    ar: 'المواظبة أسبوعيا (آخر 12 أسبوعا)',
+    en: 'Weekly attendance (last 12 weeks)',
+  },
+  'insights.trendAria': {
+    fr: 'Courbes du taux d\'absence et du taux de retard par semaine scolaire.',
+    ar: 'منحنى نسبة الغياب ونسبة التأخر لكل أسبوع دراسي.',
+    en: 'Lines of the absence rate and late rate per school week.',
+  },
+  'insights.absenceRate': {
+    fr: 'Taux d\'absence',
+    ar: 'نسبة الغياب',
+    en: 'Absence rate',
+  },
+  'insights.lateRate': {
+    fr: 'Taux de retard',
+    ar: 'نسبة التأخر',
+    en: 'Late rate',
+  },
+  'insights.absencesShort': {
+    fr: 'Absences',
+    ar: 'الغياب',
+    en: 'Absences',
+  },
+  'insights.latesShort': {
+    fr: 'Retards',
+    ar: 'التأخر',
+    en: 'Lates',
+  },
+  'insights.weekOf': {
+    fr: 'Semaine du {date}',
+    ar: 'أسبوع {date}',
+    en: 'Week of {date}',
+  },
+  'insights.records': {
+    fr: '{count} pointages',
+    ar: '{count} تسجيل',
+    en: '{count} records',
+  },
+  'insights.noRecords': {
+    fr: 'Aucun pointage cette semaine',
+    ar: 'لا توجد تسجيلات هذا الأسبوع',
+    en: 'No attendance recorded this week',
+  },
+  'insights.recordsShort': {
+    fr: 'Pointages',
+    ar: 'التسجيلات',
+    en: 'Records',
+  },
+  'insights.week': {
+    fr: 'Semaine',
+    ar: 'الأسبوع',
+    en: 'Week',
+  },
+  'insights.showTable': {
+    fr: 'Voir les chiffres',
+    ar: 'عرض الأرقام',
+    en: 'Show the numbers',
+  },
+  'insights.hideTable': {
+    fr: 'Masquer les chiffres',
+    ar: 'إخفاء الأرقام',
+    en: 'Hide the numbers',
+  },
+  'insights.atRiskTitle': {
+    fr: 'Élèves à suivre',
+    ar: 'تلاميذ للمتابعة',
+    en: 'Students to follow up',
+  },
+  'insights.rulesHelp': {
+    fr: 'Moyenne < 10, baisse de 2 points ou plus depuis le trimestre précédent, 3 absences non justifiées ou 5 retards sur 30 jours.',
+    ar: 'معدل أقل من 10، تراجع بنقطتين أو أكثر عن الفصل السابق، 3 غيابات غير مبررة أو 5 تأخرات خلال 30 يوما.',
+    en: 'Average below 10, a drop of 2+ points since last term, 3 unexcused absences or 5 late arrivals in 30 days.',
+  },
+  'insights.atRiskEmpty': {
+    fr: 'Aucun élève ne correspond aux critères.',
+    ar: 'لا يوجد تلميذ معني بهذه المعايير.',
+    en: 'No student matches the criteria.',
+  },
+  'insights.average': {
+    fr: 'Moyenne',
+    ar: 'المعدل',
+    en: 'Average',
+  },
+  'insights.before': {
+    fr: 'avant : {value}',
+    ar: 'سابقا: {value}',
+    en: 'before: {value}',
+  },
+  'insights.last30d': {
+    fr: '30 derniers jours',
+    ar: 'آخر 30 يوما',
+    en: 'Last 30 days',
+  },
+  'insights.recentCounts': {
+    fr: '{absences} abs. non just., {lates} retards',
+    ar: '{absences} غياب غير مبرر، {lates} تأخر',
+    en: '{absences} unexcused abs., {lates} late',
+  },
+  'insights.reasons': {
+    fr: 'Motifs',
+    ar: 'الأسباب',
+    en: 'Reasons',
+  },
+  'insights.reason.low_average': {
+    fr: 'Moyenne < 10',
+    ar: 'معدل أقل من 10',
+    en: 'Average < 10',
+  },
+  'insights.reason.dropping': {
+    fr: 'En baisse',
+    ar: 'في تراجع',
+    en: 'Dropping',
+  },
+  'insights.reason.absences': {
+    fr: 'Absences',
+    ar: 'غيابات',
+    en: 'Absences',
+  },
+  'insights.reason.lateness': {
+    fr: 'Retards',
+    ar: 'تأخرات',
+    en: 'Lateness',
+  },
+  'insights.classTitle': {
+    fr: 'Assiduité par classe (trimestre)',
+    ar: 'المواظبة حسب القسم (الفصل)',
+    en: 'Attendance by class (term)',
+  },
+  'insights.classEmpty': {
+    fr: 'Aucun pointage ce trimestre.',
+    ar: 'لا توجد تسجيلات حضور هذا الفصل.',
+    en: 'No attendance recorded this term.',
+  },
   'common.reload': {
     fr: 'Recharger',
     ar: 'إعادة التحميل',

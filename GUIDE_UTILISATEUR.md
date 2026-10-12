@@ -83,3 +83,10 @@ Tout utilisateur connecté peut changer son mot de passe : sur le web, bouton cl
 - **Confidentialité** : les autres parents voient seulement qu'un créneau est pris, jamais par qui.
 - **Heure** : tous les horaires sont en heure d'Algérie.
 
+### Vigilance du trimestre (direction)
+Dans l'onglet « Vue d'ensemble », sous les indicateurs habituels, pour le trimestre choisi :
+- **Élèves à suivre**, avec le motif : moyenne inférieure à 10, baisse de 2 points ou plus depuis le trimestre précédent, 3 absences non justifiées ou 5 retards sur les 30 derniers jours.
+- **Assiduité par semaine** (12 dernières semaines scolaires, du dimanche au jeudi) : taux d'absence et taux de retard ; les semaines sans pointage apparaissent comme un vide. « Voir les chiffres » affiche le tableau.
+- **Assiduité par classe** sur le trimestre, et les tâches en attente : notes à valider, absences non justifiées.
+- Le « taux d'absence » de la vue d'ensemble ne compte plus les retards.
+

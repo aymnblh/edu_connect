@@ -4274,11 +4274,18 @@ body {
   line-height: 1.5;
 }
 
-.announcement-badge--announcement { background: rgba(20, 184, 166, 0.15); color: #2DD4BF; }
-.announcement-badge--holiday { background: rgba(16, 185, 129, 0.15); color: #34D399; }
-.announcement-badge--exam_period { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
-.announcement-badge--meeting { background: rgba(99, 102, 241, 0.15); color: #A5B4FC; }
-.announcement-badge--event { background: rgba(236, 72, 153, 0.15); color: #F9A8D4; }
+/* Light-skin badge inks: dark enough for >= 4.5:1 on their tinted backgrounds. */
+.announcement-badge--announcement { background: rgba(15, 118, 110, 0.1); color: #0F5F58; }
+.announcement-badge--holiday { background: rgba(21, 122, 85, 0.1); color: #146C4B; }
+.announcement-badge--exam_period { background: rgba(212, 150, 10, 0.12); color: #7A4F00; }
+.announcement-badge--meeting { background: rgba(67, 56, 202, 0.1); color: #3730A3; }
+.announcement-badge--event { background: rgba(190, 24, 93, 0.1); color: #9D174D; }
+
+/* The shared status badges were defined for the old dark skin (pale text on
+   white was ~1.7:1 for warnings); give them light-skin inks. */
+.badge-success { background: rgba(26, 154, 107, 0.1); color: #146C4B; border-color: rgba(26, 154, 107, 0.25); }
+.badge-danger { background: rgba(214, 64, 64, 0.1); color: #A12B2B; border-color: rgba(214, 64, 64, 0.25); }
+.badge-warning { background: rgba(212, 150, 10, 0.12); color: #7A4F00; border-color: rgba(212, 150, 10, 0.3); }
 
 /* Report cards */
 .clickable-row {
@@ -4390,3 +4397,69 @@ body {
   margin: 0.35rem 0;
 }
 
+/* Director insights */
+.insights-panel {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+}
+
+.insights-panel h3 {
+  margin: 0.5rem 0 0;
+}
+
+.insights-term {
+  max-width: 220px;
+}
+
+.insights-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.insights-kpi {
+  display: grid;
+  gap: 0.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: var(--text-secondary);
+}
+
+.insights-kpi strong {
+  color: var(--text-color);
+  font-size: 1.6rem;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-inline-end: 0.35rem;
+  vertical-align: middle;
+}
+
+.chart-tooltip {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+.insights-table-toggle {
+  justify-self: start;
+}

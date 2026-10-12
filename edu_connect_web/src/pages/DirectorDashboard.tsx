@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
+import DirectorInsightsPanel from '../components/DirectorInsightsPanel';
 import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
@@ -1835,6 +1836,7 @@ export default function DirectorDashboard() {
       {renderPageTabs()}
 
       {activeTab === 'overview' && renderOverview()}
+      {activeTab === 'overview' && <DirectorInsightsPanel />}
       {activeTab === 'students' && renderStudents()}
       {activeTab === 'classes' && renderClasses()}
       {activeTab === 'team' && renderTeam()}
