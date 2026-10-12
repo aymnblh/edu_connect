@@ -11,6 +11,7 @@ from app.modules.notifications.routers import notifications
 from app.modules.schedule.routers import schedule
 from app.modules.finance.routers import finance
 from app.modules.core.routers import media, security
+from app.modules.announcements.routers import announcements
 
 api_router = APIRouter()
 
@@ -41,8 +42,9 @@ api_router.include_router(remarks.router)
 api_router.include_router(chat.router)
 api_router.include_router(dm.router)
 
-# Notifications
+# Notifications & announcements
 api_router.include_router(notifications.router)
+api_router.include_router(announcements.router)
 
 # Schedule
 api_router.include_router(schedule.router)
