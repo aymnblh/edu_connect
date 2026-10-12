@@ -525,6 +525,7 @@ export default function TeacherDashboard() {
 
       await api.post(`/classes/${selectedClass.id}/homework/`, {
         kind: homeworkForm.kind,
+        course_id: selectedHomeworkCourse?.course_id ?? null,
         subject,
         lesson_content: homeworkForm.lessonContent.trim() || null,
         homework_content: content,

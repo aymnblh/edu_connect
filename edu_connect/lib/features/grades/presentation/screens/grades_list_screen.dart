@@ -378,7 +378,7 @@ class _AddGradeSheetState extends ConsumerState<_AddGradeSheet> {
     final text = _GradesText.of(context);
     final colors = context.appColors;
     final colorScheme = Theme.of(context).colorScheme;
-    final coursesAsync = ref.watch(teacherGradeCoursesProvider(widget.classId));
+    final coursesAsync = ref.watch(teacherCoursesProvider(widget.classId));
     final courses = coursesAsync.valueOrNull ?? const <ClassCourseModel>[];
     final selectedCourseId =
         _courseId ?? (courses.length == 1 ? courses.first.courseId : null);

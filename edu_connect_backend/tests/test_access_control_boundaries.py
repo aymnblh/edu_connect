@@ -1625,6 +1625,48 @@ def test_attendance_correction_tells_parents_and_clears_justification(monkeypatc
     assert [e.action for e in db.added if isinstance(e, AuditEvent)] == ["attendance.corrected"]
 
 
+def _homework_payload(subject: str, course_id: str | None = None):
+    return homework_router.HomeworkCreate(
+        subject=subject,
+        course_id=course_id,
+        homework_content="Exercices 1 a 4",
+        due_date=datetime.now(timezone.utc) + timedelta(days=2),
+    )
+
+
+def test_teacher_cannot_post_homework_for_another_teachers_subject():
+    physics = Course(id="course-physics", school_id="school-a", name="Physique")
+    db = FakeDb(
+        get_map={(Class, "class-a"): _edit_class()},
+        results=[FakeResult(["teacher-a"]), FakeResult([physics]), FakeResult([("course-math", "Math")])],
+    )
+    with pytest.raises(HTTPException) as exc:
+        run(homework_router.add_homework(
+            "class-a", _homework_payload("Physique", "course-physics"),
+            current_user=make_user("teacher-a", UserRole.teacher), db=db,
+        ))
+    assert exc.value.status_code == 403
+    assert "Math" in exc.value.detail
+    assert db.added == []
+
+
+def test_homework_subject_typed_by_name_is_linked_to_the_class_course():
+    math = Course(id="course-math", school_id="school-a", name="Math")
+    db = FakeDb(
+        get_map={(Class, "class-a"): _edit_class()},
+        results=[FakeResult(["teacher-a"]), FakeResult([math]), FakeResult([("course-math", "Math")]), FakeResult()],
+    )
+    run(homework_router.add_homework(
+        "class-a", _homework_payload("  math "),
+        current_user=make_user("teacher-a", UserRole.teacher), db=db,
+    ))
+    saved = [item for item in db.added if isinstance(item, Homework)]
+    assert len(saved) == 1
+    assert saved[0].course_id == "course-math"
+    assert saved[0].subject == "Math"
+    assert saved[0].created_by == "teacher-a"
+
+
 def test_only_system_admin_can_activate_school():
     school = School(id="school-a", name="School A", is_active=False)
     db = FakeDb(get_map={(School, "school-a"): school})

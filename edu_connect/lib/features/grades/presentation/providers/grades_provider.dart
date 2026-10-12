@@ -1,6 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../class/data/repositories/admin_repository.dart';
 import '../../data/models/grade_model.dart';
 import '../../data/repositories/grades_repository.dart';
 
@@ -11,19 +9,6 @@ final gradesRepositoryProvider = Provider<GradesRepository>((ref) {
 final gradesProvider =
     FutureProvider.family<List<GradeModel>, String>((ref, classId) {
   return ref.watch(gradesRepositoryProvider).getGrades(classId);
-});
-
-/// Subjects the signed-in teacher can grade in a class. A substitute with no
-/// assigned subject gets the whole class list; the API enforces the same rule.
-final teacherGradeCoursesProvider = FutureProvider.autoDispose
-    .family<List<ClassCourseModel>, String>((ref, classId) async {
-  final userId = ref.watch(authNotifierProvider).valueOrNull?.id;
-  final courses =
-      await ref.watch(adminRepositoryProvider).getClassCourses(classId);
-  final mine = userId == null
-      ? <ClassCourseModel>[]
-      : courses.where((course) => course.teacherId == userId).toList();
-  return mine.isNotEmpty ? mine : courses;
 });
 
 final studentGradesProvider =

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/class_model.dart';
+import '../../data/repositories/admin_repository.dart';
 import '../../data/repositories/class_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -59,4 +60,17 @@ class ClassNotifier extends StateNotifier<AsyncValue<void>> {
 final classNotifierProvider =
     StateNotifierProvider<ClassNotifier, AsyncValue<void>>((ref) {
   return ClassNotifier(ref.watch(classRepositoryProvider));
+});
+
+/// Subjects the signed-in teacher teaches in a class (grades, homework). A substitute with no
+/// assigned subject gets the whole class list; the API enforces the same rule.
+final teacherCoursesProvider = FutureProvider.autoDispose
+    .family<List<ClassCourseModel>, String>((ref, classId) async {
+  final userId = ref.watch(authNotifierProvider).valueOrNull?.id;
+  final courses =
+      await ref.watch(adminRepositoryProvider).getClassCourses(classId);
+  final mine = userId == null
+      ? <ClassCourseModel>[]
+      : courses.where((course) => course.teacherId == userId).toList();
+  return mine.isNotEmpty ? mine : courses;
 });

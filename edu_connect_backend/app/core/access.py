@@ -267,3 +267,45 @@ async def teacher_course_scope(cls: Class, current_user: User, db: AsyncSession)
         subject_names=frozenset(normalized_subject(name) for _, name in rows),
         display_names=tuple(sorted(name for _, name in rows)),
     )
+
+
+async def resolve_class_course(
+    cls: Class,
+    *,
+    course_id: str | None,
+    subject: str | None,
+    db: AsyncSession,
+) -> Course | None:
+    """Find the class's course by id (must exist in the class) or by subject name."""
+    base_stmt = (
+        select(Course)
+        .join(ClassCourse, ClassCourse.course_id == Course.id)
+        .where(
+            Course.school_id == cls.school_id,
+            ClassCourse.school_id == cls.school_id,
+            ClassCourse.class_id == cls.id,
+        )
+    )
+    if course_id:
+        result = await db.execute(base_stmt.where(Course.id == course_id))
+        course = result.scalar_one_or_none()
+        if not course:
+            raise HTTPException(status_code=404, detail="Matiere introuvable dans cette classe")
+        return course
+
+    name = (subject or "").strip()
+    if not name:
+        return None
+    result = await db.execute(base_stmt.where(func.lower(Course.name) == name.lower()).limit(1))
+    return result.scalar_one_or_none()
+
+
+def assert_scope_allows_course(scope: "TeacherCourseScope | None", course: Course | None) -> None:
+    """Refuse a teacher acting on a subject they do not teach in the class."""
+    if scope is None or (course and scope.allows(course.id, course.name)):
+        return
+    own = ", ".join(scope.display_names) or "aucune"
+    raise HTTPException(
+        status_code=403,
+        detail=f"Vous n'enseignez pas cette matiere dans cette classe. Vos matieres : {own}.",
+    )

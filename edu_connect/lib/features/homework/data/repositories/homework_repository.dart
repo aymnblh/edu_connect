@@ -8,6 +8,7 @@ class HomeworkRepository {
   Future<HomeworkModel> addHomework(HomeworkModel homework) async {
     final data =
         await _api.post('/classes/${homework.classId}/homework/', data: {
+      if (homework.courseId != null) 'course_id': homework.courseId,
       'subject': homework.subject,
       if (homework.lessonContent != null)
         'lesson_content': homework.lessonContent,

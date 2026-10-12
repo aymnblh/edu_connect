@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.access import (
+    assert_scope_allows_course,
+    resolve_class_course,
     teacher_course_scope as _teacher_course_scope,
     assert_class_read_access,
     assert_class_write_access,
@@ -206,34 +208,6 @@ def _grade_value_for_column(grade: Grade, target_max: float) -> str:
     return _format_decimal(value)
 
 
-async def _resolve_grade_course(
-    cls: Class,
-    payload: GradeCreate,
-    db: AsyncSession,
-) -> Course | None:
-    base_stmt = (
-        select(Course)
-        .join(ClassCourse, ClassCourse.course_id == Course.id)
-        .where(
-            Course.school_id == cls.school_id,
-            ClassCourse.school_id == cls.school_id,
-            ClassCourse.class_id == cls.id,
-        )
-    )
-    if payload.course_id:
-        result = await db.execute(base_stmt.where(Course.id == payload.course_id))
-        course = result.scalar_one_or_none()
-        if not course:
-            raise HTTPException(status_code=404, detail="Matiere introuvable dans cette classe")
-        return course
-
-    subject = payload.subject.strip()
-    if not subject:
-        return None
-    result = await db.execute(base_stmt.where(func.lower(Course.name) == subject.lower()).limit(1))
-    return result.scalar_one_or_none()
-
-
 @router.post("/", response_model=GradeOut, status_code=201)
 async def add_grade(
     class_id: str,
@@ -248,14 +222,8 @@ async def add_grade(
         db,
         school_id=cls.school_id,
     )
-    course = await _resolve_grade_course(cls, payload, db)
-    scope = await _teacher_course_scope(cls, current_user, db)
-    if scope is not None and not (course and scope.allows(course.id, course.name)):
-        own = ", ".join(scope.display_names) or "aucune"
-        raise HTTPException(
-            status_code=403,
-            detail=f"Vous n'enseignez pas cette matiere dans cette classe. Vos matieres : {own}.",
-        )
+    course = await resolve_class_course(cls, course_id=payload.course_id, subject=payload.subject, db=db)
+    assert_scope_allows_course(await _teacher_course_scope(cls, current_user, db), course)
     grade_data = payload.model_dump(exclude={"student_name"})
     if course:
         grade_data["course_id"] = course.id

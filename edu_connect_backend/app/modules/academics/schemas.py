@@ -92,6 +92,7 @@ class LessonEntryOut(LessonEntryCreate):
 
 class HomeworkCreate(BaseModel):
     kind: str = Field(default="homework", pattern="^(homework|assignment|exam)$")
+    course_id: str | None = Field(default=None, max_length=36)
     subject: str
     lesson_content: str | None = None
     homework_content: str

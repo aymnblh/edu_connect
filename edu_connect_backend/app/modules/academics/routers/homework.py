@@ -4,7 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.core.access import assert_class_read_access, assert_class_write_access, teacher_course_scope
+from app.core.access import (
+    assert_class_read_access,
+    assert_class_write_access,
+    assert_scope_allows_course,
+    resolve_class_course,
+    teacher_course_scope,
+)
 from app.core.audit import record_audit_event
 from app.db.database import get_db
 from app.models import Class, ClassMember, Homework, StudentParent, User, UserRole
@@ -77,6 +83,10 @@ async def add_homework(
     db: AsyncSession = Depends(get_db),
 ):
     cls = await assert_class_write_access(class_id, current_user, db)
+    course = await resolve_class_course(cls, course_id=payload.course_id, subject=payload.subject, db=db)
+    assert_scope_allows_course(await teacher_course_scope(cls, current_user, db), course)
+    if course:
+        payload = payload.model_copy(update={"course_id": course.id, "subject": course.name})
 
     hw = Homework(
         **payload.model_dump(),
