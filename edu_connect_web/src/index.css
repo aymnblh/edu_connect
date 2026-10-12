@@ -3630,8 +3630,25 @@ body {
   }
 
   .director-print-sheet,
-  .director-print-sheet * {
+  .director-print-sheet *,
+  .report-card-sheet,
+  .report-card-sheet * {
     visibility: visible !important;
+  }
+
+  .report-card-sheet {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 0 !important;
+  }
+
+  .report-card-sheet * {
+    color: #111827 !important;
+    background: transparent !important;
+    border-color: #9ca3af !important;
   }
 
   .director-print-sheet {
@@ -4262,4 +4279,79 @@ body {
 .announcement-badge--exam_period { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
 .announcement-badge--meeting { background: rgba(99, 102, 241, 0.15); color: #A5B4FC; }
 .announcement-badge--event { background: rgba(236, 72, 153, 0.15); color: #F9A8D4; }
+
+/* Report cards */
+.clickable-row {
+  cursor: pointer;
+}
+
+.report-card-print {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.report-card-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.report-card-sheet {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.report-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.report-card-student {
+  text-align: end;
+}
+
+.report-card-muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.report-card-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.report-card-table th,
+.report-card-table td {
+  border: 1px solid var(--border-color);
+  padding: 0.45rem 0.6rem;
+  text-align: start;
+}
+
+.report-card-table td:not(:first-child),
+.report-card-table th:not(:first-child) {
+  text-align: center;
+}
+
+.report-card-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.report-card-summary > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.report-card-summary span {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
 

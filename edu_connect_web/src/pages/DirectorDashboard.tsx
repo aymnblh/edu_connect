@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
+import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { t as translate, useLocale, type Locale } from '../lib/i18n';
@@ -21,6 +22,7 @@ import {
   UserX,
   Link2Off,
   Loader2,
+  FileText,
   Megaphone,
   MessageSquare,
   Plus,
@@ -167,7 +169,7 @@ interface ClassCourseAssignment {
 }
 
 type ToastType = 'success' | 'error' | 'warning';
-type DirectorTab = 'overview' | 'students' | 'classes' | 'team' | 'announcements' | 'messages';
+type DirectorTab = 'overview' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'messages';
 
 interface Toast {
   id: number;
@@ -196,6 +198,7 @@ const directorTabs: Array<{
   { id: 'students', labelKey: 'director.tab.students', route: '/director/students', icon: Users },
   { id: 'classes', labelKey: 'director.tab.classes', route: '/director/classes', icon: BookOpen },
   { id: 'team', labelKey: 'director.tab.team', route: '/director/team', icon: UserPlus },
+  { id: 'reports', labelKey: 'director.tab.reports', route: '/director/report-cards', icon: FileText },
   { id: 'announcements', labelKey: 'director.tab.announcements', route: '/director/announcements', icon: Megaphone },
   { id: 'messages', labelKey: 'director.tab.messages', route: '/director/messages', icon: MessageSquare },
 ];
@@ -236,6 +239,7 @@ function tabFromPath(pathname: string): DirectorTab {
   if (pathname.includes('/director/students')) return 'students';
   if (pathname.includes('/director/classes')) return 'classes';
   if (pathname.includes('/director/team')) return 'team';
+  if (pathname.includes('/director/report-cards')) return 'reports';
   if (pathname.includes('/director/announcements')) return 'announcements';
   if (pathname.includes('/director/messages')) return 'messages';
   return 'overview';
@@ -401,7 +405,7 @@ export default function DirectorDashboard() {
 
   const classesQuery = useQuery<SchoolClass[]>({
     queryKey: ['director-classes'],
-    enabled: activeTab === 'classes' || activeTab === 'announcements',
+    enabled: activeTab === 'classes' || activeTab === 'announcements' || activeTab === 'reports',
     queryFn: async () => {
       const res = await api.get('/classes/');
       return res.data;
@@ -1834,6 +1838,11 @@ export default function DirectorDashboard() {
       {activeTab === 'students' && renderStudents()}
       {activeTab === 'classes' && renderClasses()}
       {activeTab === 'team' && renderTeam()}
+      {activeTab === 'reports' && (
+        <ReportCardsAdminPanel
+          classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
+        />
+      )}
       {activeTab === 'announcements' && (
         <AnnouncementsPanel
           scopeKey="director"

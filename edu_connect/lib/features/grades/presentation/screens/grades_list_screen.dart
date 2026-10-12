@@ -70,13 +70,12 @@ class GradesListScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 tooltip: text.bulletin,
-                onPressed: () {
-                  final studentId = user.isParent ? user.id : null;
-                  context.push(
-                    '/class/$classId/grades/bulletin'
-                    '${studentId != null ? '?studentId=$studentId' : ''}',
-                  );
-                },
+                // Parents see the term report cards published by the school.
+                onPressed: () => context.push(
+                  user.isParent
+                      ? '/report-cards'
+                      : '/class/$classId/grades/bulletin',
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.refresh),

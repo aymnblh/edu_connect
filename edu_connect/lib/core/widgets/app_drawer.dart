@@ -83,6 +83,13 @@ class AppDrawer extends ConsumerWidget {
                     label: l10n.notifications,
                     onTap: () => _go(context, '/notifications', replace: false),
                   ),
+                  if (user.isParent)
+                    _DrawerItem(
+                      icon: Icons.description_outlined,
+                      label: text.reportCards,
+                      onTap: () =>
+                          _go(context, '/report-cards', replace: false),
+                    ),
                   if (!user.isSystemAdmin)
                     _DrawerItem(
                       icon: Icons.campaign_outlined,
@@ -445,6 +452,7 @@ class _DrawerText {
         'Direction',
         'Direction',
       );
+  String get reportCards => pick('كشوف النقاط', 'Bulletins', 'Report cards');
   String get announcements =>
       pick('الإعلانات والتقويم', 'Annonces et calendrier', 'Announcements');
   String get administration => pick(

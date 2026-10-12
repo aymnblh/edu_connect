@@ -70,3 +70,9 @@ Tout utilisateur connecté peut changer son mot de passe : sur le web, bouton cl
 - **Suivi de lecture** : l'auteur et la direction voient « Lu par X/Y ». L'auteur ou la direction peut supprimer une annonce.
 - **Où** : web — onglet « Annonces » (direction, enseignant, parent) ; mobile — menu « Annonces et calendrier ».
 
+### Bulletins trimestriels
+- **Publier** (direction / secrétariat, web — onglet « Bulletins ») : choisir la classe et le trimestre, vérifier l'aperçu (moyenne générale, rang, absences ; cliquer sur un élève pour voir son bulletin), puis « Publier les bulletins ». Les parents reçoivent une notification.
+- **Contenu** : pour chaque matière, la moyenne /20, le coefficient et la moyenne de la classe ; la moyenne générale pondérée, le rang (ex. 3 / 28), la moyenne de la classe et l'assiduité du trimestre. Seules les notes validées dont la date est dans le trimestre comptent.
+- **Document figé** : un bulletin publié ne change pas si une note est modifiée ensuite. Pour intégrer une correction, cliquer sur « Republier » : les parents sont prévenus de la mise à jour. « Retirer la publication » le masque aux parents.
+- **Parents** : web — onglet « Bulletins » de l'enfant (bouton « Imprimer / PDF ») ; mobile — menu « Bulletins » ou bouton PDF de l'écran des notes, avec export PDF.
+

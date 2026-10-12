@@ -279,6 +279,196 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'حذف هذا الإعلان لجميع المستلمين؟',
     en: 'Delete this announcement for all recipients?',
   },
+  'nav.reportCards': {
+    fr: 'Bulletins',
+    ar: 'كشوف النقاط',
+    en: 'Report cards',
+  },
+  'director.tab.reports': {
+    fr: 'Bulletins',
+    ar: 'كشوف النقاط',
+    en: 'Report cards',
+  },
+  'reportCards.tab': {
+    fr: 'Bulletins',
+    ar: 'كشوف النقاط',
+    en: 'Report cards',
+  },
+  'reportCards.adminTitle': {
+    fr: 'Bulletins trimestriels',
+    ar: 'كشوف النقاط الفصلية',
+    en: 'Term report cards',
+  },
+  'reportCards.adminCopy': {
+    fr: 'Vérifiez les moyennes et les rangs, puis publiez : les parents sont notifiés. Seules les notes validées du trimestre comptent.',
+    ar: 'راجعوا المعدلات والرتب ثم انشروا: يتم إشعار الأولياء. تحتسب النقاط المصادق عليها خلال الفصل فقط.',
+    en: 'Check averages and ranks, then publish: parents are notified. Only approved grades of the term count.',
+  },
+  'reportCards.class': {
+    fr: 'Classe',
+    ar: 'القسم',
+    en: 'Class',
+  },
+  'reportCards.term': {
+    fr: 'Trimestre',
+    ar: 'الفصل',
+    en: 'Term',
+  },
+  'reportCards.statusDraft': {
+    fr: 'Non publié',
+    ar: 'غير منشور',
+    en: 'Not published',
+  },
+  'reportCards.statusPublished': {
+    fr: 'Publié le {date}',
+    ar: 'نشر في {date}',
+    en: 'Published on {date}',
+  },
+  'reportCards.publish': {
+    fr: 'Publier les bulletins',
+    ar: 'نشر الكشوف',
+    en: 'Publish report cards',
+  },
+  'reportCards.republish': {
+    fr: 'Republier (mise à jour)',
+    ar: 'إعادة النشر (تحديث)',
+    en: 'Re-publish (update)',
+  },
+  'reportCards.unpublish': {
+    fr: 'Retirer la publication',
+    ar: 'سحب النشر',
+    en: 'Unpublish',
+  },
+  'reportCards.publishConfirm': {
+    fr: 'Publier {count} bulletins et notifier les parents ?',
+    ar: 'نشر {count} كشفا وإشعار الأولياء؟',
+    en: 'Publish {count} report cards and notify parents?',
+  },
+  'reportCards.republishConfirm': {
+    fr: 'Remplacer les bulletins publiés par la version actuelle ({count}) et prévenir les parents ?',
+    ar: 'استبدال الكشوف المنشورة بالنسخة الحالية ({count}) وإشعار الأولياء؟',
+    en: 'Replace the published report cards with the current version ({count}) and notify parents?',
+  },
+  'reportCards.unpublishConfirm': {
+    fr: 'Retirer ces bulletins ? Les parents ne pourront plus les consulter.',
+    ar: 'سحب هذه الكشوف؟ لن يتمكن الأولياء من الاطلاع عليها.',
+    en: 'Unpublish these report cards? Parents will no longer see them.',
+  },
+  'reportCards.publishedNotice': {
+    fr: '{count} bulletins publiés, {parents} notifications envoyées.',
+    ar: 'تم نشر {count} كشفا وإرسال {parents} إشعارا.',
+    en: '{count} report cards published, {parents} notifications sent.',
+  },
+  'reportCards.unpublishedNotice': {
+    fr: 'Publication retirée.',
+    ar: 'تم سحب النشر.',
+    en: 'Report cards unpublished.',
+  },
+  'reportCards.noStudents': {
+    fr: 'Aucun élève dans cette classe.',
+    ar: 'لا يوجد تلاميذ في هذا القسم.',
+    en: 'No students in this class.',
+  },
+  'reportCards.student': {
+    fr: 'Élève',
+    ar: 'التلميذ',
+    en: 'Student',
+  },
+  'reportCards.absencesShort': {
+    fr: 'Absences',
+    ar: 'الغيابات',
+    en: 'Absences',
+  },
+  'reportCards.draft': {
+    fr: 'Aperçu (non publié)',
+    ar: 'معاينة (غير منشورة)',
+    en: 'Preview (not published)',
+  },
+  'reportCards.print': {
+    fr: 'Imprimer / PDF',
+    ar: 'طباعة / PDF',
+    en: 'Print / PDF',
+  },
+  'reportCards.sheetTitle': {
+    fr: 'Bulletin de notes — {term}',
+    ar: 'كشف النقاط — {term}',
+    en: 'Report card — {term}',
+  },
+  'reportCards.period': {
+    fr: 'Période du {start} au {end}',
+    ar: 'الفترة من {start} إلى {end}',
+    en: 'Period {start} to {end}',
+  },
+  'reportCards.studentNumber': {
+    fr: 'Matricule : {number}',
+    ar: 'رقم التسجيل: {number}',
+    en: 'Student no. {number}',
+  },
+  'reportCards.className': {
+    fr: 'Classe : {name}',
+    ar: 'القسم: {name}',
+    en: 'Class: {name}',
+  },
+  'reportCards.subject': {
+    fr: 'Matière',
+    ar: 'المادة',
+    en: 'Subject',
+  },
+  'reportCards.coefficient': {
+    fr: 'Coef.',
+    ar: 'المعامل',
+    en: 'Coef.',
+  },
+  'reportCards.average': {
+    fr: 'Moyenne',
+    ar: 'المعدل',
+    en: 'Average',
+  },
+  'reportCards.classAverage': {
+    fr: 'Moy. classe',
+    ar: 'معدل القسم',
+    en: 'Class avg.',
+  },
+  'reportCards.overall': {
+    fr: 'Moyenne générale',
+    ar: 'المعدل العام',
+    en: 'Overall average',
+  },
+  'reportCards.rank': {
+    fr: 'Rang',
+    ar: 'الرتبة',
+    en: 'Rank',
+  },
+  'reportCards.rankOf': {
+    fr: '{rank} / {size}',
+    ar: '{rank} / {size}',
+    en: '{rank} / {size}',
+  },
+  'reportCards.classOverall': {
+    fr: 'Moyenne de la classe',
+    ar: 'معدل القسم العام',
+    en: 'Class average',
+  },
+  'reportCards.attendance': {
+    fr: 'Assiduité',
+    ar: 'المواظبة',
+    en: 'Attendance',
+  },
+  'reportCards.attendanceCounts': {
+    fr: '{absences} absence(s) dont {justified} justifiée(s), {lates} retard(s)',
+    ar: '{absences} غياب منها {justified} مبرر، {lates} تأخر',
+    en: '{absences} absence(s), {justified} justified, {lates} late',
+  },
+  'reportCards.publishedOn': {
+    fr: 'Publié le {date}',
+    ar: 'نشر في {date}',
+    en: 'Published on {date}',
+  },
+  'reportCards.parentEmpty': {
+    fr: 'Aucun bulletin publié pour le moment.',
+    ar: 'لا يوجد كشف نقاط منشور حاليا.',
+    en: 'No report card published yet.',
+  },
   'common.reload': {
     fr: 'Recharger',
     ar: 'إعادة التحميل',

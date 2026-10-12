@@ -64,6 +64,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
           { to: '/director/students', label: t('nav.studentsParents'), icon: Users },
           { to: '/director/classes', label: t('nav.classesCourses'), icon: GraduationCap },
           { to: '/director/team', label: t('nav.teamTeachers'), icon: UserPlus },
+          { to: '/director/report-cards', label: t('nav.reportCards'), icon: FileText },
           { to: '/director/announcements', label: t('nav.announcements'), icon: Megaphone },
           { to: '/policies', label: t('nav.legal'), icon: FileText },
         ];
