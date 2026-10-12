@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status, UploadFi
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete, update
 from app.db.database import get_db
-from app.models import User, UserRole, School, Course, Student, Class, Semester, PendingLink, StudentParent, RefreshToken, Grade, Attendance, AttendanceStatus
+from app.models import User, UserRole, School, Course, Student, Class, ClassMember, Semester, PendingLink, StudentParent, RefreshToken, Grade, Attendance, AttendanceStatus
 from app.schemas import (
     SchoolCreate, SchoolOut, CourseCreate, CourseOut, StudentAdminOut,
     StudentRegeneratePin, SemesterOut, SemesterUpdate,
@@ -20,7 +20,18 @@ from app.modules.academics.averages import (
     weighted_averages_by_group,
 )
 from app.core.audit import record_audit_event
-from app.modules.schools.calendar import algerian_trimesters
+from app.modules.schools.calendar import ALGERIA_TZ, algerian_trimesters
+from app.modules.schools.insights import (
+    AVERAGE_DROP,
+    LATES_30D,
+    LOW_AVERAGE,
+    UNJUSTIFIED_ABSENCES_30D,
+    AttendanceFact,
+    attendance_weeks,
+    class_attendance,
+    students_at_risk,
+    week_start,
+)
 from app.core.config import settings
 from app.core.security import get_current_user, get_password_hash
 from app.utils.notifications import create_notification
@@ -1037,6 +1048,148 @@ async def revoke_student_link(
     return {"status": "success", "message": "Accès révoqué. Toutes les sessions du parent ont été invalidées."}
 # ─── Analytics ────────────────────────────────────────────────────────────────
 
+def _whole_days(start: datetime, end: datetime) -> tuple[datetime, datetime]:
+    return (
+        datetime.combine(start.date(), datetime.min.time(), tzinfo=timezone.utc),
+        datetime.combine(end.date() + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc),
+    )
+
+
+async def _term_averages(db: AsyncSession, school_id: str, semester: Semester | None) -> dict[tuple[str, str], float]:
+    """Weighted average per (student, class) from approved grades dated in the term."""
+    if semester is None:
+        return {}
+    start, end = _whole_days(semester.start_date, semester.end_date)
+    grades = (
+        await db.execute(
+            select(Grade).where(
+                Grade.school_id == school_id,
+                Grade.is_approved == True,
+                Grade.date >= start,
+                Grade.date < end,
+            )
+        )
+    ).scalars().all()
+    coefficients = await load_grade_coefficients(db, grades)
+    return weighted_averages_by_group(grades, coefficients, lambda grade: (grade.student_id, grade.class_id))
+
+
+@router.get("/analytics/insights")
+async def analytics_insights(
+    semester_id: str | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Early warning for the director: students at risk, attendance trend, pending work."""
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Unprivileged")
+    school_id = current_user.school_id
+    if not school_id:
+        raise HTTPException(status_code=400, detail="User not assigned to a school")
+
+    semesters = (
+        await db.execute(select(Semester).where(Semester.school_id == school_id).order_by(Semester.start_date))
+    ).scalars().all()
+    now = datetime.now(timezone.utc)
+    current = None
+    if semester_id:
+        current = next((item for item in semesters if item.id == semester_id), None)
+        if current is None:
+            raise HTTPException(status_code=404, detail="Trimestre introuvable.")
+    else:
+        started = [item for item in semesters if item.start_date.replace(tzinfo=item.start_date.tzinfo or timezone.utc) <= now]
+        current = next((item for item in semesters if item.is_active), None) or (started[-1] if started else None)
+    previous = None
+    if current is not None:
+        earlier = [item for item in semesters if item.start_date < current.start_date]
+        previous = earlier[-1] if earlier else None
+
+    class_names = dict(
+        (await db.execute(select(Class.id, Class.name).where(Class.school_id == school_id))).all()
+    )
+    students = {
+        (row[0], row[1]): row[2]
+        for row in (
+            await db.execute(
+                select(ClassMember.student_id, ClassMember.class_id, Student.full_name)
+                .join(Student, Student.id == ClassMember.student_id)
+                .where(
+                    ClassMember.school_id == school_id,
+                    Student.school_id == school_id,
+                    Student.archived_at.is_(None),
+                )
+            )
+        ).all()
+    }
+    current_averages = await _term_averages(db, school_id, current)
+    previous_averages = await _term_averages(db, school_id, previous)
+
+    today = datetime.now(ALGERIA_TZ).date()
+    window_start = week_start(today) - timedelta(weeks=11)
+    term_start, term_end = _whole_days(current.start_date, current.end_date) if current else (None, None)
+    fetch_from = datetime.combine(
+        min(window_start, term_start.date()) if term_start else window_start,
+        datetime.min.time(),
+        tzinfo=timezone.utc,
+    )
+    facts = [
+        AttendanceFact(
+            student_id=row[0],
+            class_id=row[1],
+            day=row[2].date(),
+            status=row[3].value if hasattr(row[3], "value") else str(row[3]),
+            is_justified=bool(row[4]),
+        )
+        for row in (
+            await db.execute(
+                select(
+                    Attendance.student_id,
+                    Attendance.class_id,
+                    Attendance.date,
+                    Attendance.status,
+                    Attendance.is_justified,
+                ).where(Attendance.school_id == school_id, Attendance.date >= fetch_from)
+            )
+        ).all()
+    ]
+    recent_from = today - timedelta(days=30)
+    recent = [fact for fact in facts if fact.day >= recent_from]
+    term_facts = (
+        [fact for fact in facts if term_start.date() <= fact.day < term_end.date()] if term_start else []
+    )
+
+    pending_approvals = (
+        await db.execute(
+            select(func.count()).select_from(Grade).where(Grade.school_id == school_id, Grade.is_approved == False)
+        )
+    ).scalar_one()
+
+    return {
+        "semester": {"id": current.id, "name": current.name} if current else None,
+        "previous_semester": {"id": previous.id, "name": previous.name} if previous else None,
+        "semesters": [{"id": item.id, "name": item.name} for item in semesters],
+        "attendance_weeks": attendance_weeks(
+            [fact for fact in facts if fact.day >= window_start], today=today, weeks=12
+        ),
+        "class_attendance": class_attendance(term_facts, class_names),
+        "at_risk": students_at_risk(
+            students=students,
+            class_names=class_names,
+            current_averages=current_averages,
+            previous_averages=previous_averages,
+            recent_facts=recent,
+        ),
+        "pending_grade_approvals": pending_approvals,
+        "unjustified_absences_30d": sum(1 for fact in recent if fact.status == "absent" and not fact.is_justified),
+        "thresholds": {
+            "low_average": LOW_AVERAGE,
+            "average_drop": AVERAGE_DROP,
+            "unjustified_absences_30d": UNJUSTIFIED_ABSENCES_30D,
+            "lates_30d": LATES_30D,
+        },
+    }
+
+
 @router.get("/analytics/overview", response_model=AnalyticsOverview)
 async def analytics_overview(
     current_user: User = Depends(get_current_user),
@@ -1157,7 +1310,8 @@ async def analytics_overview(
         func.count(Attendance.id).label("total"),
         func.sum(
             case(
-                (Attendance.status.in_(["absent", "late"]), 1),
+                # Late arrivals are not absences.
+                (Attendance.status == AttendanceStatus.absent, 1),
                 else_=0
             )
         ).label("absences")
