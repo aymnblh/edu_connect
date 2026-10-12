@@ -1,4 +1,5 @@
 import uuid
+from app.modules.schools.calendar import algerian_trimesters
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,11 +24,6 @@ ALGERIAN_CORE_SUBJECTS = [
     "التربية المدنية (Civic Education)", "الفلسفة (Philosophy)"
 ]
 
-ALGERIAN_TRIMESTERS = [
-    ("Trimester 1", 9, 15, 12, 15),
-    ("Trimester 2", 1, 5, 3, 25),
-    ("Trimester 3", 4, 5, 7, 5),
-]
 
 @router.post("/register-school", status_code=status.HTTP_201_CREATED)
 async def register_school(
@@ -100,13 +96,10 @@ async def register_school(
     for subject in ALGERIAN_CORE_SUBJECTS:
         db.add(Course(name=subject, school_id=school.id))
 
-    current_year = datetime.now().year
-    for name, sm, sd, em, ed in ALGERIAN_TRIMESTERS:
-        start_dt = datetime(current_year if sm > 8 else current_year + 1, sm, sd, tzinfo=timezone.utc)
-        end_dt = datetime(current_year if em > 8 else current_year + 1, em, ed, tzinfo=timezone.utc)
+    for name, start_dt, end_dt, is_active in algerian_trimesters():
         db.add(Semester(
             name=name, start_date=start_dt, end_date=end_dt,
-            school_id=school.id, is_active=(name == "Trimester 1")
+            school_id=school.id, is_active=is_active,
         ))
 
     await db.commit()

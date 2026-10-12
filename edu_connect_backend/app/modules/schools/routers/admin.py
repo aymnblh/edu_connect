@@ -20,6 +20,7 @@ from app.modules.academics.averages import (
     weighted_averages_by_group,
 )
 from app.core.audit import record_audit_event
+from app.modules.schools.calendar import algerian_trimesters
 from app.core.config import settings
 from app.core.security import get_current_user, get_password_hash
 from app.utils.notifications import create_notification
@@ -366,12 +367,6 @@ ALGERIAN_CORE_SUBJECTS = [
     "الفلسفة (Philosophy)"
 ]
 
-ALGERIAN_TRIMESTERS = [
-    # (name, start_month, start_day, end_month, end_day)
-    ("Trimester 1", 9, 15, 12, 15),
-    ("Trimester 2", 1, 5, 3, 25),
-    ("Trimester 3", 4, 5, 7, 5),
-]
 
 @router.post("/schools", response_model=SchoolOut, status_code=status.HTTP_201_CREATED)
 async def create_school(
@@ -398,16 +393,13 @@ async def create_school(
         current_user.school_id = school.id
         
     # Seed Algerian standard semesters (Trimesters)
-    current_year = datetime.now().year
-    for name, sm, sd, em, ed in ALGERIAN_TRIMESTERS:
-        start_dt = datetime(current_year if sm > 8 else current_year + 1, sm, sd)
-        end_dt = datetime(current_year if em > 8 else current_year + 1, em, ed)
+    for name, start_dt, end_dt, is_active in algerian_trimesters():
         semester = Semester(
             name=name,
             start_date=start_dt,
             end_date=end_dt,
             school_id=school.id,
-            is_active=(name == "Trimester 1") # Default T1 as active
+            is_active=is_active,
         )
         db.add(semester)
 

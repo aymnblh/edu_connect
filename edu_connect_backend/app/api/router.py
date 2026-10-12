@@ -12,6 +12,7 @@ from app.modules.schedule.routers import schedule
 from app.modules.finance.routers import finance
 from app.modules.core.routers import media, security
 from app.modules.announcements.routers import announcements
+from app.modules.reports.routers import report_cards
 
 api_router = APIRouter()
 
@@ -31,6 +32,7 @@ api_router.include_router(system.router)
 # Academics
 api_router.include_router(classes.router)
 api_router.include_router(grades.router)
+api_router.include_router(report_cards.router)
 api_router.include_router(homework.router)
 api_router.include_router(lessons.router)
 
