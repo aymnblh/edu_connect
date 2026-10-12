@@ -469,6 +469,151 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'لا يوجد كشف نقاط منشور حاليا.',
     en: 'No report card published yet.',
   },
+  'meetings.tab': {
+    fr: 'Rendez-vous',
+    ar: 'المواعيد',
+    en: 'Meetings',
+  },
+  'meetings.openTitle': {
+    fr: 'Proposer des rendez-vous',
+    ar: 'اقتراح مواعيد',
+    en: 'Offer meetings',
+  },
+  'meetings.openCopy': {
+    fr: 'La plage est découpée en créneaux que les parents de vos élèves peuvent réserver.',
+    ar: 'تقسم الفترة إلى مواعيد يمكن لأولياء تلاميذك حجزها.',
+    en: 'The time range is split into slots your students\' parents can book.',
+  },
+  'meetings.date': {
+    fr: 'Jour',
+    ar: 'اليوم',
+    en: 'Day',
+  },
+  'meetings.from': {
+    fr: 'De',
+    ar: 'من',
+    en: 'From',
+  },
+  'meetings.to': {
+    fr: 'À',
+    ar: 'إلى',
+    en: 'To',
+  },
+  'meetings.duration': {
+    fr: 'Durée d\'un rendez-vous',
+    ar: 'مدة الموعد',
+    en: 'Meeting length',
+  },
+  'meetings.minutes': {
+    fr: '{count} min',
+    ar: '{count} د',
+    en: '{count} min',
+  },
+  'meetings.location': {
+    fr: 'Lieu (optionnel)',
+    ar: 'المكان (اختياري)',
+    en: 'Place (optional)',
+  },
+  'meetings.forClass': {
+    fr: 'Parents concernés',
+    ar: 'الأولياء المعنيون',
+    en: 'Which parents',
+  },
+  'meetings.allMyClasses': {
+    fr: 'Toutes mes classes',
+    ar: 'كل أقسامي',
+    en: 'All my classes',
+  },
+  'meetings.open': {
+    fr: 'Ouvrir les créneaux',
+    ar: 'فتح المواعيد',
+    en: 'Open slots',
+  },
+  'meetings.created': {
+    fr: '{count} créneaux ouverts.',
+    ar: 'تم فتح {count} موعدا.',
+    en: '{count} slots opened.',
+  },
+  'meetings.mySlots': {
+    fr: 'Mes créneaux',
+    ar: 'مواعيدي',
+    en: 'My slots',
+  },
+  'meetings.noSlots': {
+    fr: 'Aucun créneau à venir.',
+    ar: 'لا توجد مواعيد قادمة.',
+    en: 'No upcoming slots.',
+  },
+  'meetings.free': {
+    fr: 'Libre',
+    ar: 'متاح',
+    en: 'Free',
+  },
+  'meetings.bookedBy': {
+    fr: 'Réservé par {parent} ({student})',
+    ar: 'محجوز من طرف {parent} ({student})',
+    en: 'Booked by {parent} ({student})',
+  },
+  'meetings.freeSlot': {
+    fr: 'Libérer',
+    ar: 'تحرير',
+    en: 'Free up',
+  },
+  'meetings.freeConfirm': {
+    fr: 'Annuler cette réservation ? Le parent sera prévenu et le créneau redeviendra libre.',
+    ar: 'إلغاء هذا الحجز؟ سيتم إعلام الولي وسيصبح الموعد متاحا.',
+    en: 'Cancel this booking? The parent is told and the slot becomes free again.',
+  },
+  'meetings.deleteConfirm': {
+    fr: 'Supprimer ce créneau ? Si un parent l\'a réservé, il sera prévenu.',
+    ar: 'حذف هذا الموعد؟ إذا كان محجوزا سيتم إعلام الولي.',
+    en: 'Delete this slot? If a parent booked it, they are told.',
+  },
+  'meetings.myMeetings': {
+    fr: 'Mes rendez-vous',
+    ar: 'مواعيدي',
+    en: 'My meetings',
+  },
+  'meetings.noBooking': {
+    fr: 'Aucun rendez-vous réservé pour cet enfant.',
+    ar: 'لا يوجد موعد محجوز لهذا الطفل.',
+    en: 'No meeting booked for this child.',
+  },
+  'meetings.cancel': {
+    fr: 'Annuler',
+    ar: 'إلغاء',
+    en: 'Cancel',
+  },
+  'meetings.cancelConfirm': {
+    fr: 'Annuler ce rendez-vous ? L\'enseignant sera prévenu.',
+    ar: 'إلغاء هذا الموعد؟ سيتم إعلام الأستاذ.',
+    en: 'Cancel this meeting? The teacher is told.',
+  },
+  'meetings.available': {
+    fr: 'Créneaux disponibles',
+    ar: 'المواعيد المتاحة',
+    en: 'Available slots',
+  },
+  'meetings.noneAvailable': {
+    fr: 'Aucun créneau proposé par les enseignants pour le moment.',
+    ar: 'لم يقترح الأساتذة أي موعد حاليا.',
+    en: 'No slots offered by teachers yet.',
+  },
+  'meetings.notePlaceholder': {
+    fr: 'Sujet (optionnel)',
+    ar: 'الموضوع (اختياري)',
+    en: 'Topic (optional)',
+  },
+  'meetings.book': {
+    fr: 'Réserver ce créneau',
+    ar: 'حجز هذا الموعد',
+    en: 'Book this slot',
+  },
+  'meetings.bookedNotice': {
+    fr: 'Rendez-vous réservé. L\'enseignant a été prévenu.',
+    ar: 'تم حجز الموعد وإعلام الأستاذ.',
+    en: 'Meeting booked. The teacher has been told.',
+  },
   'common.reload': {
     fr: 'Recharger',
     ar: 'إعادة التحميل',

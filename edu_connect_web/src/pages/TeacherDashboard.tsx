@@ -4,6 +4,7 @@ import { isAxiosError } from 'axios';
 import {
   BookOpen,
   Calendar,
+  CalendarClock,
   ClipboardList,
   Megaphone,
   MessageSquare,
@@ -15,6 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
+import { TeacherMeetingsPanel } from '../components/MeetingsPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
@@ -159,7 +161,7 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
 }
 
 export default function TeacherDashboard() {
-  const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'homework' | 'schedule' | 'announcements' | 'chat'>('classes');
+  const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'homework' | 'schedule' | 'meetings' | 'announcements' | 'chat'>('classes');
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [attendanceState, setAttendanceState] = useState<Record<string, 'present' | 'absent'>>({});
   const [gradeForm, setGradeForm] = useState({
@@ -711,6 +713,15 @@ export default function TeacherDashboard() {
           aria-selected={activeTab === 'chat'}
         >
           <MessageSquare size={16} /> {t('teacher.tabChat')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('meetings')}
+          className={`tab-button ${activeTab === 'meetings' ? 'tab-button--active' : ''}`}
+          role="tab"
+          aria-selected={activeTab === 'meetings'}
+        >
+          <CalendarClock size={16} /> {t('meetings.tab')}
         </button>
         <button
           type="button"
@@ -1525,6 +1536,11 @@ export default function TeacherDashboard() {
         )}
 
         {!isLoading && activeTab === 'chat' && <DirectMessagingPanel scopeKey="teacher" />}
+        {!isLoading && activeTab === 'meetings' && (
+          <TeacherMeetingsPanel
+            classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
+          />
+        )}
         {!isLoading && activeTab === 'announcements' && (
           <AnnouncementsPanel
             scopeKey="teacher"

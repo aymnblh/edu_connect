@@ -83,6 +83,12 @@ class AppDrawer extends ConsumerWidget {
                     label: l10n.notifications,
                     onTap: () => _go(context, '/notifications', replace: false),
                   ),
+                  if (user.isParent || user.isTeacher)
+                    _DrawerItem(
+                      icon: Icons.event_available_outlined,
+                      label: text.meetings,
+                      onTap: () => _go(context, '/meetings', replace: false),
+                    ),
                   if (user.isParent)
                     _DrawerItem(
                       icon: Icons.description_outlined,
@@ -452,6 +458,7 @@ class _DrawerText {
         'Direction',
         'Direction',
       );
+  String get meetings => pick('المواعيد', 'Rendez-vous', 'Meetings');
   String get reportCards => pick('كشوف النقاط', 'Bulletins', 'Report cards');
   String get announcements =>
       pick('الإعلانات والتقويم', 'Annonces et calendrier', 'Announcements');

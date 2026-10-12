@@ -76,3 +76,10 @@ Tout utilisateur connecté peut changer son mot de passe : sur le web, bouton cl
 - **Document figé** : un bulletin publié ne change pas si une note est modifiée ensuite. Pour intégrer une correction, cliquer sur « Republier » : les parents sont prévenus de la mise à jour. « Retirer la publication » le masque aux parents.
 - **Parents** : web — onglet « Bulletins » de l'enfant (bouton « Imprimer / PDF ») ; mobile — menu « Bulletins » ou bouton PDF de l'écran des notes, avec export PDF.
 
+### Rendez-vous parents-enseignants
+- **Enseignant** : onglet « Rendez-vous » (web) ou menu « Rendez-vous » (mobile) → choisir le jour, la plage horaire (ex. 16:00–18:00), la durée d'un rendez-vous (10 à 30 min), le lieu, et éventuellement une seule classe. Les créneaux sont créés automatiquement (40 maximum par plage, sans chevauchement avec vos créneaux existants).
+- **Parent** : onglet « Rendez-vous » de l'enfant (web) ou menu « Rendez-vous » (mobile) → choisir un horaire libre chez un enseignant de l'enfant, ajouter un sujet si besoin, réserver. Un seul rendez-vous à venir par enseignant et par enfant ; deux parents ne peuvent jamais obtenir le même créneau.
+- **Annulation** : le parent peut annuler (l'enseignant est prévenu) ; l'enseignant ou la direction peut libérer ou supprimer un créneau (le parent est prévenu).
+- **Confidentialité** : les autres parents voient seulement qu'un créneau est pris, jamais par qui.
+- **Heure** : tous les horaires sont en heure d'Algérie.
+

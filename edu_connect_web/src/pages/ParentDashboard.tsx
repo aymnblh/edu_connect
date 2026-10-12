@@ -4,6 +4,7 @@ import {
   Award,
   Calendar,
   CalendarCheck,
+  CalendarClock,
   ClipboardList,
   FileText,
   HeartHandshake,
@@ -15,6 +16,7 @@ import {
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
 import ParentReportCardsPanel from '../components/ParentReportCardsPanel';
+import { ParentMeetingsPanel } from '../components/MeetingsPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
@@ -182,7 +184,7 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
 export default function ParentDashboard() {
   const { t, locale } = useLocale();
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
-  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'reports' | 'announcements' | 'message'>('grades');
+  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'reports' | 'meetings' | 'announcements' | 'message'>('grades');
   const [scheduleSubView, setScheduleSubView] = useState<'weekly' | 'exams'>('weekly');
 
   const childrenQuery = useQuery<Student[]>({
@@ -424,6 +426,14 @@ export default function ParentDashboard() {
                 <FileText size={14} /> {t('reportCards.tab')}
               </button>
               <button
+                onClick={() => setActiveSubTab('meetings')}
+                className={`tab-button ${activeSubTab === 'meetings' ? 'tab-button--active' : ''}`}
+                role="tab"
+                aria-selected={activeSubTab === 'meetings'}
+              >
+                <CalendarClock size={14} /> {t('meetings.tab')}
+              </button>
+              <button
                 onClick={() => setActiveSubTab('message')}
                 className={`tab-button ${activeSubTab === 'message' ? 'tab-button--active' : ''}`}
                 role="tab"
@@ -441,7 +451,7 @@ export default function ParentDashboard() {
               </button>
             </div>
 
-            {!activeChild.classId && !['message', 'announcements', 'reports'].includes(activeSubTab) && (
+            {!activeChild.classId && !['message', 'announcements', 'reports', 'meetings'].includes(activeSubTab) && (
               <p className="empty-list-copy">{t('parent.unassignedChildClass')}</p>
             )}
 
@@ -721,6 +731,7 @@ export default function ParentDashboard() {
 
             {activeSubTab === 'message' && <DirectMessagingPanel scopeKey="parent" />}
             {activeSubTab === 'reports' && <ParentReportCardsPanel studentId={activeChild.student.id} />}
+            {activeSubTab === 'meetings' && <ParentMeetingsPanel studentId={activeChild.student.id} />}
             {activeSubTab === 'announcements' && (
               <AnnouncementsPanel
                 scopeKey="parent"
