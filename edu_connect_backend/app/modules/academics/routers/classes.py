@@ -168,7 +168,8 @@ async def list_school_teachers(
     result = await db.execute(
         select(User).where(
             User.school_id == current_user.school_id,
-            User.role == UserRole.teacher
+            User.role == UserRole.teacher,
+            User.deactivated_at.is_(None),
         )
     )
     return result.scalars().all()

@@ -7,6 +7,7 @@ import {
   ShieldCheck, 
   FileText, 
   LogOut, 
+  KeyRound,
   BookOpen,
   HeartHandshake,
   Users,
@@ -17,6 +18,7 @@ import { useWorkspace } from '../contexts/useWorkspace';
 import { logoutSession } from '../lib/api';
 import { useLocale } from '../lib/i18n';
 import { readWorkspaceSessionItem } from '../lib/workspace';
+import ChangePasswordModal from './ChangePasswordModal';
 import LocaleSwitcher from './LocaleSwitcher';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 
@@ -27,6 +29,7 @@ interface SidebarProps {
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { activeRole } = useWorkspace();
@@ -174,6 +177,17 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             )}
           </div>
           {!collapsed && (
+            <button
+              type="button"
+              onClick={() => setPasswordModalOpen(true)}
+              className="logout-btn"
+              title={t('password.changeTitle')}
+              aria-label={t('password.changeTitle')}
+            >
+              <KeyRound size={16} />
+            </button>
+          )}
+          {!collapsed && (
             <button 
               onClick={handleLogout}
               className="logout-btn"
@@ -185,6 +199,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
           )}
         </div>
       </div>
+      {passwordModalOpen && <ChangePasswordModal onClose={() => setPasswordModalOpen(false)} />}
     </aside>
   );
 }

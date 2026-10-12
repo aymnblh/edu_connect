@@ -9,7 +9,7 @@ from app.schemas import MessageOut
 from app.core.access import assert_class_read_access, assert_school_is_active
 from app.core.rate_limit import check_rate_limit
 from app.core.rls import set_request_rls_context
-from app.core.security import get_current_user, decode_token
+from app.core.security import get_current_user, decode_token, session_rejection
 from app.ws_manager import manager
 from sqlalchemy.orm import selectinload
 
@@ -221,6 +221,8 @@ async def _user_from_ws(websocket: WebSocket, db: AsyncSession) -> User | None:
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
     if not user or user.role.value != payload.get("role"):
+        return None
+    if session_rejection(user, payload):
         return None
     try:
         assert_school_is_active(user)

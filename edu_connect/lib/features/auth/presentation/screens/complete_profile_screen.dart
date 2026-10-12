@@ -31,7 +31,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   void initState() {
     super.initState();
     _verifyResult = widget.extraData['verifyResult'];
-    if (_isTeacher()) {
+    if (_hasAccountCode()) {
       _emailCtrl.text = _verifyResult['email'] ?? '';
       _nameCtrl.text = _verifyResult['name'] ?? '';
     } else {
@@ -41,7 +41,11 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     }
   }
 
-  bool _isTeacher() => _verifyResult['type'] == 'teacher_invite';
+  bool _hasAccountCode() => const {
+        'teacher_invite',
+        'staff_invite',
+        'account_reset',
+      }.contains(_verifyResult['type']);
 
   Future<void> _submit() async {
     final lang = Localizations.localeOf(context).languageCode;
@@ -65,7 +69,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     try {
       final repo = AuthRepository();
 
-      if (_isTeacher()) {
+      if (_hasAccountCode()) {
         final user = await repo.completeTeacherInvite(
           inviteCode: widget.extraData['code'],
           password: _passwordCtrl.text,
@@ -177,7 +181,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     children: [
                       const SizedBox(height: 16),
                       Text(
-                        _isTeacher()
+                        _hasAccountCode()
                             ? txt.teacherIntro(_nameCtrl.text)
                             : txt.parentIntro,
                         style: TextStyle(
@@ -189,7 +193,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                         ),
                       ).animate().fadeIn(duration: 400.ms),
                       const SizedBox(height: 28),
-                      if (!_isTeacher()) ...[
+                      if (!_hasAccountCode()) ...[
                         TextFormField(
                           controller: _nameCtrl,
                           decoration: InputDecoration(
@@ -224,7 +228,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                             v!.length < 6 ? txt.shortPasswordError : null,
                       )
                           .animate()
-                          .fadeIn(delay: _isTeacher() ? 100.ms : 200.ms)
+                          .fadeIn(delay: _hasAccountCode() ? 100.ms : 200.ms)
                           .slideY(begin: 0.2),
                       const SizedBox(height: 24),
                       CheckboxListTile(
@@ -265,7 +269,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                             ),
                           ),
                         ),
-                      ).animate().fadeIn(delay: _isTeacher() ? 150.ms : 250.ms),
+                      )
+                          .animate()
+                          .fadeIn(delay: _hasAccountCode() ? 150.ms : 250.ms),
                       const SizedBox(height: 28),
                       ElevatedButton(
                         onPressed:
@@ -288,7 +294,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                      ).animate().fadeIn(delay: _isTeacher() ? 200.ms : 300.ms),
+                      )
+                          .animate()
+                          .fadeIn(delay: _hasAccountCode() ? 200.ms : 300.ms),
                     ],
                   ),
                 ),

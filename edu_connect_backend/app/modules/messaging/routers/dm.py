@@ -30,7 +30,7 @@ from app.models import (
     Class, ClassMember, ClassTemporaryAccess, MessageBlock, MessageReport,
     StudentParent, ClassTeacher
 )
-from app.core.security import get_current_user, decode_token
+from app.core.security import get_current_user, decode_token, session_rejection
 from app.core.access import assert_school_is_active
 from app.ws_manager import manager
 
@@ -546,7 +546,8 @@ async def list_dm_contacts(
     else:
         return []
 
-    contacts = await _filter_blocked_contacts(current_user, list(contacts), db)
+    contacts = [user for user in contacts if user.deactivated_at is None]
+    contacts = await _filter_blocked_contacts(current_user, contacts, db)
     return [
         ContactOut(
             user_id=user.id,
@@ -1161,7 +1162,7 @@ async def dm_websocket(
     if not sender:
         await websocket.close(code=1008)
         return
-    if sender.role.value != payload.get("role"):
+    if sender.role.value != payload.get("role") or session_rejection(sender, payload):
         await websocket.close(code=1008)
         return
     try:
@@ -1211,6 +1212,9 @@ async def dm_websocket(
             if not sender:
                 await websocket.send_json({"error": "Utilisateur introuvable"})
                 continue
+            if session_rejection(sender, payload):
+                await websocket.close(code=1008)
+                return
             try:
                 assert_school_is_active(sender)
             except HTTPException as exc:

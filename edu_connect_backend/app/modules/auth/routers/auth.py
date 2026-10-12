@@ -33,6 +33,9 @@ from app.core.security import (
     get_current_user,
     rotate_refresh_token
 )
+
+# Roles that can redeem an admin-issued activation / access-reset code.
+ACCESS_CODE_ROLES = [UserRole.teacher, UserRole.secretary, UserRole.parent]
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -184,6 +187,23 @@ async def login(
         school_id=user.school_id,
         is_system_admin=user.role == UserRole.system_admin,
     )
+
+    if user.deactivated_at is not None:
+        await _audit_auth(
+            db,
+            request,
+            action="auth.login_deactivated",
+            user=user,
+            status_code=403,
+        )
+        await db.commit()
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "account_deactivated",
+                "message": "Ce compte a ete desactive. Contactez l'administration de votre etablissement.",
+            },
+        )
 
     # Migration Check: password_hash IS NULL
     if user.password_hash is None:
@@ -492,14 +512,18 @@ async def verify_code(
         user_res = await db.execute(
             select(User).where(
                 User.invite_code == req.code,
-                User.role.in_([UserRole.teacher, UserRole.secretary]),
+                User.role.in_(ACCESS_CODE_ROLES),
             )
         )
         user = user_res.scalar_one_or_none()
         if user:
             if user.invite_expires_at and user.invite_expires_at < datetime.now(timezone.utc):
                 raise HTTPException(status_code=400, detail="Code d'invitation expire.")
-            invite_type = "teacher_invite" if user.role == UserRole.teacher else "staff_invite"
+            invite_type = {
+                UserRole.teacher: "teacher_invite",
+                UserRole.secretary: "staff_invite",
+                UserRole.parent: "account_reset",
+            }[user.role]
             return VerifyCodeResponse(
                 type=invite_type,
                 email=user.email,
@@ -718,7 +742,7 @@ async def _complete_staff_invite_code(
     user_res = await db.execute(
         select(User).where(
             User.invite_code == req.invite_code,
-            User.role.in_([UserRole.teacher, UserRole.secretary]),
+            User.role.in_(ACCESS_CODE_ROLES),
         )
         .with_for_update()
     )
@@ -754,7 +778,11 @@ async def _complete_staff_invite_code(
         expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
     )
     db.add(db_token)
-    action = "auth.teacher_completed" if user.role == UserRole.teacher else "auth.secretary_completed"
+    action = {
+        UserRole.teacher: "auth.teacher_completed",
+        UserRole.secretary: "auth.secretary_completed",
+        UserRole.parent: "auth.parent_access_restored",
+    }[user.role]
     await _audit_auth(db, request, action=action, user=user)
     await db.commit()
 
@@ -782,3 +810,52 @@ async def complete_staff_code(
     db: AsyncSession = Depends(get_db),
 ):
     return await _complete_staff_invite_code(req, request, response, db)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+    remember_device: bool = False
+
+
+@router.post("/change-password", response_model=TokenResponse)
+async def change_password(
+    req: ChangePasswordRequest,
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Change the signed-in user's password and sign out every other session."""
+    await check_rate_limit(f"change_password:{current_user.id}", limit=5, window_seconds=900)
+    if not verify_password(req.current_password, current_user.password_hash):
+        await _audit_auth(db, request, action="auth.password_change_failed", user=current_user, status_code=400)
+        await db.commit()
+        raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect.")
+    if verify_password(req.new_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Le nouveau mot de passe doit etre different de l'actuel.")
+
+    current_user.password_hash = get_password_hash(req.new_password)
+    current_user.token_version = (current_user.token_version or 0) + 1
+    await db.execute(delete(RefreshToken).where(RefreshToken.user_id == current_user.id))
+
+    family_id = str(uuid.uuid4())
+    access_token = create_access_token_for_user(current_user)
+    refresh_token = create_refresh_token(current_user.id, family_id)
+    db.add(RefreshToken(
+        school_id=current_user.school_id,
+        user_id=current_user.id,
+        token_hash=hashlib.sha256(refresh_token.encode()).hexdigest(),
+        family_id=family_id,
+        **_session_metadata(request),
+        last_used_at=datetime.now(timezone.utc),
+        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days),
+    ))
+    await _audit_auth(db, request, action="auth.password_changed", user=current_user)
+    await db.commit()
+
+    if req.remember_device:
+        _set_refresh_cookie(response, refresh_token, persistent=True)
+    else:
+        _clear_refresh_cookie(response)
+    return {"access_token": access_token, "refresh_token": refresh_token}

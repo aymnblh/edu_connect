@@ -74,6 +74,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return l10n.invalidCredentials;
     }
     if (error.response?.statusCode == 403) {
+      final data = error.response?.data;
+      final detail = data is Map ? data['detail'] : null;
+      if (detail is Map && detail['code'] == 'account_deactivated') {
+        return detail['message'] as String? ?? l10n.accountForbidden;
+      }
       return l10n.accountForbidden;
     }
     final data = error.response?.data;

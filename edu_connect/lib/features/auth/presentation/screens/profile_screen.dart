@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -91,6 +92,15 @@ class ProfileScreen extends ConsumerWidget {
                                     : text.dashboard,
                                 onTap: () => context.go(
                                   user.isAdmin ? '/dashboard' : '/classes',
+                                ),
+                              ),
+                              const Divider(height: 1),
+                              _ActionRow(
+                                icon: Icons.key_outlined,
+                                label: text.changePassword,
+                                onTap: () => showDialog<void>(
+                                  context: context,
+                                  builder: (_) => const _ChangePasswordDialog(),
                                 ),
                               ),
                             ],
@@ -361,6 +371,131 @@ String _roleLabel(UserModel user, _ProfileText text) {
   return text.parent;
 }
 
+class _ChangePasswordDialog extends ConsumerStatefulWidget {
+  const _ChangePasswordDialog();
+
+  @override
+  ConsumerState<_ChangePasswordDialog> createState() =>
+      _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _currentCtrl = TextEditingController();
+  final _newCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _currentCtrl.dispose();
+    _newCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    final text = _ProfileText.of(context);
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await ref.read(authRepositoryProvider).changePassword(
+            currentPassword: _currentCtrl.text,
+            newPassword: _newCtrl.text,
+          );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(text.passwordChanged)),
+      );
+    } catch (e) {
+      final detail = e is DioException && e.response?.data is Map
+          ? (e.response!.data as Map)['detail']
+          : null;
+      setState(
+          () => _error = detail is String ? detail : text.passwordChangeFailed);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = _ProfileText.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(text.changePassword),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _currentCtrl,
+                obscureText: true,
+                autofillHints: const [AutofillHints.password],
+                decoration: InputDecoration(labelText: text.currentPassword),
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? text.currentPassword : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _newCtrl,
+                obscureText: true,
+                autofillHints: const [AutofillHints.newPassword],
+                decoration: InputDecoration(labelText: text.newPassword),
+                validator: (v) =>
+                    (v == null || v.length < 8) ? text.passwordTooShort : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _confirmCtrl,
+                obscureText: true,
+                decoration: InputDecoration(labelText: text.confirmPassword),
+                validator: (v) =>
+                    v != _newCtrl.text ? text.passwordMismatch : null,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                text.otherSessionsNote,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: _saving ? null : _submit,
+          child: _saving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(text.save),
+        ),
+      ],
+    );
+  }
+}
+
 class _ProfileText {
   final String languageCode;
 
@@ -437,6 +572,56 @@ class _ProfileText {
       : _fr
           ? 'Arabe'
           : 'Arabic';
+  String get changePassword => _ar
+      ? 'تغيير كلمة المرور'
+      : _fr
+          ? 'Changer le mot de passe'
+          : 'Change password';
+  String get currentPassword => _ar
+      ? 'كلمة المرور الحالية'
+      : _fr
+          ? 'Mot de passe actuel'
+          : 'Current password';
+  String get newPassword => _ar
+      ? 'كلمة المرور الجديدة'
+      : _fr
+          ? 'Nouveau mot de passe'
+          : 'New password';
+  String get confirmPassword => _ar
+      ? 'تأكيد كلمة المرور الجديدة'
+      : _fr
+          ? 'Confirmer le nouveau mot de passe'
+          : 'Confirm new password';
+  String get passwordTooShort => _ar
+      ? '8 أحرف على الأقل.'
+      : _fr
+          ? '8 caracteres minimum.'
+          : 'At least 8 characters.';
+  String get passwordMismatch => _ar
+      ? 'كلمتا المرور غير متطابقتين.'
+      : _fr
+          ? 'Les mots de passe ne correspondent pas.'
+          : 'The passwords do not match.';
+  String get otherSessionsNote => _ar
+      ? 'سيتم تسجيل خروج أجهزتك الأخرى.'
+      : _fr
+          ? 'Vos autres appareils seront deconnectes.'
+          : 'Your other devices will be signed out.';
+  String get passwordChanged => _ar
+      ? 'تم تغيير كلمة المرور.'
+      : _fr
+          ? 'Mot de passe modifie.'
+          : 'Password changed.';
+  String get passwordChangeFailed => _ar
+      ? 'تعذر تغيير كلمة المرور.'
+      : _fr
+          ? 'Impossible de changer le mot de passe.'
+          : 'Could not change the password.';
+  String get save => _ar
+      ? 'حفظ'
+      : _fr
+          ? 'Enregistrer'
+          : 'Save';
   String get deleteAccount => _ar
       ? 'حذف الحساب'
       : _fr

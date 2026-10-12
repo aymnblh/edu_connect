@@ -63,10 +63,21 @@ def create_access_token(data: dict) -> str:
 
 def access_payload_for_user(user: User) -> dict:
     """Build the canonical access-token payload used by API and tenant middleware."""
-    payload = {"sub": user.id, "role": user.role.value}
+    payload = {"sub": user.id, "role": user.role.value, "tv": user.token_version or 0}
     if user.school_id:
         payload["school_id"] = user.school_id
     return payload
+
+
+def session_rejection(user: User, claims: dict) -> str | None:
+    """Return why an access token can no longer act for this user, or None if it can."""
+    if user.deactivated_at is not None:
+        return "deactivated"
+    if user.password_hash is None:
+        return "password_setup_required"
+    if int(claims.get("tv", 0)) != (user.token_version or 0):
+        return "revoked"
+    return None
 
 def create_access_token_for_user(user: User) -> str:
     return create_access_token(access_payload_for_user(user))
@@ -146,8 +157,13 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Session role is no longer valid.")
     if user.role.value != "system_admin" and expected_school_id != user.school_id:
         raise HTTPException(status_code=401, detail="Session tenant is no longer valid.")
-    if user.password_hash is None:
+    rejection = session_rejection(user, claims)
+    if rejection == "deactivated":
+        raise HTTPException(status_code=403, detail="Account deactivated.")
+    if rejection == "password_setup_required":
         raise HTTPException(status_code=403, detail="Password setup is required.")
+    if rejection == "revoked":
+        raise HTTPException(status_code=401, detail="Session expired. Please login again.")
     
     return user
 

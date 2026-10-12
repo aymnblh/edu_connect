@@ -17,6 +17,7 @@ import {
   FileUp,
   GraduationCap,
   KeyRound,
+  UserX,
   Link2Off,
   Loader2,
   MessageSquare,
@@ -145,6 +146,13 @@ type StaffInviteRole = 'teacher' | 'secretary';
 interface StaffMember extends Teacher {
   role: string;
   invite_code?: string | null;
+  deactivated_at?: string | null;
+}
+
+interface LinkedParent {
+  id: string;
+  full_name: string;
+  email: string;
 }
 
 interface ClassCourseAssignment {
@@ -476,6 +484,15 @@ export default function DirectorDashboard() {
     return labelKey ? t(`director.parentLink.${labelKey}`) : label || t('director.parentLink.parent');
   };
 
+  const linkedParentsQuery = useQuery<LinkedParent[]>({
+    queryKey: ['student-parents', resolvedSelectedStudentId],
+    enabled: activeTab === 'students' && Boolean(resolvedSelectedStudentId),
+    queryFn: async () => {
+      const res = await api.get(`/admin/students/${resolvedSelectedStudentId}/parents`);
+      return res.data;
+    },
+  });
+
   const linkAuditQuery = useQuery<ParentLinkAudit[]>({
     queryKey: ['student-links', resolvedSelectedStudentId],
     enabled: activeTab === 'students' && Boolean(resolvedSelectedStudentId),
@@ -620,6 +637,44 @@ export default function DirectorDashboard() {
   const resetStaffAccess = (member: StaffMember) => {
     if (!window.confirm(t('director.team.resetAccessConfirm', { name: member.full_name }))) return;
     resetStaffAccessMutation.mutate(member);
+  };
+
+  const deactivateStaffMutation = useMutation({
+    mutationFn: async (member: StaffMember) => {
+      const res = await api.post<StaffMember>(`/admin/staff/${member.id}/deactivate`);
+      return res.data;
+    },
+    onSuccess: (staffMember) => {
+      queryClient.invalidateQueries({ queryKey: ['director-staff'] });
+      queryClient.invalidateQueries({ queryKey: ['director-teachers'] });
+      if (staffInvite?.id === staffMember.id) setStaffInvite(null);
+      addToast(t('director.toast.staffDeactivated'), 'success');
+    },
+    onError: (error) => addToast(getErrorMessage(error), 'error'),
+  });
+
+  const deactivateStaff = (member: StaffMember) => {
+    if (!window.confirm(t('director.team.deactivateConfirm', { name: member.full_name }))) return;
+    deactivateStaffMutation.mutate(member);
+  };
+
+  const [parentResetCode, setParentResetCode] = useState<{ name: string; code: string } | null>(null);
+
+  const resetParentAccessMutation = useMutation({
+    mutationFn: async (parent: LinkedParent) => {
+      const res = await api.post<StaffMember>(`/admin/parents/${parent.id}/reset-access`);
+      return res.data;
+    },
+    onSuccess: (parent) => {
+      if (parent.invite_code) setParentResetCode({ name: parent.full_name, code: parent.invite_code });
+      addToast(t('director.toast.parentAccessReset'), 'success');
+    },
+    onError: (error) => addToast(getErrorMessage(error), 'error'),
+  });
+
+  const resetParentAccess = (parent: LinkedParent) => {
+    if (!window.confirm(t('director.parents.resetConfirm', { name: parent.full_name }))) return;
+    resetParentAccessMutation.mutate(parent);
   };
 
   const createClassMutation = useMutation({
@@ -1249,6 +1304,40 @@ export default function DirectorDashboard() {
         </button>
 
         <div className="link-audit-list">
+          <h3>{t('director.parents.title')}</h3>
+          {linkedParentsQuery.isLoading && <p className="dashboard-section-copy">{t('common.loading')}</p>}
+          {linkedParentsQuery.data?.map((parent) => (
+            <div key={parent.id} className="link-audit-item">
+              <div>
+                <strong>{parent.full_name}</strong>
+                <span>{parent.email}</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-compact"
+                onClick={() => resetParentAccess(parent)}
+                disabled={resetParentAccessMutation.isPending}
+              >
+                <KeyRound size={14} />
+                {t('director.team.resetAccess')}
+              </button>
+            </div>
+          ))}
+          {selectedStudent && !linkedParentsQuery.isLoading && (linkedParentsQuery.data?.length ?? 0) === 0 && (
+            <p className="dashboard-section-copy">{t('director.parents.empty')}</p>
+          )}
+          {parentResetCode && (
+            <div className="notice-box">
+              <strong>{t('director.team.inviteCode')}</strong>
+              <button type="button" className="token-code" onClick={() => copyText(parentResetCode.code, t('director.toast.inviteCopied'))}>
+                {parentResetCode.code}
+              </button>
+              <span>{t('director.parents.shareCode', { name: parentResetCode.name })}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="link-audit-list">
           <h3>{t('director.parentLink.history')}</h3>
           {linkAuditQuery.isLoading && <p className="dashboard-section-copy">{t('common.loading')}</p>}
           {linkAuditQuery.data?.map((link) => (
@@ -1676,7 +1765,9 @@ export default function DirectorDashboard() {
                   <td>{member.email}</td>
                   <td>{t(`role.${member.role}`)}</td>
                   <td>
-                    {member.invite_code ? (
+                    {member.deactivated_at ? (
+                      <span className="status-badge status-badge--danger">{t('director.team.deactivated')}</span>
+                    ) : member.invite_code ? (
                       <span className="status-badge status-badge--warning">{t('director.team.pendingActivation')}</span>
                     ) : (
                       <span className="status-badge status-badge--active">{t('director.team.activeAccount')}</span>
@@ -1684,14 +1775,27 @@ export default function DirectorDashboard() {
                   </td>
                   <td>
                     {(member.role === 'teacher' || (member.role === 'secretary' && currentUserRole === 'principal')) && (
-                      <button
-                        type="button"
-                        className="btn btn-secondary btn-compact"
-                        onClick={() => resetStaffAccess(member)}
-                        disabled={resetStaffAccessMutation.isPending}
-                      >
-                        <KeyRound size={14} /> {t('director.team.resetAccess')}
-                      </button>
+                      <div className="table-actions">
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-compact"
+                          onClick={() => resetStaffAccess(member)}
+                          disabled={resetStaffAccessMutation.isPending}
+                        >
+                          <KeyRound size={14} />
+                          {member.deactivated_at ? t('director.team.reactivate') : t('director.team.resetAccess')}
+                        </button>
+                        {!member.deactivated_at && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-compact"
+                            onClick={() => deactivateStaff(member)}
+                            disabled={deactivateStaffMutation.isPending}
+                          >
+                            <UserX size={14} /> {t('director.team.deactivate')}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>

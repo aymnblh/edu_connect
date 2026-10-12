@@ -1252,6 +1252,163 @@ def test_teachers_cannot_self_join_classes_with_a_code():
     assert "/classes/join" not in paths
 
 
+def _many_results(count: int = 8):
+    return [FakeResult() for _ in range(count)]
+
+
+def test_access_token_from_before_a_password_change_is_rejected():
+    user = make_user("parent-a", UserRole.parent)
+    user.password_hash = "hash-a"
+    user.token_version = 3
+    claims = {"sub": "parent-a", "role": "parent", "school_id": "school-a", "tv": 2}
+
+    with pytest.raises(HTTPException) as exc:
+        run(security.get_current_user(claims=claims, db=FakeDb(results=[FakeResult([user])])))
+    assert exc.value.status_code == 401
+
+    claims["tv"] = 3
+    assert run(security.get_current_user(claims=claims, db=FakeDb(results=[FakeResult([user])]))) is user
+
+
+def test_deactivated_user_tokens_and_login_are_refused(monkeypatch):
+    async def no_rate_limit(*_args, **_kwargs):
+        return None
+
+    user = make_user("teacher-a", UserRole.teacher)
+    user.email = "teacher-a@example.com"
+    user.password_hash = None
+    user.token_version = 0
+    user.deactivated_at = datetime.now(timezone.utc)
+    claims = {"sub": "teacher-a", "role": "teacher", "school_id": "school-a", "tv": 0}
+
+    with pytest.raises(HTTPException) as exc:
+        run(security.get_current_user(claims=claims, db=FakeDb(results=[FakeResult([user])])))
+    assert exc.value.status_code == 403
+    assert security.session_rejection(user, claims) == "deactivated"
+
+    monkeypatch.setattr(auth, "check_rate_limit", no_rate_limit)
+    with pytest.raises(HTTPException) as login_exc:
+        run(
+            auth.login(
+                auth.LoginRequest(email="teacher-a@example.com", password="whatever"),
+                request=make_request("/auth/login"),
+                db=FakeDb(results=[FakeResult(), FakeResult([user])] + _many_results()),
+            )
+        )
+    assert login_exc.value.status_code == 403
+    assert login_exc.value.detail["code"] == "account_deactivated"
+
+
+def test_admin_deactivates_teacher_and_reset_reactivates():
+    teacher = make_user("teacher-a", UserRole.teacher)
+    teacher.password_hash = "hash-a"
+    teacher.token_version = 0
+    teacher.invite_code = "old-code"
+    db = FakeDb(get_map={(User, "teacher-a"): teacher}, results=_many_results())
+    request = make_request("/admin/staff/teacher-a/deactivate")
+    principal = make_user("principal-a", UserRole.principal)
+
+    run(admin.deactivate_staff("teacher-a", request=request, current_user=principal, db=db))
+
+    assert teacher.deactivated_at is not None
+    assert teacher.password_hash is None
+    assert teacher.invite_code is None
+    assert teacher.token_version == 1
+    assert compiled_sql(db.executed[0]).startswith("DELETE FROM refresh_tokens")
+    assert [e.action for e in db.added if isinstance(e, AuditEvent)] == ["staff.deactivated"]
+
+    run(admin.reset_staff_access("teacher-a", request=request, current_user=principal, db=db))
+
+    assert teacher.deactivated_at is None
+    assert teacher.invite_code
+    assert teacher.token_version == 2
+
+
+def test_staff_deactivation_role_rules():
+    secretary = make_user("secretary-b", UserRole.secretary)
+    db = FakeDb(get_map={(User, "secretary-b"): secretary, (User, "secretary-a"): make_user("secretary-a", UserRole.secretary)})
+    request = make_request("/admin/staff/x/deactivate")
+
+    with pytest.raises(HTTPException) as exc:
+        run(admin.deactivate_staff("secretary-b", request=request, current_user=make_user("secretary-a", UserRole.secretary), db=db))
+    assert exc.value.status_code == 403
+
+    principal = make_user("principal-a", UserRole.principal)
+    with pytest.raises(HTTPException) as exc:
+        run(admin.deactivate_staff("principal-a", request=request, current_user=principal, db=db))
+    assert exc.value.status_code == 404
+    assert secretary.deactivated_at is None
+    assert db.commits == 0
+
+
+def test_admin_resets_parent_access_only_in_own_school():
+    parent = make_user("parent-a", UserRole.parent)
+    parent.password_hash = "hash-a"
+    parent.token_version = 0
+    other_parent = make_user("parent-z", UserRole.parent, school_id="school-z")
+    db = FakeDb(
+        get_map={(User, "parent-a"): parent, (User, "parent-z"): other_parent},
+        results=_many_results(),
+    )
+    request = make_request("/admin/parents/x/reset-access")
+
+    with pytest.raises(HTTPException) as exc:
+        run(admin.reset_parent_access("parent-z", request=request, current_user=make_user("secretary-a", UserRole.secretary), db=db))
+    assert exc.value.status_code == 404
+
+    with pytest.raises(HTTPException) as exc:
+        run(admin.reset_parent_access("parent-a", request=request, current_user=make_user("teacher-a", UserRole.teacher), db=db))
+    assert exc.value.status_code == 403
+
+    run(admin.reset_parent_access("parent-a", request=request, current_user=make_user("secretary-a", UserRole.secretary), db=db))
+    assert parent.password_hash is None
+    assert parent.invite_code
+    assert parent.token_version == 1
+    assert [e.action for e in db.added if isinstance(e, AuditEvent)] == ["parent.access_reset"]
+
+
+def test_change_password_requires_current_password_and_revokes_sessions(monkeypatch):
+    async def no_rate_limit(*_args, **_kwargs):
+        return None
+
+    monkeypatch.setattr(auth, "check_rate_limit", no_rate_limit)
+    monkeypatch.setattr(auth, "verify_password", lambda plain, _hashed: plain == "old-password")
+    user = make_user("parent-a", UserRole.parent)
+    user.password_hash = "hash-a"
+    user.token_version = 4
+    request = make_request("/auth/change-password")
+
+    with pytest.raises(HTTPException) as exc:
+        run(
+            auth.change_password(
+                auth.ChangePasswordRequest(current_password="wrong", new_password="new-password-1"),
+                request=request,
+                response=None,
+                current_user=user,
+                db=FakeDb(results=_many_results()),
+            )
+        )
+    assert exc.value.status_code == 400
+    assert user.token_version == 4
+
+    db = FakeDb(results=_many_results())
+    tokens = run(
+        auth.change_password(
+            auth.ChangePasswordRequest(current_password="old-password", new_password="new-password-1"),
+            request=request,
+            response=None,
+            current_user=user,
+            db=db,
+        )
+    )
+
+    assert user.token_version == 5
+    assert user.password_hash != "hash-a"
+    assert compiled_sql(db.executed[0]).startswith("DELETE FROM refresh_tokens")
+    claims = security.decode_token(tokens["access_token"])
+    assert claims["tv"] == 5
+
+
 def test_only_system_admin_can_activate_school():
     school = School(id="school-a", name="School A", is_active=False)
     db = FakeDb(get_map={(School, "school-a"): school})

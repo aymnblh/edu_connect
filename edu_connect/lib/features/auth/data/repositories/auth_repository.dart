@@ -188,6 +188,23 @@ class AuthRepository {
     return user;
   }
 
+  /// Change the password; the server signs out every other session and
+  /// returns a fresh token pair for this device.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final response = await _api.post('/auth/change-password', data: {
+      'current_password': currentPassword,
+      'new_password': newPassword,
+    });
+    final data = response as Map<String, dynamic>;
+    await _saveTokens(
+      data['access_token'] as String,
+      data['refresh_token'] as String,
+    );
+  }
+
   Future<void> _saveTokens(String access, String refresh) async {
     await _storage.write(key: _accessTokenKey, value: access);
     await _storage.write(key: _refreshTokenKey, value: refresh);

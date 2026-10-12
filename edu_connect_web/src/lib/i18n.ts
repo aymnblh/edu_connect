@@ -19,6 +19,66 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'جار التحميل...',
     en: 'Loading...',
   },
+  'common.close': {
+    fr: 'Fermer',
+    ar: 'إغلاق',
+    en: 'Close',
+  },
+  'common.cancel': {
+    fr: 'Annuler',
+    ar: 'إلغاء',
+    en: 'Cancel',
+  },
+  'password.changeTitle': {
+    fr: 'Changer le mot de passe',
+    ar: 'تغيير كلمة المرور',
+    en: 'Change password',
+  },
+  'password.current': {
+    fr: 'Mot de passe actuel',
+    ar: 'كلمة المرور الحالية',
+    en: 'Current password',
+  },
+  'password.new': {
+    fr: 'Nouveau mot de passe (8 caractères minimum)',
+    ar: 'كلمة المرور الجديدة (8 أحرف على الأقل)',
+    en: 'New password (at least 8 characters)',
+  },
+  'password.confirm': {
+    fr: 'Confirmer le nouveau mot de passe',
+    ar: 'تأكيد كلمة المرور الجديدة',
+    en: 'Confirm new password',
+  },
+  'password.submit': {
+    fr: 'Enregistrer',
+    ar: 'حفظ',
+    en: 'Save',
+  },
+  'password.otherSessionsNote': {
+    fr: 'Vos autres appareils seront déconnectés.',
+    ar: 'سيتم تسجيل خروج أجهزتك الأخرى.',
+    en: 'Your other devices will be signed out.',
+  },
+  'password.tooShort': {
+    fr: 'Le nouveau mot de passe doit contenir au moins 8 caractères.',
+    ar: 'يجب أن تحتوي كلمة المرور الجديدة على 8 أحرف على الأقل.',
+    en: 'The new password must be at least 8 characters.',
+  },
+  'password.mismatch': {
+    fr: 'Les deux mots de passe ne correspondent pas.',
+    ar: 'كلمتا المرور غير متطابقتين.',
+    en: 'The two passwords do not match.',
+  },
+  'password.changeFailed': {
+    fr: 'Impossible de changer le mot de passe.',
+    ar: 'تعذر تغيير كلمة المرور.',
+    en: 'Could not change the password.',
+  },
+  'password.changed': {
+    fr: 'Mot de passe modifié. Vos autres appareils ont été déconnectés.',
+    ar: 'تم تغيير كلمة المرور. تم تسجيل خروج أجهزتك الأخرى.',
+    en: 'Password changed. Your other devices have been signed out.',
+  },
   'common.reload': {
     fr: 'Recharger',
     ar: 'إعادة التحميل',
@@ -1678,6 +1738,56 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: "Nouveau code d'activation généré.",
     ar: 'تم إنشاء رمز تفعيل جديد.',
     en: 'New activation code generated.',
+  },
+  'director.team.deactivate': {
+    fr: 'Désactiver',
+    ar: 'تعطيل',
+    en: 'Deactivate',
+  },
+  'director.team.deactivateConfirm': {
+    fr: "Désactiver le compte de {name} ? La connexion sera bloquée immédiatement et toutes ses sessions fermées. Vous pourrez le réactiver avec un nouveau code.",
+    ar: 'تعطيل حساب {name}؟ سيتم منع الدخول فورا وإغلاق جميع الجلسات. يمكنكم إعادة تفعيله برمز جديد.',
+    en: 'Deactivate {name}? Login is blocked immediately and all sessions are signed out. You can reactivate them later with a new code.',
+  },
+  'director.team.deactivated': {
+    fr: 'Désactivé',
+    ar: 'معطل',
+    en: 'Deactivated',
+  },
+  'director.team.reactivate': {
+    fr: 'Réactiver',
+    ar: 'إعادة التفعيل',
+    en: 'Reactivate',
+  },
+  'director.toast.staffDeactivated': {
+    fr: 'Compte désactivé.',
+    ar: 'تم تعطيل الحساب.',
+    en: 'Account deactivated.',
+  },
+  'director.toast.parentAccessReset': {
+    fr: "Nouveau code d'accès généré pour le parent.",
+    ar: 'تم إنشاء رمز دخول جديد لولي الأمر.',
+    en: 'New access code generated for the parent.',
+  },
+  'director.parents.title': {
+    fr: 'Parents liés',
+    ar: 'أولياء الأمور المرتبطون',
+    en: 'Linked parents',
+  },
+  'director.parents.empty': {
+    fr: "Aucun parent n'est encore lié à cet élève.",
+    ar: 'لا يوجد ولي أمر مرتبط بهذا التلميذ بعد.',
+    en: 'No parent is linked to this student yet.',
+  },
+  'director.parents.resetConfirm': {
+    fr: "Générer un nouveau code d'accès pour {name} ? Son mot de passe actuel cessera de fonctionner et toutes ses sessions seront fermées.",
+    ar: 'إنشاء رمز دخول جديد لـ {name}؟ ستتوقف كلمة المرور الحالية وسيتم إغلاق جميع الجلسات.',
+    en: 'Generate a new access code for {name}? Their current password will stop working and all their sessions will be signed out.',
+  },
+  'director.parents.shareCode': {
+    fr: "Remettez ce code à {name}. Il le saisit sur la page d'activation pour choisir un nouveau mot de passe (valable 72 h).",
+    ar: 'سلّموا هذا الرمز إلى {name}. يدخله في صفحة التفعيل لاختيار كلمة مرور جديدة (صالح 72 ساعة).',
+    en: 'Give this code to {name}. They enter it on the activation page to choose a new password (valid 72 h).',
   },
   'director.team.activeAccount': {
     fr: 'Actif',

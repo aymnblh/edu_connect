@@ -31,6 +31,7 @@ Leur création de compte est fermée/stricte : ils ne peuvent pas s'inscrire lib
 - **Processus de Connexion** : Il lance l'application, choisit *« S'authentifier par Code / QR »* depuis l'accueil, et saisit le code.
 - **Configuration Finale** : Reconnu par le système, l'application lui donne la main pour définir son "Mot de passe", finalisant ainsi l'activation de son profil.
 - **Code expiré ou mot de passe oublié** : Le code est valable 72 heures. S'il a expiré, ou si l'enseignant a oublié son mot de passe, le directeur (ou le secrétariat) clique sur **« Réinitialiser l'accès »** dans la liste de l'équipe. Un nouveau code est généré, l'ancien mot de passe ne fonctionne plus et toutes les sessions sont fermées. L'enseignant refait l'activation avec ce nouveau code.
+- **Départ d'un enseignant** : Le directeur (ou le secrétariat pour un enseignant) clique sur **« Désactiver »** dans la liste de l'équipe. La connexion est bloquée immédiatement et toutes les sessions sont fermées, y compris les messageries ouvertes. Le bouton **« Réactiver »** génère un nouveau code si la personne revient.
 - **Affectation aux classes** : L'enseignant ne rejoint pas une classe lui-même. C'est l'administration qui lui attribue une ou plusieurs matières dans une classe ; il n'accède qu'à ces classes et ne voit que les notes de ses propres matières.
 - **Responsabilités** : Il peut émettre des notes dans ses matières, des remarques de discipline, distribuer des devoirs, ou valider des absences.
 
@@ -39,6 +40,7 @@ Incroyablement intuitif : le compte d'un parent prend vie pile au moment où il 
 - **Liaison Mobile** : À réception du carnet format papier par l'école, le parent télécharge EduConnect et sélectionne aussi *« S'authentifier par Code / QR »*.
 - **Le Scan & Saisi** : Le parent scanne simplement le QR Code de l'élève. S'il ne peut pas scanner, il bascule en saisissant l'ID Élève et le Code PIN à la main.
 - **Création du Compte** : Si le Code est valide (il n'a pas expiré), le système redirige le Parent sur un écran le priant d'entrer son propre Nom, un Email et de configurer son Mot de Passe.
+- **Mot de passe oublié** : Le parent s'adresse à l'école. Dans la fiche de l'élève, rubrique **« Parents liés »**, l'administration clique sur **« Réinitialiser l'accès »** et lui remet le nouveau code (valable 72 h), qu'il saisit sur la page d'activation pour choisir un nouveau mot de passe.
 - **Sécurité Long-terme** : Voilà ! Son profil unique de Parent est créé. Cette filiation est automatique : il utilisera désormais son adresse Email et son mot de passe normal à l'avenir pour s'y reconnecter.
 
 ---
@@ -56,3 +58,6 @@ Incroyablement intuitif : le compte d'un parent prend vie pile au moment où il 
 * **Parcours du directeur :** Créer l'école -> Importer élèves -> Créer profs -> Imprimer QR Codes parents.
 * **Parcours du professeur :** Reçoit un code -> S'y connecte -> Met un mot de passe permanent -> Administre sa classe.
 * **Parcours du parent :** Reçoit le papier avec le QR ou le Code PIN de son enfant -> Le scanne via l'écran initial de l'app -> Renseigne qui il est (Nom, Email, Mdp) -> Relie son enfant définitivement et suit sa scolarité !
+
+### Changer son mot de passe
+Tout utilisateur connecté peut changer son mot de passe : sur le web, bouton clé en bas de la barre latérale ; sur mobile, **Profil → Changer le mot de passe**. Le mot de passe actuel est demandé, et tous les autres appareils sont déconnectés.

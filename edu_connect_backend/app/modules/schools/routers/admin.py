@@ -47,6 +47,7 @@ class UserSimpleOut(BaseModel):
     full_name: str
     role: str
     invite_code: str | None = None
+    deactivated_at: datetime | None = None
     model_config = {"from_attributes": True}
 
 
@@ -189,6 +190,44 @@ async def create_staff(
     return await _create_invited_staff_user(payload=payload, current_user=current_user, db=db)
 
 
+async def _get_manageable_staff(user_id: str, current_user: User, db: AsyncSession) -> User:
+    """Load a teacher/secretary the current admin may reset or deactivate."""
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Only school administration can manage staff access.")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+
+    staff = await db.get(User, user_id)
+    if (
+        not staff
+        or staff.school_id != current_user.school_id
+        or staff.role not in [UserRole.teacher, UserRole.secretary]
+    ):
+        raise HTTPException(status_code=404, detail="Staff member not found.")
+    if staff.role == UserRole.secretary and current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Only the director can manage secretary accounts.")
+    return staff
+
+
+async def _revoke_user_access(db: AsyncSession, user: User, *, school_id: str, issue_code: bool) -> None:
+    """Invalidate a user's password and every session; optionally issue a 72h access code."""
+    user.password_hash = None
+    user.token_version = (user.token_version or 0) + 1
+    if issue_code:
+        user.invite_code = generate_invite_code()
+        user.invite_expires_at = datetime.now(timezone.utc) + timedelta(hours=72)
+        user.deactivated_at = None
+    else:
+        user.invite_code = None
+        user.invite_expires_at = None
+    await db.execute(
+        delete(RefreshToken).where(
+            RefreshToken.school_id == school_id,
+            RefreshToken.user_id == user.id,
+        )
+    )
+
+
 @router.post("/staff/{user_id}/reset-access", response_model=UserSimpleOut)
 async def reset_staff_access(
     user_id: str,
@@ -202,33 +241,46 @@ async def reset_staff_access(
     The current password stops working and every session is signed out until
     the code is redeemed on the activation page.
     """
-    if current_user.role not in [UserRole.principal, UserRole.secretary]:
-        raise HTTPException(status_code=403, detail="Only school administration can reset staff access.")
-    if not current_user.school_id:
-        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+    staff = await _get_manageable_staff(user_id, current_user, db)
 
-    staff = await db.get(User, user_id)
-    if (
-        not staff
-        or staff.school_id != current_user.school_id
-        or staff.role not in [UserRole.teacher, UserRole.secretary]
-    ):
-        raise HTTPException(status_code=404, detail="Staff member not found.")
-    if staff.role == UserRole.secretary and current_user.role != UserRole.principal:
-        raise HTTPException(status_code=403, detail="Only the director can reset secretary accounts.")
-
-    staff.password_hash = None
-    staff.invite_code = generate_invite_code()
-    staff.invite_expires_at = datetime.now(timezone.utc) + timedelta(hours=72)
-    await db.execute(
-        delete(RefreshToken).where(
-            RefreshToken.school_id == current_user.school_id,
-            RefreshToken.user_id == staff.id,
-        )
-    )
+    reactivated = staff.deactivated_at is not None
+    await _revoke_user_access(db, staff, school_id=current_user.school_id, issue_code=True)
     await record_audit_event(
         db,
         action="staff.access_reset",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="user",
+        resource_id=staff.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"role": staff.role.value, "sessions_revoked": True, "reactivated": reactivated},
+    )
+    await db.commit()
+    await db.refresh(staff)
+    return staff
+
+
+@router.post("/staff/{user_id}/deactivate", response_model=UserSimpleOut)
+async def deactivate_staff(
+    user_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Block a teacher or secretary who left the school.
+
+    Login stops working at once, every session (including open WebSockets) is
+    revoked and no activation code remains. "Reset access" reactivates them.
+    """
+    staff = await _get_manageable_staff(user_id, current_user, db)
+    if staff.id == current_user.id:
+        raise HTTPException(status_code=400, detail="You cannot deactivate your own account.")
+    await _revoke_user_access(db, staff, school_id=current_user.school_id, issue_code=False)
+    staff.deactivated_at = datetime.now(timezone.utc)
+    await record_audit_event(
+        db,
+        action="staff.deactivated",
         actor=current_user,
         school_id=current_user.school_id,
         resource_type="user",
@@ -240,6 +292,40 @@ async def reset_staff_access(
     await db.commit()
     await db.refresh(staff)
     return staff
+
+
+@router.post("/parents/{parent_id}/reset-access", response_model=UserSimpleOut)
+async def reset_parent_access(
+    parent_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Issue a new access code for a parent who lost their password."""
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Only school administration can reset parent access.")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+
+    parent = await db.get(User, parent_id)
+    if not parent or parent.role != UserRole.parent or parent.school_id != current_user.school_id:
+        raise HTTPException(status_code=404, detail="Parent not found.")
+
+    await _revoke_user_access(db, parent, school_id=current_user.school_id, issue_code=True)
+    await record_audit_event(
+        db,
+        action="parent.access_reset",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="user",
+        resource_id=parent.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"sessions_revoked": True},
+    )
+    await db.commit()
+    await db.refresh(parent)
+    return parent
 
 
 @router.get("/staff", response_model=list[UserSimpleOut])
