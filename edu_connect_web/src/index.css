@@ -4177,3 +4177,89 @@ body {
   gap: 0.5rem;
   margin-top: 0.5rem;
 }
+
+/* Announcements & calendar */
+.announcements-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.announcement-date-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.announcement-audience {
+  border: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.announcement-calendar {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.announcement-calendar li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.announcement-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.announcement-item {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.announcement-item--unread {
+  border-color: var(--primary);
+}
+
+.announcement-item-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.announcement-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.announcement-body {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.announcement-badge--announcement { background: rgba(20, 184, 166, 0.15); color: #2DD4BF; }
+.announcement-badge--holiday { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+.announcement-badge--exam_period { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
+.announcement-badge--meeting { background: rgba(99, 102, 241, 0.15); color: #A5B4FC; }
+.announcement-badge--event { background: rgba(236, 72, 153, 0.15); color: #F9A8D4; }
+

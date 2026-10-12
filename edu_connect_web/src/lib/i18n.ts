@@ -119,6 +119,166 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'آخر أجل',
     en: 'Due date',
   },
+  'nav.announcements': {
+    fr: 'Annonces et calendrier',
+    ar: 'الإعلانات والتقويم',
+    en: 'Announcements & calendar',
+  },
+  'director.tab.announcements': {
+    fr: 'Annonces',
+    ar: 'الإعلانات',
+    en: 'Announcements',
+  },
+  'announcements.tab': {
+    fr: 'Annonces',
+    ar: 'الإعلانات',
+    en: 'Announcements',
+  },
+  'announcements.newTitle': {
+    fr: 'Nouvelle annonce',
+    ar: 'إعلان جديد',
+    en: 'New announcement',
+  },
+  'announcements.title': {
+    fr: 'Titre',
+    ar: 'العنوان',
+    en: 'Title',
+  },
+  'announcements.body': {
+    fr: 'Message',
+    ar: 'الرسالة',
+    en: 'Message',
+  },
+  'announcements.category': {
+    fr: 'Type',
+    ar: 'النوع',
+    en: 'Type',
+  },
+  'announcements.category.announcement': {
+    fr: 'Annonce',
+    ar: 'إعلان',
+    en: 'Announcement',
+  },
+  'announcements.category.holiday': {
+    fr: 'Vacances',
+    ar: 'عطلة',
+    en: 'Holiday',
+  },
+  'announcements.category.exam_period': {
+    fr: 'Examens',
+    ar: 'امتحانات',
+    en: 'Exams',
+  },
+  'announcements.category.meeting': {
+    fr: 'Réunion',
+    ar: 'اجتماع',
+    en: 'Meeting',
+  },
+  'announcements.category.event': {
+    fr: 'Événement',
+    ar: 'حدث',
+    en: 'Event',
+  },
+  'announcements.startsOn': {
+    fr: 'Date',
+    ar: 'التاريخ',
+    en: 'Date',
+  },
+  'announcements.startsOnOptional': {
+    fr: 'Date (optionnelle)',
+    ar: 'التاريخ (اختياري)',
+    en: 'Date (optional)',
+  },
+  'announcements.endsOn': {
+    fr: 'Jusqu\'au (optionnel)',
+    ar: 'إلى غاية (اختياري)',
+    en: 'Until (optional)',
+  },
+  'announcements.audience': {
+    fr: 'Destinataires',
+    ar: 'المستلمون',
+    en: 'Recipients',
+  },
+  'announcements.wholeSchool': {
+    fr: 'Toute l\'école',
+    ar: 'كل المؤسسة',
+    en: 'Whole school',
+  },
+  'announcements.otherClass': {
+    fr: 'Classe',
+    ar: 'قسم',
+    en: 'Class',
+  },
+  'announcements.noClasses': {
+    fr: 'Aucune classe disponible.',
+    ar: 'لا يوجد قسم متاح.',
+    en: 'No class available.',
+  },
+  'announcements.publish': {
+    fr: 'Publier et notifier',
+    ar: 'نشر وإشعار',
+    en: 'Publish and notify',
+  },
+  'announcements.publishFailed': {
+    fr: 'Impossible de publier l\'annonce.',
+    ar: 'تعذر نشر الإعلان.',
+    en: 'Could not publish the announcement.',
+  },
+  'announcements.dateRequired': {
+    fr: 'Choisissez une date pour un événement du calendrier.',
+    ar: 'اختر تاريخا لحدث التقويم.',
+    en: 'Choose a date for a calendar event.',
+  },
+  'announcements.audienceRequired': {
+    fr: 'Choisissez au moins une classe ou toute l\'école.',
+    ar: 'اختر قسما واحدا على الأقل أو كل المؤسسة.',
+    en: 'Choose at least one class or the whole school.',
+  },
+  'announcements.calendarTitle': {
+    fr: 'À venir',
+    ar: 'القادم',
+    en: 'Coming up',
+  },
+  'announcements.calendarEmpty': {
+    fr: 'Aucun événement à venir.',
+    ar: 'لا توجد أحداث قادمة.',
+    en: 'No upcoming events.',
+  },
+  'announcements.listTitle': {
+    fr: 'Annonces',
+    ar: 'الإعلانات',
+    en: 'Announcements',
+  },
+  'announcements.empty': {
+    fr: 'Aucune annonce pour le moment.',
+    ar: 'لا توجد إعلانات حاليا.',
+    en: 'No announcements yet.',
+  },
+  'announcements.new': {
+    fr: 'Nouveau',
+    ar: 'جديد',
+    en: 'New',
+  },
+  'announcements.by': {
+    fr: 'Par {name}',
+    ar: 'بواسطة {name}',
+    en: 'By {name}',
+  },
+  'announcements.readBy': {
+    fr: 'Lu par {read}/{total}',
+    ar: 'قرأه {read}/{total}',
+    en: 'Read by {read}/{total}',
+  },
+  'announcements.dateRange': {
+    fr: 'Du {start} au {end}',
+    ar: 'من {start} إلى {end}',
+    en: 'From {start} to {end}',
+  },
+  'announcements.deleteConfirm': {
+    fr: 'Supprimer cette annonce pour tous les destinataires ?',
+    ar: 'حذف هذا الإعلان لجميع المستلمين؟',
+    en: 'Delete this announcement for all recipients?',
+  },
   'common.reload': {
     fr: 'Recharger',
     ar: 'إعادة التحميل',

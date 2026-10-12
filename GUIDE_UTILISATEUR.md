@@ -62,3 +62,11 @@ Incroyablement intuitif : le compte d'un parent prend vie pile au moment où il 
 
 ### Changer son mot de passe
 Tout utilisateur connecté peut changer son mot de passe : sur le web, bouton clé en bas de la barre latérale ; sur mobile, **Profil → Changer le mot de passe**. Le mot de passe actuel est demandé, et tous les autres appareils sont déconnectés.
+
+### Annonces et calendrier
+- **Publier** : la direction et le secrétariat publient pour toute l'école ou pour des classes choisies ; un enseignant publie pour ses propres classes. Types : annonce, vacances, examens, réunion, événement (tous sauf « annonce » demandent une date, éventuellement une date de fin).
+- **Recevoir** : les parents et enseignants concernés reçoivent une notification. Les parents voient les annonces de toute l'école et celles des classes de leurs enfants.
+- **Calendrier** : la rubrique « À venir » rassemble les vacances, examens, réunions et événements datés.
+- **Suivi de lecture** : l'auteur et la direction voient « Lu par X/Y ». L'auteur ou la direction peut supprimer une annonce.
+- **Où** : web — onglet « Annonces » (direction, enseignant, parent) ; mobile — menu « Annonces et calendrier ».
+

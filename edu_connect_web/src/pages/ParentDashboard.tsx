@@ -6,11 +6,13 @@ import {
   CalendarCheck,
   ClipboardList,
   HeartHandshake,
+  Megaphone,
   MessageSquare,
   NotebookText,
   RefreshCw,
 } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import AnnouncementsPanel from '../components/AnnouncementsPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
@@ -178,7 +180,7 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
 export default function ParentDashboard() {
   const { t, locale } = useLocale();
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
-  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'message'>('grades');
+  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'announcements' | 'message'>('grades');
   const [scheduleSubView, setScheduleSubView] = useState<'weekly' | 'exams'>('weekly');
 
   const childrenQuery = useQuery<Student[]>({
@@ -419,9 +421,17 @@ export default function ParentDashboard() {
               >
                 <MessageSquare size={14} /> {t('parent.tabMessage')}
               </button>
+              <button
+                onClick={() => setActiveSubTab('announcements')}
+                className={`tab-button ${activeSubTab === 'announcements' ? 'tab-button--active' : ''}`}
+                role="tab"
+                aria-selected={activeSubTab === 'announcements'}
+              >
+                <Megaphone size={14} /> {t('announcements.tab')}
+              </button>
             </div>
 
-            {!activeChild.classId && activeSubTab !== 'message' && (
+            {!activeChild.classId && activeSubTab !== 'message' && activeSubTab !== 'announcements' && (
               <p className="empty-list-copy">{t('parent.unassignedChildClass')}</p>
             )}
 
@@ -700,6 +710,16 @@ export default function ParentDashboard() {
             )}
 
             {activeSubTab === 'message' && <DirectMessagingPanel scopeKey="parent" />}
+            {activeSubTab === 'announcements' && (
+              <AnnouncementsPanel
+                scopeKey="parent"
+                canCreate={false}
+                allowWholeSchool={false}
+                classes={childContexts
+                  .filter((child) => child.classId)
+                  .map((child) => ({ id: child.classId as string, name: child.className }))}
+              />
+            )}
           </div>
         </>
       )}

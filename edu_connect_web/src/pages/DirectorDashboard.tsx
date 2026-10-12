@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'rea
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import AnnouncementsPanel from '../components/AnnouncementsPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { t as translate, useLocale, type Locale } from '../lib/i18n';
@@ -20,6 +21,7 @@ import {
   UserX,
   Link2Off,
   Loader2,
+  Megaphone,
   MessageSquare,
   Plus,
   QrCode,
@@ -165,7 +167,7 @@ interface ClassCourseAssignment {
 }
 
 type ToastType = 'success' | 'error' | 'warning';
-type DirectorTab = 'overview' | 'students' | 'classes' | 'team' | 'messages';
+type DirectorTab = 'overview' | 'students' | 'classes' | 'team' | 'announcements' | 'messages';
 
 interface Toast {
   id: number;
@@ -194,6 +196,7 @@ const directorTabs: Array<{
   { id: 'students', labelKey: 'director.tab.students', route: '/director/students', icon: Users },
   { id: 'classes', labelKey: 'director.tab.classes', route: '/director/classes', icon: BookOpen },
   { id: 'team', labelKey: 'director.tab.team', route: '/director/team', icon: UserPlus },
+  { id: 'announcements', labelKey: 'director.tab.announcements', route: '/director/announcements', icon: Megaphone },
   { id: 'messages', labelKey: 'director.tab.messages', route: '/director/messages', icon: MessageSquare },
 ];
 
@@ -233,6 +236,7 @@ function tabFromPath(pathname: string): DirectorTab {
   if (pathname.includes('/director/students')) return 'students';
   if (pathname.includes('/director/classes')) return 'classes';
   if (pathname.includes('/director/team')) return 'team';
+  if (pathname.includes('/director/announcements')) return 'announcements';
   if (pathname.includes('/director/messages')) return 'messages';
   return 'overview';
 }
@@ -397,7 +401,7 @@ export default function DirectorDashboard() {
 
   const classesQuery = useQuery<SchoolClass[]>({
     queryKey: ['director-classes'],
-    enabled: activeTab === 'classes',
+    enabled: activeTab === 'classes' || activeTab === 'announcements',
     queryFn: async () => {
       const res = await api.get('/classes/');
       return res.data;
@@ -1830,6 +1834,14 @@ export default function DirectorDashboard() {
       {activeTab === 'students' && renderStudents()}
       {activeTab === 'classes' && renderClasses()}
       {activeTab === 'team' && renderTeam()}
+      {activeTab === 'announcements' && (
+        <AnnouncementsPanel
+          scopeKey="director"
+          canCreate
+          allowWholeSchool
+          classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
+        />
+      )}
       {activeTab === 'messages' && (
         <section className="glass-card dashboard-card-pad">
           <DirectMessagingPanel scopeKey="director" />

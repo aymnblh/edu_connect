@@ -83,6 +83,13 @@ class AppDrawer extends ConsumerWidget {
                     label: l10n.notifications,
                     onTap: () => _go(context, '/notifications', replace: false),
                   ),
+                  if (!user.isSystemAdmin)
+                    _DrawerItem(
+                      icon: Icons.campaign_outlined,
+                      label: text.announcements,
+                      onTap: () =>
+                          _go(context, '/announcements', replace: false),
+                    ),
                   if (user.isAdmin && !user.isSystemAdmin)
                     _DrawerDivider(text.management),
                   if (user.isAdmin && !user.isSystemAdmin) ...[
@@ -438,6 +445,8 @@ class _DrawerText {
         'Direction',
         'Direction',
       );
+  String get announcements =>
+      pick('الإعلانات والتقويم', 'Annonces et calendrier', 'Announcements');
   String get administration => pick(
         '\u0627\u0644\u0625\u0634\u0631\u0627\u0641',
         'Administration',
