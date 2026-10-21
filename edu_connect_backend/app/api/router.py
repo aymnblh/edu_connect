@@ -14,6 +14,8 @@ from app.modules.core.routers import media, security
 from app.modules.announcements.routers import announcements
 from app.modules.reports.routers import report_cards
 from app.modules.meetings.routers import meetings
+from app.modules.health.routers import health
+from app.modules.schools.routers import director_views
 
 api_router = APIRouter()
 
@@ -29,6 +31,8 @@ api_router.include_router(users.router)
 api_router.include_router(admin.router)
 api_router.include_router(platform.router)
 api_router.include_router(system.router)
+api_router.include_router(director_views.router)
+api_router.include_router(health.router)
 
 # Academics
 api_router.include_router(classes.router)

@@ -234,6 +234,7 @@ async def add_grade(
         class_id=class_id,
         school_id=cls.school_id,
         is_approved=False,
+        created_by=current_user.id,
     )
     db.add(grade)
     await db.commit()

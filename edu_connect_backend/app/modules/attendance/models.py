@@ -36,6 +36,7 @@ class Attendance(Base):
     is_justified: Mapped[bool] = mapped_column(Boolean, default=False)
     justification_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     justification_attachment_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    recorded_by: Mapped[str | None] = mapped_column(String(128), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
     cls: Mapped["Class"] = relationship("Class", back_populates="attendances")
     student: Mapped["Student"] = relationship("Student", back_populates="attendances")

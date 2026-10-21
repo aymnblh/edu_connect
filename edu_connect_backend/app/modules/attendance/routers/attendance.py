@@ -49,11 +49,13 @@ async def mark_attendance(
         date=datetime(today.year, today.month, today.day, tzinfo=timezone.utc),
         **payload.model_dump(exclude={"student_name"}),
         student_name=student.full_name,
+        recorded_by=current_user.id,
     )
     if existing_record:
         existing_record.status = payload.status
         existing_record.note = payload.note
         existing_record.student_name = student.full_name
+        existing_record.recorded_by = current_user.id
     else:
         db.add(record)
 
