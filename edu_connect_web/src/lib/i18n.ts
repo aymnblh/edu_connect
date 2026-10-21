@@ -779,6 +779,466 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'لا توجد تسجيلات حضور هذا الفصل.',
     en: 'No attendance recorded this term.',
   },
+  'nav.auditLog': {
+    fr: 'Journal d\'activité',
+    ar: 'سجل النشاط',
+    en: 'Activity log',
+  },
+  'director.tab.journal': {
+    fr: 'Journal',
+    ar: 'السجل',
+    en: 'Log',
+  },
+  'director.signOut': {
+    fr: 'Déconnecter',
+    ar: 'تسجيل الخروج',
+    en: 'Sign out',
+  },
+  'director.signOutConfirm': {
+    fr: 'Déconnecter {name} de tous ses appareils ? Son mot de passe reste valable.',
+    ar: 'تسجيل خروج {name} من كل أجهزته؟ تبقى كلمة المرور صالحة.',
+    en: 'Sign {name} out of every device? Their password still works.',
+  },
+  'director.toast.signedOut': {
+    fr: 'Déconnecté de tous les appareils.',
+    ar: 'تم تسجيل الخروج من كل الأجهزة.',
+    en: 'Signed out of every device.',
+  },
+  'audit.title': {
+    fr: 'Journal d\'activité',
+    ar: 'سجل النشاط',
+    en: 'Activity log',
+  },
+  'audit.copy': {
+    fr: 'Qui a fait quoi et quand : connexions, échecs de connexion, modifications de notes, réinitialisations, publications…',
+    ar: 'من فعل ماذا ومتى: تسجيلات الدخول، المحاولات الفاشلة، تعديل النقاط، إعادة التعيين، النشر…',
+    en: 'Who did what and when: sign-ins, failed sign-ins, grade changes, resets, publications…',
+  },
+  'audit.export': {
+    fr: 'Exporter (CSV)',
+    ar: 'تصدير (CSV)',
+    en: 'Export (CSV)',
+  },
+  'audit.exportFailed': {
+    fr: 'Export impossible.',
+    ar: 'تعذر التصدير.',
+    en: 'Export failed.',
+  },
+  'audit.category': {
+    fr: 'Catégorie',
+    ar: 'الفئة',
+    en: 'Category',
+  },
+  'audit.allCategories': {
+    fr: 'Toutes',
+    ar: 'الكل',
+    en: 'All',
+  },
+  'audit.person': {
+    fr: 'Personne',
+    ar: 'الشخص',
+    en: 'Person',
+  },
+  'audit.everyone': {
+    fr: 'Tout le monde',
+    ar: 'الجميع',
+    en: 'Everyone',
+  },
+  'audit.from': {
+    fr: 'Du',
+    ar: 'من',
+    en: 'From',
+  },
+  'audit.to': {
+    fr: 'Au',
+    ar: 'إلى',
+    en: 'To',
+  },
+  'audit.technical': {
+    fr: 'Afficher aussi les requêtes techniques (http.*)',
+    ar: 'عرض الطلبات التقنية أيضا (http.*)',
+    en: 'Also show technical requests (http.*)',
+  },
+  'audit.empty': {
+    fr: 'Aucune entrée pour ces filtres.',
+    ar: 'لا توجد عناصر لهذه المعايير.',
+    en: 'No entries for these filters.',
+  },
+  'audit.when': {
+    fr: 'Date',
+    ar: 'التاريخ',
+    en: 'When',
+  },
+  'audit.action': {
+    fr: 'Action',
+    ar: 'الإجراء',
+    en: 'Action',
+  },
+  'audit.details': {
+    fr: 'Détails',
+    ar: 'التفاصيل',
+    en: 'Details',
+  },
+  'audit.origin': {
+    fr: 'Origine',
+    ar: 'المصدر',
+    en: 'Origin',
+  },
+  'audit.unknownPerson': {
+    fr: '—',
+    ar: '—',
+    en: '—',
+  },
+  'audit.more': {
+    fr: 'Afficher plus',
+    ar: 'عرض المزيد',
+    en: 'Load more',
+  },
+  'audit.category.auth': {
+    fr: 'Connexions',
+    ar: 'تسجيلات الدخول',
+    en: 'Sign-ins',
+  },
+  'audit.category.user': {
+    fr: 'Comptes (déconnexions)',
+    ar: 'الحسابات (الخروج)',
+    en: 'Accounts (sign-outs)',
+  },
+  'audit.category.staff': {
+    fr: 'Personnel',
+    ar: 'الطاقم',
+    en: 'Staff',
+  },
+  'audit.category.parent': {
+    fr: 'Parents',
+    ar: 'الأولياء',
+    en: 'Parents',
+  },
+  'audit.category.account': {
+    fr: 'Suppressions de compte',
+    ar: 'حذف الحسابات',
+    en: 'Account deletions',
+  },
+  'audit.category.grade': {
+    fr: 'Notes',
+    ar: 'النقاط',
+    en: 'Grades',
+  },
+  'audit.category.attendance': {
+    fr: 'Présences',
+    ar: 'الحضور',
+    en: 'Attendance',
+  },
+  'audit.category.homework': {
+    fr: 'Devoirs',
+    ar: 'الواجبات',
+    en: 'Homework',
+  },
+  'audit.category.lesson': {
+    fr: 'Cahier de textes',
+    ar: 'دفتر النصوص',
+    en: 'Lesson diary',
+  },
+  'audit.category.student': {
+    fr: 'Élèves et liens parents',
+    ar: 'التلاميذ وربط الأولياء',
+    en: 'Students and parent links',
+  },
+  'audit.category.report_cards': {
+    fr: 'Bulletins',
+    ar: 'كشوف النقاط',
+    en: 'Report cards',
+  },
+  'audit.category.announcement': {
+    fr: 'Annonces',
+    ar: 'الإعلانات',
+    en: 'Announcements',
+  },
+  'audit.category.dm': {
+    fr: 'Messagerie',
+    ar: 'المراسلة',
+    en: 'Messaging',
+  },
+  'audit.category.data_export': {
+    fr: 'Exports de données',
+    ar: 'تصدير البيانات',
+    en: 'Data exports',
+  },
+  'audit.category.audit': {
+    fr: 'Exports du journal',
+    ar: 'تصدير السجل',
+    en: 'Log exports',
+  },
+  'audit.category.security': {
+    fr: 'Alertes de sécurité',
+    ar: 'تنبيهات أمنية',
+    en: 'Security alerts',
+  },
+  'audit.action.auth.login_success': {
+    fr: 'Connexion',
+    ar: 'تسجيل الدخول',
+    en: 'Signed in',
+  },
+  'audit.action.auth.login_failed': {
+    fr: 'Échec de connexion',
+    ar: 'فشل تسجيل الدخول',
+    en: 'Failed sign-in',
+  },
+  'audit.action.auth.login_deactivated': {
+    fr: 'Connexion refusée (compte désactivé)',
+    ar: 'دخول مرفوض (حساب معطل)',
+    en: 'Sign-in refused (deactivated)',
+  },
+  'audit.action.auth.logout': {
+    fr: 'Déconnexion',
+    ar: 'تسجيل الخروج',
+    en: 'Signed out',
+  },
+  'audit.action.auth.password_changed': {
+    fr: 'Mot de passe modifié',
+    ar: 'تغيير كلمة المرور',
+    en: 'Password changed',
+  },
+  'audit.action.auth.password_change_failed': {
+    fr: 'Échec de changement de mot de passe',
+    ar: 'فشل تغيير كلمة المرور',
+    en: 'Password change failed',
+  },
+  'audit.action.auth.password_setup_required': {
+    fr: 'Connexion sans mot de passe défini',
+    ar: 'دخول بدون كلمة مرور',
+    en: 'Sign-in without a password set',
+  },
+  'audit.action.auth.session_revoked': {
+    fr: 'Appareil déconnecté',
+    ar: 'فصل جهاز',
+    en: 'Device signed out',
+  },
+  'audit.action.auth.sessions_revoked_all': {
+    fr: 'Autres appareils déconnectés',
+    ar: 'فصل الأجهزة الأخرى',
+    en: 'Other devices signed out',
+  },
+  'audit.action.auth.refresh_failed': {
+    fr: 'Session expirée ou réutilisée',
+    ar: 'جلسة منتهية أو معاد استعمالها',
+    en: 'Expired or reused session',
+  },
+  'audit.action.auth.teacher_completed': {
+    fr: 'Compte enseignant activé',
+    ar: 'تفعيل حساب أستاذ',
+    en: 'Teacher account activated',
+  },
+  'audit.action.auth.secretary_completed': {
+    fr: 'Compte secrétariat activé',
+    ar: 'تفعيل حساب أمانة',
+    en: 'Secretary account activated',
+  },
+  'audit.action.auth.parent_registered': {
+    fr: 'Compte parent créé',
+    ar: 'إنشاء حساب ولي',
+    en: 'Parent account created',
+  },
+  'audit.action.auth.parent_access_restored': {
+    fr: 'Accès parent rétabli',
+    ar: 'استعادة دخول ولي',
+    en: 'Parent access restored',
+  },
+  'audit.action.user.signed_out': {
+    fr: 'Déconnecté par l\'administration',
+    ar: 'تسجيل خروج من الإدارة',
+    en: 'Signed out by administration',
+  },
+  'audit.action.staff.access_reset': {
+    fr: 'Accès du personnel réinitialisé',
+    ar: 'إعادة تعيين دخول موظف',
+    en: 'Staff access reset',
+  },
+  'audit.action.staff.deactivated': {
+    fr: 'Personnel désactivé',
+    ar: 'تعطيل موظف',
+    en: 'Staff deactivated',
+  },
+  'audit.action.parent.access_reset': {
+    fr: 'Accès parent réinitialisé',
+    ar: 'إعادة تعيين دخول ولي',
+    en: 'Parent access reset',
+  },
+  'audit.action.account.deleted': {
+    fr: 'Compte supprimé',
+    ar: 'حذف حساب',
+    en: 'Account deleted',
+  },
+  'audit.action.grade.updated': {
+    fr: 'Note modifiée',
+    ar: 'تعديل نقطة',
+    en: 'Grade changed',
+  },
+  'audit.action.grade.deleted': {
+    fr: 'Note supprimée',
+    ar: 'حذف نقطة',
+    en: 'Grade deleted',
+  },
+  'audit.action.homework.updated': {
+    fr: 'Devoir modifié',
+    ar: 'تعديل واجب',
+    en: 'Homework changed',
+  },
+  'audit.action.homework.deleted': {
+    fr: 'Devoir supprimé',
+    ar: 'حذف واجب',
+    en: 'Homework deleted',
+  },
+  'audit.action.lesson.updated': {
+    fr: 'Séance modifiée',
+    ar: 'تعديل حصة',
+    en: 'Lesson changed',
+  },
+  'audit.action.lesson.deleted': {
+    fr: 'Séance supprimée',
+    ar: 'حذف حصة',
+    en: 'Lesson deleted',
+  },
+  'audit.action.attendance.corrected': {
+    fr: 'Présence corrigée',
+    ar: 'تصحيح الحضور',
+    en: 'Attendance corrected',
+  },
+  'audit.action.student.archived': {
+    fr: 'Élève archivé',
+    ar: 'أرشفة تلميذ',
+    en: 'Student archived',
+  },
+  'audit.action.student.archive_restored': {
+    fr: 'Élève désarchivé',
+    ar: 'استرجاع تلميذ',
+    en: 'Student restored',
+  },
+  'audit.action.student.parent_unlinked': {
+    fr: 'Parent délié',
+    ar: 'فك ربط ولي',
+    en: 'Parent unlinked',
+  },
+  'audit.action.student.link_revoked': {
+    fr: 'Lien parent révoqué',
+    ar: 'إلغاء رابط ولي',
+    en: 'Parent link revoked',
+  },
+  'audit.action.student.link_tokens_generated': {
+    fr: 'QR de liaison généré',
+    ar: 'إنشاء رمز ربط',
+    en: 'Link QR generated',
+  },
+  'audit.action.report_cards.published': {
+    fr: 'Bulletins publiés',
+    ar: 'نشر كشوف النقاط',
+    en: 'Report cards published',
+  },
+  'audit.action.report_cards.unpublished': {
+    fr: 'Bulletins retirés',
+    ar: 'سحب كشوف النقاط',
+    en: 'Report cards unpublished',
+  },
+  'audit.action.announcement.created': {
+    fr: 'Annonce publiée',
+    ar: 'نشر إعلان',
+    en: 'Announcement published',
+  },
+  'audit.action.announcement.deleted': {
+    fr: 'Annonce supprimée',
+    ar: 'حذف إعلان',
+    en: 'Announcement deleted',
+  },
+  'audit.action.data_export.student': {
+    fr: 'Export du dossier élève',
+    ar: 'تصدير ملف تلميذ',
+    en: 'Student record exported',
+  },
+  'audit.action.audit.exported': {
+    fr: 'Journal exporté',
+    ar: 'تصدير السجل',
+    en: 'Log exported',
+  },
+  'audit.action.security.response_spike': {
+    fr: 'Alerte : pic d\'erreurs d\'accès',
+    ar: 'تنبيه: ارتفاع أخطاء الدخول',
+    en: 'Alert: spike of access errors',
+  },
+  'audit.action.dm.user_blocked': {
+    fr: 'Utilisateur bloqué',
+    ar: 'حظر مستخدم',
+    en: 'User blocked',
+  },
+  'audit.action.dm.user_unblocked': {
+    fr: 'Utilisateur débloqué',
+    ar: 'رفع الحظر',
+    en: 'User unblocked',
+  },
+  'audit.action.dm.report_created': {
+    fr: 'Signalement envoyé',
+    ar: 'إرسال بلاغ',
+    en: 'Report sent',
+  },
+  'audit.action.dm.report_reviewed': {
+    fr: 'Signalement traité',
+    ar: 'معالجة بلاغ',
+    en: 'Report reviewed',
+  },
+  'audit.action.dm.bulk_send': {
+    fr: 'Message groupé',
+    ar: 'رسالة جماعية',
+    en: 'Bulk message',
+  },
+  'devices.title': {
+    fr: 'Mes appareils',
+    ar: 'أجهزتي',
+    en: 'My devices',
+  },
+  'devices.copy': {
+    fr: 'Appareils où votre compte est connecté. Déconnectez ceux que vous ne reconnaissez pas, puis changez votre mot de passe.',
+    ar: 'الأجهزة المتصل بها حسابك. افصل ما لا تعرفه ثم غيّر كلمة المرور.',
+    en: 'Devices where your account is signed in. Sign out any you don\'t recognise, then change your password.',
+  },
+  'devices.lastUsed': {
+    fr: 'Dernière activité : {date}',
+    ar: 'آخر نشاط: {date}',
+    en: 'Last active: {date}',
+  },
+  'devices.since': {
+    fr: 'Connecté depuis le {date}',
+    ar: 'متصل منذ {date}',
+    en: 'Signed in since {date}',
+  },
+  'devices.revoke': {
+    fr: 'Déconnecter',
+    ar: 'فصل',
+    en: 'Sign out',
+  },
+  'devices.revokeConfirm': {
+    fr: 'Déconnecter cet appareil ? (S\'il s\'agit de celui-ci, vous devrez vous reconnecter.)',
+    ar: 'فصل هذا الجهاز؟ (إذا كان هذا الجهاز، ستحتاج لإعادة الدخول.)',
+    en: 'Sign out this device? (If it\'s this one, you\'ll need to sign in again.)',
+  },
+  'devices.note': {
+    fr: 'Un appareil déconnecté peut garder l\'accès jusqu\'à 30 minutes ; « déconnecter mes autres appareils » est immédiat.',
+    ar: 'قد يبقى الجهاز المفصول متصلا حتى 30 دقيقة؛ أما «فصل أجهزتي الأخرى» ففوري.',
+    en: 'A signed-out device can keep access for up to 30 minutes; "sign out my other devices" is immediate.',
+  },
+  'devices.revokeOthers': {
+    fr: 'Déconnecter mes autres appareils',
+    ar: 'فصل أجهزتي الأخرى',
+    en: 'Sign out my other devices',
+  },
+  'devices.revokeOthersConfirm': {
+    fr: 'Déconnecter tous vos autres appareils maintenant ? Cet appareil reste connecté.',
+    ar: 'فصل كل أجهزتك الأخرى الآن؟ يبقى هذا الجهاز متصلا.',
+    en: 'Sign out all your other devices now? This device stays signed in.',
+  },
+  'devices.revokedOthers': {
+    fr: 'Vos autres appareils ont été déconnectés.',
+    ar: 'تم فصل أجهزتك الأخرى.',
+    en: 'Your other devices have been signed out.',
+  },
   'common.reload': {
     fr: 'Recharger',
     ar: 'إعادة التحميل',

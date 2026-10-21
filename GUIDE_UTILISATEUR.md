@@ -90,3 +90,8 @@ Dans l'onglet « Vue d'ensemble », sous les indicateurs habituels, pour le trim
 - **Assiduité par classe** sur le trimestre, et les tâches en attente : notes à valider, absences non justifiées.
 - Le « taux d'absence » de la vue d'ensemble ne compte plus les retards.
 
+### Journal d'activité et appareils
+- **Journal (direction / secrétariat, web — onglet « Journal »)** : qui a fait quoi et quand — connexions et échecs de connexion, changements de mot de passe, réinitialisations, désactivations, modifications de notes, corrections de présence, publications de bulletins et d'annonces, exports. Filtres par catégorie, personne et dates ; « Exporter (CSV) ». Les lignes d'échec sont signalées par une barre orange.
+- **Déconnecter quelqu'un** : bouton « Déconnecter » dans la liste de l'équipe et à côté de chaque parent lié. La personne est déconnectée de tous ses appareils immédiatement ; son mot de passe reste valable (pour un mot de passe compromis, utiliser « Réinitialiser l'accès »).
+- **Mes appareils (tout utilisateur)** : web — bouton écran en bas de la barre latérale ; mobile — Profil → « Appareils connectés ». Liste des appareils connectés avec la dernière activité ; déconnecter un appareil, ou « Déconnecter mes autres appareils » (immédiat, cet appareil reste connecté).
+

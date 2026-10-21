@@ -210,6 +210,24 @@ class AuthRepository {
     await _api.delete('/users/me');
   }
 
+  Future<List<dynamic>> listSessions() async {
+    return await _api.get('/auth/sessions') as List<dynamic>;
+  }
+
+  Future<void> revokeSession(String familyId) async {
+    await _api.delete('/auth/sessions/$familyId');
+  }
+
+  /// Signs out every other device; this one continues with fresh tokens.
+  Future<void> revokeOtherSessions() async {
+    final data =
+        await _api.post('/auth/sessions/revoke-others') as Map<String, dynamic>;
+    await _saveTokens(
+      data['access_token'] as String,
+      data['refresh_token'] as String,
+    );
+  }
+
   Future<void> _saveTokens(String access, String refresh) async {
     await _storage.write(key: _accessTokenKey, value: access);
     await _storage.write(key: _refreshTokenKey, value: refresh);

@@ -4463,3 +4463,27 @@ body {
 .insights-table-toggle {
   justify-self: start;
 }
+
+/* Audit log & devices */
+.audit-nowrap {
+  white-space: nowrap;
+}
+
+.audit-details {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  max-width: 340px;
+  overflow-wrap: anywhere;
+}
+
+.audit-row--warning td:first-child {
+  box-shadow: inset 3px 0 0 var(--warning);
+}
+
+.devices-modal {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 560px;
+  width: calc(100% - 32px);
+}
+

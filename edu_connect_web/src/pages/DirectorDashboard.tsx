@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
+import AuditLogPanel from '../components/AuditLogPanel';
 import DirectorInsightsPanel from '../components/DirectorInsightsPanel';
 import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
@@ -20,6 +21,8 @@ import {
   FileUp,
   GraduationCap,
   KeyRound,
+  LogOut,
+  ScrollText,
   UserX,
   Link2Off,
   Loader2,
@@ -170,7 +173,7 @@ interface ClassCourseAssignment {
 }
 
 type ToastType = 'success' | 'error' | 'warning';
-type DirectorTab = 'overview' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'messages';
+type DirectorTab = 'overview' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
 
 interface Toast {
   id: number;
@@ -201,6 +204,7 @@ const directorTabs: Array<{
   { id: 'team', labelKey: 'director.tab.team', route: '/director/team', icon: UserPlus },
   { id: 'reports', labelKey: 'director.tab.reports', route: '/director/report-cards', icon: FileText },
   { id: 'announcements', labelKey: 'director.tab.announcements', route: '/director/announcements', icon: Megaphone },
+  { id: 'journal', labelKey: 'director.tab.journal', route: '/director/audit-log', icon: ScrollText },
   { id: 'messages', labelKey: 'director.tab.messages', route: '/director/messages', icon: MessageSquare },
 ];
 
@@ -242,6 +246,7 @@ function tabFromPath(pathname: string): DirectorTab {
   if (pathname.includes('/director/team')) return 'team';
   if (pathname.includes('/director/report-cards')) return 'reports';
   if (pathname.includes('/director/announcements')) return 'announcements';
+  if (pathname.includes('/director/audit-log')) return 'journal';
   if (pathname.includes('/director/messages')) return 'messages';
   return 'overview';
 }
@@ -424,7 +429,7 @@ export default function DirectorDashboard() {
 
   const staffQuery = useQuery<StaffMember[]>({
     queryKey: ['director-staff'],
-    enabled: activeTab === 'team',
+    enabled: activeTab === 'team' || activeTab === 'journal',
     queryFn: async () => {
       const res = await api.get('/admin/staff');
       return res.data;
@@ -661,6 +666,16 @@ export default function DirectorDashboard() {
     },
     onError: (error) => addToast(getErrorMessage(error), 'error'),
   });
+
+  const signOutMutation = useMutation({
+    mutationFn: async (userId: string) => api.post(`/admin/users/${userId}/sign-out`),
+    onSuccess: () => addToast(t('director.toast.signedOut'), 'success'),
+    onError: (error) => addToast(getErrorMessage(error), 'error'),
+  });
+
+  const signOutUser = (userId: string, name: string) => {
+    if (window.confirm(t('director.signOutConfirm', { name }))) signOutMutation.mutate(userId);
+  };
 
   const deactivateStaff = (member: StaffMember) => {
     if (!window.confirm(t('director.team.deactivateConfirm', { name: member.full_name }))) return;
@@ -1330,6 +1345,16 @@ export default function DirectorDashboard() {
                 <KeyRound size={14} />
                 {t('director.team.resetAccess')}
               </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-compact"
+                aria-label={t('director.signOut')}
+                title={t('director.signOut')}
+                onClick={() => signOutUser(parent.id, parent.full_name)}
+                disabled={signOutMutation.isPending}
+              >
+                <LogOut size={14} />
+              </button>
             </div>
           ))}
           {selectedStudent && !linkedParentsQuery.isLoading && (linkedParentsQuery.data?.length ?? 0) === 0 && (
@@ -1804,6 +1829,16 @@ export default function DirectorDashboard() {
                             <UserX size={14} /> {t('director.team.deactivate')}
                           </button>
                         )}
+                        {!member.deactivated_at && !member.invite_code && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-compact"
+                            onClick={() => signOutUser(member.id, member.full_name)}
+                            disabled={signOutMutation.isPending}
+                          >
+                            <LogOut size={14} /> {t('director.signOut')}
+                          </button>
+                        )}
                       </div>
                     )}
                   </td>
@@ -1844,6 +1879,9 @@ export default function DirectorDashboard() {
         <ReportCardsAdminPanel
           classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
         />
+      )}
+      {activeTab === 'journal' && (
+        <AuditLogPanel people={staffMembers.map((member) => ({ id: member.id, full_name: member.full_name }))} />
       )}
       {activeTab === 'announcements' && (
         <AnnouncementsPanel

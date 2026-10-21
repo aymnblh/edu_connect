@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../providers/auth_provider.dart';
+import 'devices_screen.dart';
 import '../../data/models/user_model.dart';
 import 'package:edu_connect/l10n/app_localizations.dart';
 import '../../../../core/providers/locale_provider.dart';
@@ -92,6 +93,16 @@ class ProfileScreen extends ConsumerWidget {
                                     : text.dashboard,
                                 onTap: () => context.go(
                                   user.isAdmin ? '/dashboard' : '/classes',
+                                ),
+                              ),
+                              const Divider(height: 1),
+                              _ActionRow(
+                                icon: Icons.devices_outlined,
+                                label: text.devices,
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => const DevicesScreen(),
+                                  ),
                                 ),
                               ),
                               const Divider(height: 1),
@@ -607,6 +618,11 @@ class _ProfileText {
       : _fr
           ? 'Arabe'
           : 'Arabic';
+  String get devices => _ar
+      ? 'الأجهزة المتصلة'
+      : _fr
+          ? 'Appareils connectes'
+          : 'Connected devices';
   String get changePassword => _ar
       ? 'تغيير كلمة المرور'
       : _fr

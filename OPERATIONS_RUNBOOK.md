@@ -176,6 +176,19 @@ Suggested alert thresholds:
 - Any refresh-token reuse event
 - Any ClamAV unavailable event when `MEDIA_MALWARE_SCAN_REQUIRED=true`
 
+### Application logs
+
+- Level and format: `LOG_LEVEL` (`DEBUG`, `INFO`, `WARNING`, `ERROR`) and `LOG_FORMAT` (`json` in production by default, `text` for local work). Change them in the environment and restart the API.
+- Every request gets an ID, returned in the `X-Request-ID` response header and written on every log line (`request_id`). When a user reports an error, ask for the time and, if possible, that ID; then search the logs for it.
+- One access line per request (`educonnect.access`): method, path **without query string**, status, duration, user id, client IP. Health checks log at DEBUG only. Uvicorn's own access log is disabled (`--no-access-log`) because it prints full URLs.
+- Passwords, tokens, `Bearer` headers, JWTs, invite codes and PINs are masked (`[REDACTED]`) before any line is written, including exception tracebacks. Never add a log line that prints a request body wholesale.
+
+### Activity (audit) log
+
+- Directors and secretaries see it in the web app (Journal tab), filter by category, person and dates, and export CSV (max 5000 rows; the export is itself logged).
+- It records sign-ins and failures, password changes, device sign-outs, staff/parent resets and deactivations, grade/homework/lesson/attendance changes, report card and announcement publication, data exports and security alerts.
+- Retention follows `AUDIT_RETENTION_DAYS`; purge with `POST /security/audit-events/retention/purge` (system admin).
+
 ## Incident Response
 
 Severity levels:
