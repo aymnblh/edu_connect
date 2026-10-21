@@ -306,6 +306,51 @@ async def deactivate_staff(
     return staff
 
 
+@router.post("/users/{user_id}/sign-out")
+async def sign_out_user(
+    user_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """End every session of a staff member or parent (their password still works)."""
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Only school administration can sign users out.")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Use 'sign out my other devices' for your own account.")
+
+    target = await db.get(User, user_id)
+    if not target or target.school_id != current_user.school_id:
+        raise HTTPException(status_code=404, detail="User not found.")
+    if target.role in [UserRole.teacher, UserRole.secretary]:
+        target = await _get_manageable_staff(user_id, current_user, db)
+    elif target.role != UserRole.parent:
+        raise HTTPException(status_code=403, detail="This account cannot be signed out here.")
+
+    target.token_version = (target.token_version or 0) + 1
+    await db.execute(
+        delete(RefreshToken).where(
+            RefreshToken.school_id == current_user.school_id,
+            RefreshToken.user_id == target.id,
+        )
+    )
+    await record_audit_event(
+        db,
+        action="user.signed_out",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="user",
+        resource_id=target.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"role": target.role.value},
+    )
+    await db.commit()
+    return {"status": "signed_out"}
+
+
 @router.post("/parents/{parent_id}/reset-access", response_model=UserSimpleOut)
 async def reset_parent_access(
     parent_id: str,

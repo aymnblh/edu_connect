@@ -836,26 +836,60 @@ async def change_password(
         raise HTTPException(status_code=400, detail="Le nouveau mot de passe doit etre different de l'actuel.")
 
     current_user.password_hash = get_password_hash(req.new_password)
-    current_user.token_version = (current_user.token_version or 0) + 1
-    await db.execute(delete(RefreshToken).where(RefreshToken.user_id == current_user.id))
+    tokens = await _restart_sessions(db, request, response, current_user, remember_device=req.remember_device)
+    await _audit_auth(db, request, action="auth.password_changed", user=current_user)
+    await db.commit()
+    return tokens
+
+
+async def _restart_sessions(
+    db: AsyncSession,
+    request: Request,
+    response: Response | None,
+    user: User,
+    *,
+    remember_device: bool,
+) -> dict[str, str]:
+    """End every session of ``user`` and open a fresh one for this device.
+
+    Bumping token_version also rejects access tokens already issued elsewhere.
+    """
+    user.token_version = (user.token_version or 0) + 1
+    await db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))
 
     family_id = str(uuid.uuid4())
-    access_token = create_access_token_for_user(current_user)
-    refresh_token = create_refresh_token(current_user.id, family_id)
+    access_token = create_access_token_for_user(user)
+    refresh_token = create_refresh_token(user.id, family_id)
     db.add(RefreshToken(
-        school_id=current_user.school_id,
-        user_id=current_user.id,
+        school_id=user.school_id,
+        user_id=user.id,
         token_hash=hashlib.sha256(refresh_token.encode()).hexdigest(),
         family_id=family_id,
         **_session_metadata(request),
         last_used_at=datetime.now(timezone.utc),
         expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days),
     ))
-    await _audit_auth(db, request, action="auth.password_changed", user=current_user)
-    await db.commit()
-
-    if req.remember_device:
+    if remember_device:
         _set_refresh_cookie(response, refresh_token, persistent=True)
     else:
         _clear_refresh_cookie(response)
     return {"access_token": access_token, "refresh_token": refresh_token}
+
+
+class RevokeOthersRequest(BaseModel):
+    remember_device: bool = False
+
+
+@router.post("/sessions/revoke-others", response_model=TokenResponse)
+async def revoke_other_sessions(
+    request: Request,
+    response: Response,
+    req: RevokeOthersRequest = Body(default_factory=RevokeOthersRequest),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Sign out every other device; this device continues with new tokens."""
+    tokens = await _restart_sessions(db, request, response, current_user, remember_device=req.remember_device)
+    await _audit_auth(db, request, action="auth.sessions_revoked_all", user=current_user)
+    await db.commit()
+    return tokens

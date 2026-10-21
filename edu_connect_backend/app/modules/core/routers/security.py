@@ -1,6 +1,9 @@
+import csv
+import io
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,6 +41,7 @@ class AuditEventOut(BaseModel):
     user_agent: str | None = None
     event_metadata: dict | None = None
     created_at: datetime
+    actor_name: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -47,22 +51,23 @@ class AuditRetentionPurgeOut(BaseModel):
     cutoff: datetime
 
 
-@router.get("/audit-events", response_model=list[AuditEventOut])
-async def list_audit_events(
-    actor_id: str | None = None,
-    action: str | None = None,
-    resource_type: str | None = None,
-    resource_id: str | None = None,
-    date_from: datetime | None = None,
-    date_to: datetime | None = None,
-    limit: int = Query(100, ge=1, le=500),
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+def _audit_query(
+    current_user: User,
+    *,
+    actor_id: str | None,
+    action: str | None,
+    category: str | None,
+    include_http: bool,
+    resource_type: str | None,
+    resource_id: str | None,
+    date_from: datetime | None,
+    date_to: datetime | None,
 ):
+    """Filtered audit events (with the actor's name), scoped to the admin's school."""
     if current_user.role not in {UserRole.system_admin, UserRole.principal, UserRole.secretary}:
         raise HTTPException(status_code=403, detail="Only administrators can view audit events.")
 
-    stmt = select(AuditEvent)
+    stmt = select(AuditEvent, User.full_name).outerjoin(User, User.id == AuditEvent.actor_id)
     if current_user.role != UserRole.system_admin:
         if not current_user.school_id:
             raise HTTPException(status_code=400, detail="User is not assigned to a school.")
@@ -72,6 +77,11 @@ async def list_audit_events(
         stmt = stmt.where(AuditEvent.actor_id == actor_id)
     if action:
         stmt = stmt.where(AuditEvent.action == action)
+    if category:
+        # "auth" matches auth.login_success, auth.logout, ...
+        stmt = stmt.where(AuditEvent.action.like(f"{category.strip('.')}.%"))
+    if not include_http:
+        stmt = stmt.where(AuditEvent.action.not_like("http.%"))
     if resource_type:
         stmt = stmt.where(AuditEvent.resource_type == resource_type)
     if resource_id:
@@ -80,9 +90,110 @@ async def list_audit_events(
         stmt = stmt.where(AuditEvent.created_at >= date_from)
     if date_to:
         stmt = stmt.where(AuditEvent.created_at <= date_to)
+    return stmt.order_by(AuditEvent.created_at.desc())
 
-    result = await db.execute(stmt.order_by(AuditEvent.created_at.desc()).limit(limit))
-    return result.scalars().all()
+
+def _with_name(event: AuditEvent, actor_name: str | None) -> AuditEventOut:
+    out = AuditEventOut.model_validate(event)
+    out.actor_name = actor_name
+    return out
+
+
+@router.get("/audit-events", response_model=list[AuditEventOut])
+async def list_audit_events(
+    actor_id: str | None = None,
+    action: str | None = None,
+    category: str | None = Query(None, max_length=40, pattern=r"^[a-z_]+\.?$"),
+    include_http: bool = True,
+    resource_type: str | None = None,
+    resource_id: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0, le=100_000),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = _audit_query(
+        current_user,
+        actor_id=actor_id,
+        action=action,
+        category=category,
+        include_http=include_http,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    rows = (await db.execute(stmt.offset(offset).limit(limit))).all()
+    return [_with_name(event, name) for event, name in rows]
+
+
+EXPORT_MAX_ROWS = 5000
+
+
+@router.get("/audit-events/export")
+async def export_audit_events(
+    request: Request,
+    actor_id: str | None = None,
+    action: str | None = None,
+    category: str | None = Query(None, max_length=40, pattern=r"^[a-z_]+\.?$"),
+    include_http: bool = True,
+    resource_type: str | None = None,
+    resource_id: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """CSV of the filtered audit log (newest first, at most 5000 rows). The export is itself audited."""
+    stmt = _audit_query(
+        current_user,
+        actor_id=actor_id,
+        action=action,
+        category=category,
+        include_http=include_http,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    rows = (await db.execute(stmt.limit(EXPORT_MAX_ROWS))).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=";")
+    writer.writerow(["date_utc", "person", "role", "action", "resource", "resource_id", "status", "ip", "device", "details"])
+    for event, name in rows:
+        writer.writerow([
+            _dt(event.created_at),
+            name or "",
+            event.actor_role or "",
+            event.action,
+            event.resource_type or "",
+            event.resource_id or "",
+            event.status_code or "",
+            event.ip_address or "",
+            event.device_platform or "",
+            "; ".join(f"{key}={value}" for key, value in (event.event_metadata or {}).items()),
+        ])
+
+    await record_audit_event(
+        db,
+        action="audit.exported",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="audit",
+        method=request.method,
+        path=request.url.path,
+        metadata={"rows": len(rows), "category": category, "actor_id": actor_id},
+    )
+    await db.commit()
+    filename = f"journal_audit_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue().encode("utf-8-sig")]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 @router.post("/audit-events/retention/purge", response_model=AuditRetentionPurgeOut)

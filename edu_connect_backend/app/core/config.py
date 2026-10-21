@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
 
     app_env: str = "development"
+    # Logging: LOG_LEVEL (DEBUG/INFO/WARNING/ERROR) and LOG_FORMAT (json/text; json in production).
+    log_level: str = "INFO"
+    log_format: str = ""
     database_url: str
     redis_url: str = "redis://localhost:6379/0"
     private_key_path: str = "secrets/private_key.pem"
@@ -64,6 +67,12 @@ class Settings(BaseSettings):
         if value.startswith("postgresql://"):
             return value.replace("postgresql://", "postgresql+asyncpg://", 1)
         return value
+
+    @property
+    def resolved_log_format(self) -> str:
+        if self.log_format.lower() in {"json", "text"}:
+            return self.log_format.lower()
+        return "json" if self.is_production else "text"
 
     @property
     def is_production(self) -> bool:

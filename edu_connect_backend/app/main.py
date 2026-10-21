@@ -1,4 +1,4 @@
-﻿from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager
 
 import secrets
 
@@ -17,7 +17,10 @@ from app.core.middleware import (
     SecurityHeadersMiddleware,
 )
 from app.core.observability import ObservabilityMiddleware, metrics
+from app.core.logging_config import RequestLoggingMiddleware, configure_logging
 from app.ws_manager import manager
+
+configure_logging(settings.log_level, settings.resolved_log_format)
 
 
 @asynccontextmanager
@@ -67,9 +70,13 @@ app.add_middleware(
         "X-Device-Id",
         "X-Device-Platform",
         "X-Workspace-Role",
+        "X-Request-ID",
     ],
+    expose_headers=["X-Request-ID"],
 )
 app.add_middleware(ObservabilityMiddleware)
+# Outermost: request ID + access log for every request, including rejected ones.
+app.add_middleware(RequestLoggingMiddleware)
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────
