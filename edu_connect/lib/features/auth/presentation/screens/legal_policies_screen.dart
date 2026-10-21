@@ -9,7 +9,7 @@ class LegalPoliciesScreen extends StatelessWidget {
 
   static const _contactEmail = 'privacy@waseledu.dz';
   static const _policyUrl = 'https://app.educonnect.dz/policies';
-  static final _updatedAt = DateTime(2026, 10, 5);
+  static final _updatedAt = DateTime(2026, 10, 21);
 
   @override
   Widget build(BuildContext context) {
@@ -357,10 +357,10 @@ class _LegalText {
                 : 'The platform may process identities, roles, emails, classes, parent-student links, attendance, grades, homework, remarks, messages, notifications, subscriptions, security logs, and technical identifiers strictly needed for school service.';
       case 'minors':
         return _ar
-            ? 'تقتصر بيانات الطلاب القاصرين على الأغراض المدرسية. لا تُباع هذه البيانات ولا تُستخدم للإعلانات السلوكية أو التنميط التجاري.'
+            ? 'تقتصر بيانات الطلاب القاصرين على الأغراض المدرسية. لا تُباع هذه البيانات ولا تُستخدم للإعلانات السلوكية أو التنميط التجاري. الصحة والطوارئ (معطيات حساسة واختيارية): جهات الاتصال في الطوارئ، الحساسية، الأمراض، العلاج، فصيلة الدم، الطبيب والتعليمات، فقط بموافقة صريحة من الولي. الاطلاع مقتصر على الإدارة والأمانة وأولياء التلميذ؛ لا يرى أساتذة القسم سوى تنبيه قصير. يُسجَّل كل اطلاع من الموظفين. يمكن للولي سحب موافقته في أي وقت، فتُمحى البطاقة.'
             : _fr
-                ? 'Les données des élèves mineurs sont limitées aux finalités scolaires. Elles ne sont pas revendues, ni utilisées pour de la publicité comportementale ou du profilage commercial.'
-                : 'Data about minor students is limited to school purposes. It is not resold and is not used for behavioral advertising or commercial profiling.';
+                ? 'Les données des élèves mineurs sont limitées aux finalités scolaires. Elles ne sont pas revendues, ni utilisées pour de la publicité comportementale ou du profilage commercial. Santé et urgence (donnée sensible, facultative) : contacts d\'urgence, allergies, maladies, traitement, groupe sanguin, médecin et consignes, uniquement avec le consentement explicite du parent. Accès réservé à la direction, au secrétariat et aux parents de l\'élève ; les enseignants de la classe ne voient qu\'une alerte courte. Chaque consultation par le personnel est enregistrée. Le parent peut retirer son consentement à tout moment : la fiche est alors effacée.'
+                : 'Data about minor students is limited to school purposes. It is not resold and is not used for behavioral advertising or commercial profiling. Health and emergency (sensitive, optional): emergency contacts, allergies, conditions, treatment, blood group, doctor and instructions, only with the parent\'s explicit consent. Access is limited to the school administration and the student\'s parents; the class\'s teachers only see a short alert. Every staff view is logged. The parent can withdraw consent at any time, which erases the record.';
       case 'security':
         return _ar
             ? 'يستخدم Wasel Edu تشفير TLS وكلمات مرور مجزأة ورموز جلسة وعزلا حسب المؤسسة وضوابط أدوار وسجلات تدقيق. يجب استضافة بيانات الإنتاج في بيئة مضبوطة داخل الجزائر، إلا إذا وُجد أساس قانوني أو ترخيص قابل للتطبيق.'

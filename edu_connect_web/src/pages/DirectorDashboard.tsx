@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
 import AuditLogPanel from '../components/AuditLogPanel';
+import { StudentFileModal, TeacherHistoryModal } from '../components/DirectorRecordsPanels';
 import DirectorInsightsPanel from '../components/DirectorInsightsPanel';
 import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
@@ -22,6 +23,8 @@ import {
   GraduationCap,
   KeyRound,
   LogOut,
+  FolderOpen,
+  History,
   ScrollText,
   UserX,
   Link2Off,
@@ -666,6 +669,9 @@ export default function DirectorDashboard() {
     },
     onError: (error) => addToast(getErrorMessage(error), 'error'),
   });
+
+  const [fileStudentId, setFileStudentId] = useState<string | null>(null);
+  const [historyTeacherId, setHistoryTeacherId] = useState<string | null>(null);
 
   const signOutMutation = useMutation({
     mutationFn: async (userId: string) => api.post(`/admin/users/${userId}/sign-out`),
@@ -1319,6 +1325,15 @@ export default function DirectorDashboard() {
 
         <button
           type="button"
+          className="btn btn-secondary btn-full"
+          disabled={!selectedStudent}
+          onClick={() => selectedStudent && setFileStudentId(selectedStudent.id)}
+        >
+          <FolderOpen size={16} /> {t('records.openFile')}
+        </button>
+
+        <button
+          type="button"
           className="btn btn-primary btn-full"
           disabled={!selectedStudent || Boolean(selectedStudent?.archived_at) || generateTokenMutation.isPending}
           onClick={() => selectedStudent && generateTokenMutation.mutate({ student: selectedStudent, label: linkLabel })}
@@ -1810,6 +1825,15 @@ export default function DirectorDashboard() {
                   <td>
                     {(member.role === 'teacher' || (member.role === 'secretary' && currentUserRole === 'principal')) && (
                       <div className="table-actions">
+                        {member.role === 'teacher' && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-compact"
+                            onClick={() => setHistoryTeacherId(member.id)}
+                          >
+                            <History size={14} /> {t('records.history')}
+                          </button>
+                        )}
                         <button
                           type="button"
                           className="btn btn-secondary btn-compact"
@@ -1880,6 +1904,8 @@ export default function DirectorDashboard() {
           classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
         />
       )}
+      {fileStudentId && <StudentFileModal studentId={fileStudentId} onClose={() => setFileStudentId(null)} />}
+      {historyTeacherId && <TeacherHistoryModal teacherId={historyTeacherId} onClose={() => setHistoryTeacherId(null)} />}
       {activeTab === 'journal' && (
         <AuditLogPanel people={staffMembers.map((member) => ({ id: member.id, full_name: member.full_name }))} />
       )}

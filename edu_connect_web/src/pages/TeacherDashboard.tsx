@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
 import { TeacherMeetingsPanel } from '../components/MeetingsPanel';
+import { ClassHealthAlerts } from '../components/DirectorRecordsPanels';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
@@ -750,6 +751,7 @@ export default function TeacherDashboard() {
           <p className="empty-list-copy">{t('teacher.emptyClasses')}</p>
         )}
 
+        {!isLoading && selectedClass && activeTab === 'classes' && <ClassHealthAlerts classId={selectedClass.id} />}
         {!isLoading && selectedClass && activeTab === 'classes' && (
           <div className="animate-fade-in dashboard-split" role="tabpanel">
             <div className="dashboard-side">

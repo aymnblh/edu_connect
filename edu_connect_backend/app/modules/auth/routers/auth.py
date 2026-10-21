@@ -39,7 +39,7 @@ ACCESS_CODE_ROLES = [UserRole.teacher, UserRole.secretary, UserRole.parent]
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-TERMS_VERSION = "privacy-terms-2026-10-05"
+TERMS_VERSION = "privacy-terms-2026-10-21"
 
 def require_terms_accepted(accepted: bool):
     if not accepted:

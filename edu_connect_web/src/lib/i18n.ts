@@ -1239,6 +1239,316 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'تم فصل أجهزتك الأخرى.',
     en: 'Your other devices have been signed out.',
   },
+  'records.openFile': {
+    fr: 'Dossier complet de l\'élève',
+    ar: 'الملف الكامل للتلميذ',
+    en: 'Full student file',
+  },
+  'records.studentFile': {
+    fr: 'Dossier de l\'élève',
+    ar: 'ملف التلميذ',
+    en: 'Student file',
+  },
+  'records.identity': {
+    fr: 'Identité et famille',
+    ar: 'الهوية والعائلة',
+    en: 'Identity and family',
+  },
+  'records.studentNumber': {
+    fr: 'Matricule',
+    ar: 'رقم التسجيل',
+    en: 'Student no.',
+  },
+  'records.classes': {
+    fr: 'Classes',
+    ar: 'الأقسام',
+    en: 'Classes',
+  },
+  'records.archived': {
+    fr: 'Archivé',
+    ar: 'مؤرشف',
+    en: 'Archived',
+  },
+  'records.parents': {
+    fr: 'Parents et responsables',
+    ar: 'الأولياء',
+    en: 'Parents',
+  },
+  'records.results': {
+    fr: 'Résultats — {term}',
+    ar: 'النتائج — {term}',
+    en: 'Results — {term}',
+  },
+  'records.allTime': {
+    fr: 'depuis l\'inscription',
+    ar: 'منذ التسجيل',
+    en: 'since enrolment',
+  },
+  'records.averageIn': {
+    fr: 'moyenne en {name}',
+    ar: 'المعدل في {name}',
+    en: 'average in {name}',
+  },
+  'records.absences': {
+    fr: 'absences ({justified} justifiées, {lates} retards)',
+    ar: 'غياب ({justified} مبرر، {lates} تأخر)',
+    en: 'absences ({justified} justified, {lates} late)',
+  },
+  'records.remarks': {
+    fr: 'Remarques récentes',
+    ar: 'الملاحظات الأخيرة',
+    en: 'Recent remarks',
+  },
+  'records.none': {
+    fr: 'Rien pour le moment.',
+    ar: 'لا شيء حاليا.',
+    en: 'Nothing yet.',
+  },
+  'records.history': {
+    fr: 'Historique',
+    ar: 'السجل',
+    en: 'History',
+  },
+  'records.teacherHistory': {
+    fr: 'Historique de l\'enseignant',
+    ar: 'سجل الأستاذ',
+    en: 'Teacher history',
+  },
+  'records.lastSignIn': {
+    fr: 'Dernière connexion : {date}',
+    ar: 'آخر دخول: {date}',
+    en: 'Last sign-in: {date}',
+  },
+  'records.assignments': {
+    fr: 'Classes et matières',
+    ar: 'الأقسام والمواد',
+    en: 'Classes and subjects',
+  },
+  'records.lastDays': {
+    fr: '{days} derniers jours',
+    ar: 'آخر {days} يوما',
+    en: 'Last {days} days',
+  },
+  'records.stat.grades_entered': {
+    fr: 'notes saisies',
+    ar: 'نقطة مدخلة',
+    en: 'grades entered',
+  },
+  'records.stat.grades_pending_approval': {
+    fr: 'notes en attente de validation',
+    ar: 'نقطة بانتظار المصادقة',
+    en: 'grades awaiting approval',
+  },
+  'records.stat.attendance_records': {
+    fr: 'pointages de présence',
+    ar: 'تسجيل حضور',
+    en: 'attendance records',
+  },
+  'records.stat.homework_posted': {
+    fr: 'devoirs publiés',
+    ar: 'واجب منشور',
+    en: 'homework posted',
+  },
+  'records.stat.lessons_logged': {
+    fr: 'séances au cahier de textes',
+    ar: 'حصة في دفتر النصوص',
+    en: 'lessons logged',
+  },
+  'records.stat.corrections': {
+    fr: 'corrections (notes, présences…)',
+    ar: 'تصحيح (نقاط، حضور…)',
+    en: 'corrections (grades, attendance…)',
+  },
+  'records.stat.failed_sign_ins': {
+    fr: 'échecs de connexion',
+    ar: 'محاولة دخول فاشلة',
+    en: 'failed sign-ins',
+  },
+  'records.historyNote': {
+    fr: 'Les notes et présences saisies avant cette mise à jour ne sont pas attribuées.',
+    ar: 'النقاط والحضور المسجلة قبل هذا التحديث غير منسوبة.',
+    en: 'Grades and attendance entered before this update are not attributed.',
+  },
+  'records.recentActivity': {
+    fr: 'Activité récente',
+    ar: 'النشاط الأخير',
+    en: 'Recent activity',
+  },
+  'health.tab': {
+    fr: 'Santé',
+    ar: 'الصحة',
+    en: 'Health',
+  },
+  'health.title': {
+    fr: 'Fiche santé et urgence',
+    ar: 'البطاقة الصحية والطوارئ',
+    en: 'Health and emergency sheet',
+  },
+  'health.parentIntro': {
+    fr: 'Ces informations aident l\'école à réagir en cas d\'urgence. Elles ne sont visibles que par la direction et vous ; les enseignants voient seulement l\'alerte courte. Ne renseignez que le nécessaire.',
+    ar: 'تساعد هذه المعلومات المؤسسة على التصرف في حالة الطوارئ. لا يراها إلا الإدارة وأنتم؛ يرى الأساتذة التنبيه القصير فقط. أدخلوا الضروري فقط.',
+    en: 'This helps the school act in an emergency. Only the administration and you can see it; teachers only see the short alert. Enter only what is needed.',
+  },
+  'health.schoolIntro': {
+    fr: 'Visible par la direction, le secrétariat et les parents. Chaque consultation est enregistrée dans le journal.',
+    ar: 'مرئية للإدارة والأمانة والأولياء. يتم تسجيل كل اطلاع في السجل.',
+    en: 'Visible to the administration and the parents. Every view is recorded in the log.',
+  },
+  'health.consentApp': {
+    fr: 'Consentement donné par le parent dans l\'application le {date}.',
+    ar: 'موافقة الولي عبر التطبيق في {date}.',
+    en: 'Parent consent given in the app on {date}.',
+  },
+  'health.consentPaper': {
+    fr: 'Consentement écrit du parent attesté par l\'école le {date}.',
+    ar: 'موافقة كتابية للولي أكدتها المؤسسة في {date}.',
+    en: 'Parent\'s written consent attested by the school on {date}.',
+  },
+  'health.contacts': {
+    fr: 'Contacts d\'urgence (dans l\'ordre d\'appel)',
+    ar: 'جهات الاتصال في الطوارئ (حسب ترتيب الاتصال)',
+    en: 'Emergency contacts (in calling order)',
+  },
+  'health.contactName': {
+    fr: 'Nom',
+    ar: 'الاسم',
+    en: 'Name',
+  },
+  'health.relationship': {
+    fr: 'Lien (mère, oncle…)',
+    ar: 'القرابة (أم، عم…)',
+    en: 'Relationship (mother, uncle…)',
+  },
+  'health.phone': {
+    fr: 'Téléphone',
+    ar: 'الهاتف',
+    en: 'Phone',
+  },
+  'health.addContact': {
+    fr: 'Ajouter un contact',
+    ar: 'إضافة جهة اتصال',
+    en: 'Add a contact',
+  },
+  'health.allergies': {
+    fr: 'Allergies',
+    ar: 'الحساسية',
+    en: 'Allergies',
+  },
+  'health.allergiesHint': {
+    fr: 'ex. arachides, pénicilline, piqûres d\'abeille',
+    ar: 'مثال: الفول السوداني، البنسلين، لسعات النحل',
+    en: 'e.g. peanuts, penicillin, bee stings',
+  },
+  'health.conditions': {
+    fr: 'Maladies ou conditions',
+    ar: 'الأمراض أو الحالات',
+    en: 'Conditions',
+  },
+  'health.conditionsHint': {
+    fr: 'ex. asthme, diabète, épilepsie',
+    ar: 'مثال: الربو، السكري، الصرع',
+    en: 'e.g. asthma, diabetes, epilepsy',
+  },
+  'health.medications': {
+    fr: 'Traitement / médicaments',
+    ar: 'العلاج / الأدوية',
+    en: 'Treatment / medication',
+  },
+  'health.bloodGroup': {
+    fr: 'Groupe sanguin',
+    ar: 'فصيلة الدم',
+    en: 'Blood group',
+  },
+  'health.doctor': {
+    fr: 'Médecin traitant',
+    ar: 'الطبيب المعالج',
+    en: 'Doctor',
+  },
+  'health.doctorPhone': {
+    fr: 'Téléphone du médecin',
+    ar: 'هاتف الطبيب',
+    en: 'Doctor\'s phone',
+  },
+  'health.instructions': {
+    fr: 'Que faire en cas d\'urgence',
+    ar: 'ما العمل في حالة الطوارئ',
+    en: 'What to do in an emergency',
+  },
+  'health.instructionsHint': {
+    fr: 'ex. inhalateur dans le cartable ; appeler la mère d\'abord',
+    ar: 'مثال: البخاخ في المحفظة؛ الاتصال بالأم أولا',
+    en: 'e.g. inhaler in the schoolbag; call the mother first',
+  },
+  'health.teacherAlert': {
+    fr: 'Alerte courte pour les enseignants',
+    ar: 'تنبيه قصير للأساتذة',
+    en: 'Short alert for teachers',
+  },
+  'health.teacherAlertHint': {
+    fr: 'ex. Allergie arachides — EpiPen dans le cartable',
+    ar: 'مثال: حساسية الفول السوداني — حقنة في المحفظة',
+    en: 'e.g. Peanut allergy — EpiPen in schoolbag',
+  },
+  'health.teacherAlertNote': {
+    fr: 'Seule cette ligne est visible par les enseignants de la classe. Laissez vide si rien n\'est nécessaire.',
+    ar: 'هذا السطر فقط مرئي لأساتذة القسم. اتركوه فارغا إذا لم يكن ضروريا.',
+    en: 'Only this line is visible to the class\'s teachers. Leave empty if nothing is needed.',
+  },
+  'health.consentParent': {
+    fr: 'J\'accepte que l\'école conserve ces informations de santé pour protéger mon enfant. Je peux les retirer à tout moment.',
+    ar: 'أوافق على احتفاظ المؤسسة بهذه المعلومات الصحية لحماية طفلي. يمكنني سحبها في أي وقت.',
+    en: 'I agree that the school keeps this health information to protect my child. I can withdraw it at any time.',
+  },
+  'health.consentSchool': {
+    fr: 'Le consentement écrit et signé du parent est conservé dans le dossier de l\'élève.',
+    ar: 'الموافقة الكتابية الموقعة من الولي محفوظة في ملف التلميذ.',
+    en: 'The parent\'s signed written consent is kept in the student\'s file.',
+  },
+  'health.consentRequired': {
+    fr: 'Le consentement est requis.',
+    ar: 'الموافقة مطلوبة.',
+    en: 'Consent is required.',
+  },
+  'health.save': {
+    fr: 'Enregistrer la fiche',
+    ar: 'حفظ البطاقة',
+    en: 'Save the sheet',
+  },
+  'health.saved': {
+    fr: 'Fiche santé enregistrée.',
+    ar: 'تم حفظ البطاقة الصحية.',
+    en: 'Health sheet saved.',
+  },
+  'health.withdraw': {
+    fr: 'Retirer mon consentement',
+    ar: 'سحب موافقتي',
+    en: 'Withdraw my consent',
+  },
+  'health.withdrawConfirm': {
+    fr: 'Retirer votre consentement efface définitivement la fiche santé de votre enfant. Continuer ?',
+    ar: 'سحب الموافقة يمحو البطاقة الصحية لطفلكم نهائيا. متابعة؟',
+    en: 'Withdrawing consent permanently erases your child\'s health sheet. Continue?',
+  },
+  'health.delete': {
+    fr: 'Effacer la fiche',
+    ar: 'محو البطاقة',
+    en: 'Erase the sheet',
+  },
+  'health.deleteConfirm': {
+    fr: 'Effacer définitivement cette fiche santé ?',
+    ar: 'محو هذه البطاقة الصحية نهائيا؟',
+    en: 'Permanently erase this health sheet?',
+  },
+  'health.deleted': {
+    fr: 'Fiche santé effacée.',
+    ar: 'تم محو البطاقة الصحية.',
+    en: 'Health sheet erased.',
+  },
+  'health.classAlerts': {
+    fr: 'Alertes santé de la classe',
+    ar: 'تنبيهات صحية للقسم',
+    en: 'Class health alerts',
+  },
   'common.reload': {
     fr: 'Recharger',
     ar: 'إعادة التحميل',

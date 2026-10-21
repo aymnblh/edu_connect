@@ -4,7 +4,7 @@ import { type Locale, useLocale } from '../lib/i18n';
 
 const supportEmail = 'privacy@waseledu.dz';
 const legalEntity = 'Wasel Edu';
-const lastUpdatedAt = new Date(2026, 9, 5);
+const lastUpdatedAt = new Date(2026, 9, 21);
 const locales: Locale[] = ['fr', 'ar', 'en'];
 
 type PolicySection = {
@@ -87,6 +87,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
           'Relations scolaires : établissement, classes, matières, enseignants assignés, élèves inscrits, liens parent-enfant et périodes de validité de ces relations.',
           'Données pédagogiques : notes, évaluations, bulletins, appréciations, devoirs, pièces jointes pédagogiques, remarques et historique de modification.',
           'Vie scolaire : présences, absences, retards, justificatifs, notifications associées et décisions de validation ou de correction.',
+          'Santé et urgence (donnée sensible, facultative) : contacts d\'urgence, allergies, maladies, traitement, groupe sanguin, médecin et consignes, uniquement avec le consentement explicite du parent. Accès réservé à la direction, au secrétariat et aux parents de l\'élève ; les enseignants de la classe ne voient qu\'une alerte courte. Chaque consultation par le personnel est enregistrée. Le parent peut retirer son consentement à tout moment : la fiche est alors effacée.',
           'Communication : messages directs, annonces, destinataires, dates, accusés de réception, fichiers joints, signalements et informations nécessaires à la modération autorisée.',
           'Données techniques : journaux de connexion, appareil, adresse IP, navigateur, événements de sécurité, erreurs applicatives, horodatages et traces d’audit.',
           'Données administratives : statut d’abonnement, paiements, factures, écoles clientes et contacts administratifs.',
@@ -245,6 +246,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
           'العلاقات المدرسية: المؤسسة، الأقسام، المواد، المعلمون، الطلاب، روابط ولي الأمر بالطالب ومدة صلاحية هذه الروابط.',
           'البيانات التربوية: الدرجات، التقييمات، الكشوف، الملاحظات، الواجبات، الملفات المرفقة وسجل التعديلات.',
           'الحياة المدرسية: الحضور، الغياب، التأخر، التبريرات، الإشعارات وقرارات التصحيح أو القبول.',
+          'الصحة والطوارئ (معطيات حساسة واختيارية): جهات الاتصال في الطوارئ، الحساسية، الأمراض، العلاج، فصيلة الدم، الطبيب والتعليمات، فقط بموافقة صريحة من الولي. الاطلاع مقتصر على الإدارة والأمانة وأولياء التلميذ؛ لا يرى أساتذة القسم سوى تنبيه قصير. يُسجَّل كل اطلاع من الموظفين. يمكن للولي سحب موافقته في أي وقت، فتُمحى البطاقة.',
           'التواصل: الرسائل، الإعلانات، المستلمون، التواريخ، الملفات المرفقة، البلاغات ومعلومات الإشراف المصرح به.',
           'البيانات التقنية: سجلات الدخول، الجهاز، عنوان IP، المتصفح، أحداث الأمان، الأخطاء، الطوابع الزمنية وآثار التدقيق.',
         ],
@@ -402,6 +404,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
           'School relationships: school, classes, subjects, assigned teachers, enrolled students, parent-child links and relationship validity periods.',
           'Academic data: grades, evaluations, report cards, comments, homework, educational attachments and change history.',
           'Attendance data: presence, absences, lateness, justifications, related notifications and correction or approval decisions.',
+          'Health and emergency (sensitive, optional): emergency contacts, allergies, conditions, treatment, blood group, doctor and instructions, only with the parent\'s explicit consent. Access is limited to the school administration and the student\'s parents; the class\'s teachers only see a short alert. Every staff view is logged. The parent can withdraw consent at any time, which erases the record.',
           'Communication data: messages, announcements, recipients, dates, delivery/read information, attachments, reports and information needed for authorized moderation.',
           'Technical data: login logs, device, IP address, browser, security events, application errors, timestamps and audit records.',
           'Administrative data: subscription status, payments, invoices, customer schools and administrative contacts.',
