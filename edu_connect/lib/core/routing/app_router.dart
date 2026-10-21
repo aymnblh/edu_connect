@@ -25,6 +25,7 @@ import '../../features/notifications/presentation/screens/notifications_screen.d
 import '../../features/announcements/presentation/announcements_screen.dart';
 import '../../features/report_cards/presentation/report_cards_screen.dart';
 import '../../features/meetings/presentation/meetings_screen.dart';
+import '../../features/health/health_screen.dart';
 import '../../features/class/presentation/screens/admin_tools_screen.dart';
 import '../../features/class/presentation/screens/course_library_screen.dart';
 import '../../features/class/presentation/screens/linking_hub_screen.dart';
@@ -306,6 +307,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/notifications',
         name: 'notifications',
         builder: (ctx, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/health',
+        name: 'health',
+        builder: (ctx, state) => const HealthScreen(),
       ),
       GoRoute(
         path: '/meetings',

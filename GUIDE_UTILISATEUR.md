@@ -95,3 +95,12 @@ Dans l'onglet « Vue d'ensemble », sous les indicateurs habituels, pour le trim
 - **Déconnecter quelqu'un** : bouton « Déconnecter » dans la liste de l'équipe et à côté de chaque parent lié. La personne est déconnectée de tous ses appareils immédiatement ; son mot de passe reste valable (pour un mot de passe compromis, utiliser « Réinitialiser l'accès »).
 - **Mes appareils (tout utilisateur)** : web — bouton écran en bas de la barre latérale ; mobile — Profil → « Appareils connectés ». Liste des appareils connectés avec la dernière activité ; déconnecter un appareil, ou « Déconnecter mes autres appareils » (immédiat, cet appareil reste connecté).
 
+### Dossier élève, historique enseignant et fiche santé
+- **Dossier complet de l'élève** (direction, onglet « Élèves » → « Dossier complet ») : identité, matricule, classes, parents et téléphones, moyennes du trimestre par classe et par matière, absences, remarques, bulletins publiés et fiche santé.
+- **Historique d'un enseignant** (onglet « Équipe » → « Historique ») : classes et matières, dernière connexion, et sur 30 jours : notes saisies, notes à valider, pointages de présence, devoirs, séances, corrections et échecs de connexion, avec l'activité récente. Les notes et présences saisies avant cette mise à jour ne sont pas attribuées.
+- **Fiche santé et urgence** : contacts d'urgence (dans l'ordre d'appel), allergies, maladies, traitement, groupe sanguin, médecin, consignes et une alerte courte pour les enseignants.
+  - Le **parent** la remplit (web : onglet « Santé » de l'enfant ; mobile : menu « Fiche santé ») en donnant son consentement ; il peut le retirer à tout moment, ce qui efface la fiche.
+  - L'**école** peut la remplir à partir d'un formulaire papier signé par le parent (case « consentement écrit en dossier »).
+  - Les **enseignants** ne voient que l'alerte courte, en haut de l'écran de présence (mobile) et de la page de la classe (web).
+  - Chaque consultation de la fiche par le personnel est enregistrée dans le journal d'activité. Ce sont des données sensibles : ne renseigner que le nécessaire.
+

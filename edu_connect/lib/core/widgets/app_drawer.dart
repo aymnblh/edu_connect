@@ -91,6 +91,12 @@ class AppDrawer extends ConsumerWidget {
                     ),
                   if (user.isParent)
                     _DrawerItem(
+                      icon: Icons.favorite_outline,
+                      label: text.health,
+                      onTap: () => _go(context, '/health', replace: false),
+                    ),
+                  if (user.isParent)
+                    _DrawerItem(
                       icon: Icons.description_outlined,
                       label: text.reportCards,
                       onTap: () =>
@@ -458,6 +464,7 @@ class _DrawerText {
         'Direction',
         'Direction',
       );
+  String get health => pick('البطاقة الصحية', 'Fiche sante', 'Health sheet');
   String get meetings => pick('المواعيد', 'Rendez-vous', 'Meetings');
   String get reportCards => pick('كشوف النقاط', 'Bulletins', 'Report cards');
   String get announcements =>
