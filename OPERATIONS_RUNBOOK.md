@@ -189,6 +189,14 @@ Suggested alert thresholds:
 - **Keep a copy outside the server** (password manager, sealed envelope). Database backups are useless for health records without this key.
 - To change the key: put the new one in `HEALTH_DATA_KEY` and the old one in `HEALTH_DATA_PREVIOUS_KEYS`, restart. Rows are re-encrypted with the new key as they are saved; keep the old key listed until then.
 
+### Activation, free trimester and referrals
+
+- Activating a school (platform admin) with no subscription yet sets `subscription_expires_at` to the end of the current trimester (the next one if fewer than 30 days remain): that is the free first trimester. Record payments (`/system/schools/{id}/subscription`) before it ends, or the school is blocked (HTTP 402).
+- If the school signed up with another school's referral code, both get 2 months, once (`tenant_config.referral_rewarded_at`), and both directors are notified. The activation message says what was applied.
+- Distinction thresholds per school: `tenant_config.mentions`, e.g. `{"felicitations": 15, "encouragements": 13, "tableau_honneur": 11}` (defaults 16 / 14 / 12, on the average out of 20).
+- Public report card check: `GET /public/report-cards/{code}` (no account, 60 per hour per IP). A narrow RLS policy lets it read only the card with that code.
+- Optional web build variable `VITE_SALES_EMAIL` adds a "Nous contacter" button to /pricing.
+
 ### Background jobs
 
 - The API runs hourly jobs (`BACKGROUND_JOBS_ENABLED`, on by default; they are safe with several workers):

@@ -104,6 +104,24 @@ Dans l'onglet « Vue d'ensemble », sous les indicateurs habituels, pour le trim
   - Les **enseignants** ne voient que l'alerte courte, en haut de l'écran de présence (mobile) et de la page de la classe (web).
   - Chaque consultation de la fiche par le personnel est enregistrée dans le journal d'activité. Ce sont des données sensibles : ne renseigner que le nécessaire.
 
+### Logo, enseignants en nombre et infirmerie
+- **Logo de l'école** (directeur, onglet « Équipe » → « Établissement ») : PNG, JPEG ou WebP, 200 Ko au maximum. Il s'imprime sur les reçus, les bulletins, le bilan mensuel et les codes parents.
+- **Importer des enseignants** (onglet « Équipe ») : « Modèle Excel » puis « Importer des enseignants (CSV) » avec les colonnes `prenom ; nom ; email`. Chaque enseignant reçoit un code d'activation valable 72 h, affiché **une seule fois** : imprimez la page. Les lignes refusées sont listées (email manquant, invalide, en double ou déjà utilisé).
+- **Compte infirmerie** : le directeur peut inviter l'infirmier(ère) de l'école (rôle « Infirmerie »). Ce compte ne voit **que** les fiches santé : liste des élèves avec leurs alertes, ouverture et saisie d'une fiche (avec le formulaire de consentement papier signé par le parent). Sur mobile, il consulte les fiches en lecture. Tout ce qu'il ouvre est inscrit au journal.
+- Les fiches santé sont **chiffrées** dans la base de données.
+
+### Bulletins : distinctions et vérification
+- À la publication, chaque bulletin reçoit sa **distinction** selon la moyenne générale : لوحة الشرف / Tableau d'honneur (12 et plus), تشجيع / Encouragements (14 et plus), تهنئة / Félicitations (16 et plus). Les seuils peuvent être adaptés pour une école (à demander à l'administrateur de la plateforme).
+- Le bulletin imprimé porte le logo et un **QR code** : en le scannant, n'importe qui (autre école, administration) voit ce que l'école a publié — établissement, élève, classe, trimestre, moyenne, rang, distinction — et peut repérer un bulletin falsifié. Les notes par matière et les absences ne sont pas montrées. Republier garde le même QR ; retirer le bulletin le rend invalide.
+
+### Parrainage et offre
+- **Parrainez une école** (page d'accueil de la direction) : partagez votre code ou le lien d'inscription. Quand l'école parrainée est activée, **chacune reçoit 2 mois offerts**.
+- **Premier trimestre offert** : à l'activation, une nouvelle école utilise tout gratuitement jusqu'à la fin du trimestre en cours (ou du suivant s'il reste moins d'un mois).
+- La page publique **/pricing** (« Offre et tarifs », depuis la page de connexion) présente tout ce qui est inclus.
+
+### Direction sur mobile
+- L'accueil de la direction dans l'application montre la liste « Démarrer votre école », et deux raccourcis : **Bilan mensuel** et **Frais scolaires** (encaisser au guichet, relancer une famille ou tous les retards). La création des frais, les imports et les impressions restent sur le web.
+
 ### Démarrer une nouvelle école
 - **Liste « Démarrer votre école »** (direction, page d'accueil) : sept étapes avec leur avancement — trimestres, classes, matières, élèves (tous placés dans une classe), enseignants (invités et activés), matières attribuées à chaque classe, parents connectés (au moins la moitié des élèves). Chaque étape a un bouton « Y aller ». « Masquer » la retire pour toute la direction.
 - **Import Excel des élèves** : onglet « Élèves » → « Modèle Excel » télécharge un fichier avec les colonnes `prenom ; nom ; classe`. Remplissez-le, enregistrez-le en CSV, puis « Importer CSV ». Les élèves dont la classe existe déjà y sont placés automatiquement ; les classes inconnues sont listées pour être créées.
