@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     clamav_timeout_seconds: float = 15.0
     demo_seed_on_startup: bool = False
     demo_seed_reset_on_startup: bool = False
+    # Opens the demo school to anyone from the login page, read-only, refreshed every night.
+    public_demo_enabled: bool = False
+    # Hourly jobs in the API process (monthly report notifications, demo refresh).
+    background_jobs_enabled: bool = True
 
     # In-memory keys (loaded at startup)
     private_key: str = ""

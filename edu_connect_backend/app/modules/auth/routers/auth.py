@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status, Body, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, func, select, update
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr, Field
 
 from app.core.audit import record_audit_event
@@ -24,6 +26,7 @@ from app.core.rls import (
     set_student_pin_lookup,
 )
 from app.db.database import get_db
+from app.modules.demo.access import DEMO_ROLE_ACCOUNTS, is_read_only_demo_user
 from app.models import User, RefreshToken, UserRole
 from app.core.security import (
     verify_password, 
@@ -287,6 +290,57 @@ async def login(
 
     return {"access_token": access_token, "refresh_token": refresh_token}
 
+class DemoLoginRequest(BaseModel):
+    role: Literal["principal", "teacher", "parent"]
+
+
+@router.get("/demo")
+async def demo_availability():
+    """Lets the login page know whether to offer the public demo."""
+    return {"enabled": settings.public_demo_enabled, "roles": list(DEMO_ROLE_ACCOUNTS)}
+
+
+@router.post("/demo-login", response_model=TokenResponse)
+async def demo_login(
+    req: DemoLoginRequest,
+    request: Request,
+    response: Response = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """Open a read-only session on the demo school, without an account."""
+    if not settings.public_demo_enabled:
+        raise HTTPException(status_code=404, detail="La démo n'est pas disponible.")
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    await check_rate_limit(f"demo_login:{ip_address}", limit=30, window_seconds=3600)
+
+    email = DEMO_ROLE_ACCOUNTS[req.role]
+    await set_auth_lookup_email(db, email)
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    if user is None or user.deactivated_at is not None or user.password_hash is None:
+        raise HTTPException(status_code=503, detail="La démo est en cours de préparation. Réessayez dans une minute.")
+    await set_request_rls_context(db, school_id=user.school_id)
+
+    # Every visitor shares this account: no session cap (it would sign other visitors
+    # out), no new-device alert, and nothing that identifies the visitor's device.
+    family_id = str(uuid.uuid4())
+    access_token = create_access_token_for_user(user)
+    refresh_token = create_refresh_token(user.id, family_id)
+    db.add(
+        RefreshToken(
+            school_id=user.school_id,
+            user_id=user.id,
+            token_hash=hashlib.sha256(refresh_token.encode()).hexdigest(),
+            family_id=family_id,
+            device_platform=getattr(request.state, "device_platform", None),
+            last_used_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        )
+    )
+    await db.commit()
+    _clear_refresh_cookie(response)
+    return {"access_token": access_token, "refresh_token": refresh_token}
+
+
 @router.post("/set-password")
 async def set_password(
     req: SetPasswordRequest,
@@ -415,6 +469,9 @@ async def list_sessions(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if is_read_only_demo_user(current_user):
+        # These would be other visitors' sessions.
+        return []
     result = await db.execute(
         select(RefreshToken)
         .where(
@@ -651,6 +708,9 @@ async def register_parent_code(
         raise HTTPException(status_code=400, detail="Méthode d'identification manquante.")
 
     school = await db.get(School, school_id)
+    if school and (school.tenant_config or {}).get("demo_data"):
+        # Demo PINs are on screen for every visitor; nobody may join the demo school with them.
+        raise HTTPException(status_code=403, detail="Les codes de la démo ne permettent pas de créer un compte.")
     max_parents = int((school.tenant_config or {}).get("max_parents_per_student", 2)) if school else 2
     parent_count = await db.execute(
         select(func.count(StudentParent.parent_id)).where(

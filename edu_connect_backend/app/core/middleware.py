@@ -2,6 +2,7 @@ import hashlib
 import logging
 from datetime import datetime, timezone
 from fastapi import Request, Response
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.config import settings
 from app.core.security import decode_token
@@ -12,6 +13,7 @@ from app.models import AuditEvent, User
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.core.context import system_admin_context, tenant_id_context
+from app.modules.demo.access import DEMO_READ_ONLY_MESSAGE, DEMO_WRITE_ALLOWLIST
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +69,10 @@ class AuditMiddleware(BaseHTTPMiddleware):
         request.state.ip_address      = ip
 
         response = await call_next(request)
+        payload = _try_decode_jwt(request)
+        # Demo visitors share one account; their traffic is neither evidence nor an attack.
+        if payload and payload.get("demo"):
+            return response
         await self._record_request_audit(request, response)
         await self._record_security_alert(request, response)
         return response
@@ -217,6 +223,21 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 tenant_id_context.reset(ctx_token)
                 system_admin_context.reset(admin_token)
 
+        return await call_next(request)
+
+
+class DemoReadOnlyMiddleware(BaseHTTPMiddleware):
+    """Public demo sessions can read every screen but never write."""
+
+    async def dispatch(self, request: Request, call_next):
+        if request.method.upper() not in {"GET", "HEAD", "OPTIONS"} and request.url.path not in DEMO_WRITE_ALLOWLIST:
+            payload = _try_decode_jwt(request)
+            if payload and payload.get("demo"):
+                return JSONResponse(
+                    {"detail": DEMO_READ_ONLY_MESSAGE},
+                    status_code=403,
+                    headers={"X-Demo-Read-Only": "1"},
+                )
         return await call_next(request)
 
 

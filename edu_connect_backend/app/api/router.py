@@ -15,7 +15,8 @@ from app.modules.announcements.routers import announcements
 from app.modules.reports.routers import report_cards
 from app.modules.meetings.routers import meetings
 from app.modules.health.routers import health
-from app.modules.schools.routers import director_views
+from app.modules.schools.routers import director_views, setup
+from app.modules.reports.routers import monthly
 
 api_router = APIRouter()
 
@@ -32,6 +33,8 @@ api_router.include_router(admin.router)
 api_router.include_router(platform.router)
 api_router.include_router(system.router)
 api_router.include_router(director_views.router)
+api_router.include_router(setup.router)
+api_router.include_router(monthly.router)
 api_router.include_router(health.router)
 
 # Academics

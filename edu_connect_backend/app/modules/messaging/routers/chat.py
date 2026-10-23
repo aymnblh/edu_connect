@@ -11,6 +11,7 @@ from app.core.rate_limit import check_rate_limit
 from app.core.rls import set_request_rls_context
 from app.core.security import get_current_user, decode_token, session_rejection
 from app.ws_manager import manager
+from app.modules.demo.access import DEMO_READ_ONLY_MESSAGE, is_read_only_demo_user
 from sqlalchemy.orm import selectinload
 
 router = APIRouter(prefix="/classes/{class_id}", tags=["Chat"])
@@ -279,6 +280,9 @@ async def ws_chat(
     try:
         while True:
             data = await websocket.receive_json()
+            if is_read_only_demo_user(sender):
+                await websocket.send_json({"error": DEMO_READ_ONLY_MESSAGE})
+                continue
 
             is_announcement = bool(data.get("is_announcement", False))
             if is_announcement and sender.role not in _STAFF_ROLES:

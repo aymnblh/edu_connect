@@ -33,6 +33,7 @@ from app.models import (
 from app.core.security import get_current_user, decode_token, session_rejection
 from app.core.access import assert_school_is_active
 from app.ws_manager import manager
+from app.modules.demo.access import DEMO_READ_ONLY_MESSAGE, is_read_only_demo_user
 
 router = APIRouter(prefix="/dm", tags=["Direct Messaging"])
 _STAFF_ROLES = {UserRole.teacher, UserRole.principal, UserRole.secretary}
@@ -1182,6 +1183,9 @@ async def dm_websocket(
     try:
         while True:
             data = await websocket.receive_json()
+            if is_read_only_demo_user(sender):
+                await websocket.send_json({"error": DEMO_READ_ONLY_MESSAGE})
+                continue
 
             # Reuse only the token authenticated in the first frame. A client
             # cannot switch identity by sending a second token later.

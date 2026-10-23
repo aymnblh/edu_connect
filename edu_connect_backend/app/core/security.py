@@ -8,6 +8,7 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from app.core.config import settings
+from app.modules.demo.access import is_read_only_demo_user
 from app.core.rls import (
     set_auth_user_id,
     set_refresh_family_lookup,
@@ -66,6 +67,8 @@ def access_payload_for_user(user: User) -> dict:
     payload = {"sub": user.id, "role": user.role.value, "tv": user.token_version or 0}
     if user.school_id:
         payload["school_id"] = user.school_id
+    if is_read_only_demo_user(user):
+        payload["demo"] = True
     return payload
 
 
@@ -256,6 +259,11 @@ async def rotate_refresh_token(
     
     # 4. Save new refresh hash
     new_hash = hashlib.sha256(new_refresh.encode()).hexdigest()
+    lifetime = timedelta(days=settings.refresh_token_expire_days)
+    if is_read_only_demo_user(user):
+        # Shared demo account: keep nothing that identifies the visitor, and expire soon.
+        device_metadata = {"device_platform": (device_metadata or {}).get("device_platform")}
+        lifetime = timedelta(days=1)
     new_db_token = RefreshToken(
         school_id=user.school_id,
         user_id=user_id,
@@ -263,7 +271,7 @@ async def rotate_refresh_token(
         family_id=family_id,
         **(device_metadata or {}),
         last_used_at=datetime.now(timezone.utc),
-        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+        expires_at=datetime.now(timezone.utc) + lifetime
     )
     db.add(new_db_token)
     await db.commit()

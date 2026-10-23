@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.audit import purge_expired_audit_events, record_audit_event
 from app.core.security import get_current_user
 from app.db.database import get_db
+from app.modules.demo.access import is_read_only_demo_user
 from app.models import Attendance, Class, ClassMember, Grade, Remark, Student, StudentParent, AuditEvent, User, UserRole
 
 router = APIRouter(prefix="/security", tags=["Security"])
@@ -93,9 +94,12 @@ def _audit_query(
     return stmt.order_by(AuditEvent.created_at.desc())
 
 
-def _with_name(event: AuditEvent, actor_name: str | None) -> AuditEventOut:
+def _with_name(event: AuditEvent, actor_name: str | None, *, hide_device: bool = False) -> AuditEventOut:
     out = AuditEventOut.model_validate(event)
     out.actor_name = actor_name
+    if hide_device:
+        # Public demo: these would be other visitors' addresses and browsers.
+        out.ip_address = out.user_agent = out.device_fingerprint = None
     return out
 
 
@@ -126,7 +130,8 @@ async def list_audit_events(
         date_to=date_to,
     )
     rows = (await db.execute(stmt.offset(offset).limit(limit))).all()
-    return [_with_name(event, name) for event, name in rows]
+    hide_device = is_read_only_demo_user(current_user)
+    return [_with_name(event, name, hide_device=hide_device) for event, name in rows]
 
 
 EXPORT_MAX_ROWS = 5000
@@ -159,6 +164,7 @@ async def export_audit_events(
         date_to=date_to,
     )
     rows = (await db.execute(stmt.limit(EXPORT_MAX_ROWS))).all()
+    hide_device = is_read_only_demo_user(current_user)
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
@@ -172,7 +178,7 @@ async def export_audit_events(
             event.resource_type or "",
             event.resource_id or "",
             event.status_code or "",
-            event.ip_address or "",
+            "" if hide_device else event.ip_address or "",
             event.device_platform or "",
             "; ".join(f"{key}={value}" for key, value in (event.event_metadata or {}).items()),
         ])

@@ -171,6 +171,18 @@ def _student_name_from_csv_row(row: dict[str | None, str | None]) -> str:
     )
     return " ".join(part for part in [first_name, last_name] if part)
 
+def _class_name_from_csv_row(row: dict[str | None, str | None]) -> str:
+    normalized = _normalized_csv_row(row)
+    return (
+        normalized.get("classe")
+        or normalized.get("class")
+        or normalized.get("division")
+        or normalized.get("القسم")
+        or normalized.get("الفوج")
+        or ""
+    )
+
+
 @router.post("/create-teacher", response_model=UserSimpleOut, status_code=status.HTTP_201_CREATED)
 async def create_teacher(
     payload: CreateTeacherRequest,
@@ -694,7 +706,8 @@ async def import_students(
 ):
     """
     Import students from a CSV file.
-    Expected columns: full_name, or prenom + nom.
+    Expected columns: full_name, or prenom + nom; optional classe to enrol each
+    student in an existing class of that name.
     """
     if current_user.role.value not in ["principal", "secretary"]:
         raise HTTPException(status_code=403, detail="Only admins can import data")
@@ -722,7 +735,15 @@ async def import_students(
     existing_count = count_res.scalar() or 0
     import_count = 0
     skipped_count = 0
+    assigned_count = 0
+    unknown_classes: set[str] = set()
     used_codes: set[str] = set()
+    classes_by_name = {
+        name.strip().lower(): class_id
+        for class_id, name in (
+            await db.execute(select(Class.id, Class.name).where(Class.school_id == current_user.school_id))
+        ).all()
+    }
     for row in reader:
         name = _student_name_from_csv_row(row)
         if name:
@@ -745,6 +766,7 @@ async def import_students(
             pin = f"{secrets.randbelow(1_000_000):06d}"
             
             student = Student(
+                id=str(uuid.uuid4()),
                 full_name=name, 
                 school_id=current_user.school_id,
                 student_id=student_id_code,
@@ -752,6 +774,14 @@ async def import_students(
             )
             db.add(student)
             import_count += 1
+            class_name = _class_name_from_csv_row(row)
+            if class_name:
+                class_id = classes_by_name.get(class_name.lower())
+                if class_id:
+                    db.add(ClassMember(school_id=current_user.school_id, class_id=class_id, student_id=student.id))
+                    assigned_count += 1
+                else:
+                    unknown_classes.add(class_name)
         else:
             skipped_count += 1
             
@@ -760,7 +790,13 @@ async def import_students(
         school.prefix_locked = True
         
     await db.commit()
-    return {"status": "success", "imported": import_count, "skipped": skipped_count}
+    return {
+        "status": "success",
+        "imported": import_count,
+        "skipped": skipped_count,
+        "assigned": assigned_count,
+        "unknown_classes": sorted(unknown_classes),
+    }
 
 @router.post("/students/{student_id}/regenerate-pin")
 async def regenerate_pin(
