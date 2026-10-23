@@ -66,6 +66,7 @@ class TuitionPaymentOut(BaseModel):
 
 
 class TuitionInvoiceOut(BaseModel):
+    # Amounts are exact decimals in the database and plain numbers in JSON.
     id: str
     school_id: str
     student_id: str

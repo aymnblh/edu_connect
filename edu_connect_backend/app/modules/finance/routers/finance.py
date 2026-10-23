@@ -1,4 +1,5 @@
 from datetime import date, datetime, time, timezone
+from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, select
@@ -22,12 +23,14 @@ from app.models import (
 )
 from app.modules.finance.fees import (
     PAYMENT_METHODS,
+    dec,
     new_receipt_number,
     days_overdue,
     format_da,
     money,
     recently_reminded,
     remaining,
+    remaining_dec,
     send_reminder,
 )
 from app.modules.schools.calendar import ALGERIA_TZ
@@ -63,9 +66,9 @@ def _due_at(day: date | None) -> datetime | None:
 
 
 def _update_invoice_status(invoice: TuitionInvoice) -> None:
-    if invoice.amount_paid <= 0:
+    if dec(invoice.amount_paid) <= 0:
         invoice.status = TuitionInvoiceStatus.unpaid
-    elif invoice.amount_paid < invoice.amount_due:
+    elif dec(invoice.amount_paid) < dec(invoice.amount_due):
         invoice.status = TuitionInvoiceStatus.partial
     else:
         invoice.status = TuitionInvoiceStatus.paid
@@ -120,7 +123,8 @@ async def create_invoice(
         school_id=current_user.school_id,
         student_id=student.id,
         label=payload.label,
-        amount_due=payload.amount_due,
+        amount_due=dec(payload.amount_due),
+        amount_paid=Decimal("0"),
         due_date=payload.due_date,
     )
     db.add(invoice)
@@ -174,8 +178,8 @@ async def create_invoices_for_class(
                 school_id=school_id,
                 student_id=student_id,
                 label=label,
-                amount_due=money(payload.amount_due),
-                amount_paid=0.0,
+                amount_due=dec(payload.amount_due),
+                amount_paid=Decimal("0"),
                 status=TuitionInvoiceStatus.unpaid,
                 due_date=_due_at(payload.due_date),
             )
@@ -359,10 +363,10 @@ async def update_invoice(
         invoice.label = payload.label.strip()
         changes["label"] = invoice.label
     if payload.amount_due is not None:
-        if money(payload.amount_due) < money(invoice.amount_paid):
+        if dec(payload.amount_due) < dec(invoice.amount_paid):
             raise HTTPException(status_code=400, detail="Le montant ne peut pas etre inferieur a ce qui a deja ete paye.")
         changes["amount_due"] = {"from": money(invoice.amount_due), "to": money(payload.amount_due)}
-        invoice.amount_due = money(payload.amount_due)
+        invoice.amount_due = dec(payload.amount_due)
     if payload.clear_due_date:
         invoice.due_date = None
         changes["due_date"] = None
@@ -408,7 +412,7 @@ async def record_payment(
 
     invoice = await _load_invoice(db, invoice_id, school_id=current_user.school_id)
 
-    if money(payload.amount) > remaining(invoice):
+    if dec(payload.amount) > remaining_dec(invoice):
         raise HTTPException(status_code=400, detail="Payment amount exceeds remaining balance")
 
     receipt_number = new_receipt_number(datetime.now(timezone.utc))
@@ -416,12 +420,12 @@ async def record_payment(
         school_id=invoice.school_id,
         invoice_id=invoice.id,
         student_id=invoice.student_id,
-        amount=money(payload.amount),
+        amount=dec(payload.amount),
         payment_method=payload.payment_method,
         receipt_number=receipt_number,
         notes=payload.notes,
     )
-    invoice.amount_paid = money(invoice.amount_paid + payload.amount)
+    invoice.amount_paid = dec(invoice.amount_paid) + dec(payload.amount)
     _update_invoice_status(invoice)
 
     db.add(payment)
@@ -469,7 +473,7 @@ async def cancel_payment(
     if payment is None or payment.school_id != school_id:
         raise HTTPException(status_code=404, detail="Paiement introuvable.")
     invoice = await _load_invoice(db, payment.invoice_id, school_id=school_id)
-    invoice.amount_paid = max(money(invoice.amount_paid - payment.amount), 0.0)
+    invoice.amount_paid = max(dec(invoice.amount_paid) - dec(payment.amount), Decimal("0"))
     _update_invoice_status(invoice)
     await _audit(db, request, current_user, "fees.payment_cancelled", invoice.id, {
         "student_id": invoice.student_id, "amount": money(payment.amount),

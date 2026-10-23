@@ -272,3 +272,12 @@ def test_receipt_numbers_never_repeat_after_a_cancellation():
     numbers = {fees.new_receipt_number(NOW) for _ in range(500)}
     assert len(numbers) == 500
     assert all(number.startswith("REC-20261020-") and len(number) <= 32 for number in numbers)
+
+
+def test_amounts_are_exact_to_the_cent():
+    """0.1 + 0.2 is not 0.3 in floating point; a fee must still read as paid."""
+    invoice = _invoice(amount_due=fees.dec("0.30"), amount_paid=fees.dec("0.10") + fees.dec("0.20"))
+    assert fees.remaining_dec(invoice) == 0
+    finance._update_invoice_status(invoice)
+    assert invoice.status == TuitionInvoiceStatus.paid
+    assert fees.dec(8500.005) == fees.dec("8500.01")

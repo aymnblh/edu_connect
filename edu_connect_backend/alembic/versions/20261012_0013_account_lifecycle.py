@@ -6,7 +6,6 @@ Revises: 20260807_0012
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
 
 
 revision: str = "20261012_0013"
@@ -16,11 +15,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("users", sa.Column("deactivated_at", sa.DateTime(timezone=True), nullable=True))
-    op.add_column(
-        "users",
-        sa.Column("token_version", sa.Integer(), nullable=False, server_default="0"),
-    )
+    # Idempotent: the baseline migration creates tables from the current models.
+    op.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP WITH TIME ZONE")
+    op.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAULT 0")
 
 
 def downgrade() -> None:

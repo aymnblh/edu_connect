@@ -6,7 +6,6 @@ Revises: 20261013_0017
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
 
 
 revision: str = "20261021_0018"
@@ -50,20 +49,23 @@ def upgrade() -> None:
         """
     )
 
-    op.add_column("grades", sa.Column("created_by", sa.String(length=128), nullable=True))
-    op.create_foreign_key("fk_grades_created_by_users", "grades", "users", ["created_by"], ["id"], ondelete="SET NULL")
-    op.create_index("ix_grades_created_by", "grades", ["created_by"])
-    op.add_column("attendance", sa.Column("recorded_by", sa.String(length=128), nullable=True))
-    op.create_foreign_key("fk_attendance_recorded_by_users", "attendance", "users", ["recorded_by"], ["id"], ondelete="SET NULL")
-    op.create_index("ix_attendance_recorded_by", "attendance", ["recorded_by"])
+    # Idempotent: the baseline migration creates tables from the current models.
+    op.execute(
+        "ALTER TABLE grades ADD COLUMN IF NOT EXISTS created_by VARCHAR(128) "
+        "REFERENCES users(id) ON DELETE SET NULL"
+    )
+    op.execute("CREATE INDEX IF NOT EXISTS ix_grades_created_by ON grades (created_by)")
+    op.execute(
+        "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS recorded_by VARCHAR(128) "
+        "REFERENCES users(id) ON DELETE SET NULL"
+    )
+    op.execute("CREATE INDEX IF NOT EXISTS ix_attendance_recorded_by ON attendance (recorded_by)")
 
 
 def downgrade() -> None:
-    op.drop_index("ix_attendance_recorded_by", table_name="attendance")
-    op.drop_constraint("fk_attendance_recorded_by_users", "attendance", type_="foreignkey")
-    op.drop_column("attendance", "recorded_by")
-    op.drop_index("ix_grades_created_by", table_name="grades")
-    op.drop_constraint("fk_grades_created_by_users", "grades", type_="foreignkey")
-    op.drop_column("grades", "created_by")
+    op.execute("DROP INDEX IF EXISTS ix_attendance_recorded_by")
+    op.execute("ALTER TABLE attendance DROP COLUMN IF EXISTS recorded_by")
+    op.execute("DROP INDEX IF EXISTS ix_grades_created_by")
+    op.execute("ALTER TABLE grades DROP COLUMN IF EXISTS created_by")
     op.execute("DROP POLICY IF EXISTS tenant_isolation_student_health_records ON student_health_records")
     op.execute("DROP TABLE IF EXISTS student_health_records")

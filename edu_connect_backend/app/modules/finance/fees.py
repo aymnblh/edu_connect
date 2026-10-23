@@ -2,6 +2,7 @@
 import logging
 import secrets
 from datetime import date, datetime, timedelta, timezone
+from decimal import ROUND_HALF_UP, Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,17 +37,30 @@ def new_receipt_number(now: datetime) -> str:
     return f"REC-{now.astimezone(ALGERIA_TZ):%Y%m%d}-{secrets.token_hex(4).upper()}"
 
 
-def money(value: float) -> float:
-    return round(float(value or 0), 2)
+CENT = Decimal("0.01")
+
+
+def dec(value) -> Decimal:
+    """An exact amount in dinars, rounded to the cent (accepts Decimal, int, float or str)."""
+    return Decimal(str(value or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
+
+
+def money(value) -> float:
+    """For JSON output only; all arithmetic stays in Decimal."""
+    return float(dec(value))
+
+
+def remaining_dec(invoice: TuitionInvoice) -> Decimal:
+    return max(dec(invoice.amount_due) - dec(invoice.amount_paid), Decimal("0"))
 
 
 def remaining(invoice: TuitionInvoice) -> float:
-    return max(money(invoice.amount_due) - money(invoice.amount_paid), 0.0)
+    return float(remaining_dec(invoice))
 
 
-def format_da(value: float) -> str:
+def format_da(value) -> str:
     """8500 -> '8 500 DA', 8500.5 -> '8 500,50 DA'."""
-    whole = f"{value:,.2f}".replace(",", " ").replace(".", ",")
+    whole = f"{dec(value):,.2f}".replace(",", " ").replace(".", ",")
     if whole.endswith(",00"):
         whole = whole[:-3]
     return f"{whole} DA"
