@@ -238,6 +238,9 @@ export default function Login() {
             <Link to="/register-school" className="link-hover-primary">
               {t('login.registerSchool')}
             </Link>
+            <Link to="/pricing" className="link-hover-primary">
+              {t('login.pricing')}
+            </Link>
           </div>
 
           {demoQuery.data?.enabled && (

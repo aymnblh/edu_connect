@@ -5679,6 +5679,161 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'الذهاب إلى Wasel Edu',
     en: 'Go to Wasel Edu',
   },
+  'referral.title': {
+    fr: 'Parrainez une école : {months} mois offerts',
+    ar: 'رشّح مدرسة: {months} أشهر مجانية',
+    en: 'Refer a school: {months} months free',
+  },
+  'referral.copy': {
+    fr: 'Partagez votre code avec une autre école. Quand elle est activée, vous recevez chacune {months} mois offerts sur l\'abonnement.',
+    ar: 'شارك رمزك مع مدرسة أخرى. عند تفعيلها، تحصل كل مدرسة على {months} أشهر مجانية في الاشتراك.',
+    en: 'Share your code with another school. Once it is activated, you each get {months} months free on your subscription.',
+  },
+  'referral.copyLink': {
+    fr: 'Copier le lien d\'inscription',
+    ar: 'نسخ رابط التسجيل',
+    en: 'Copy the sign-up link',
+  },
+  'referral.copied': {
+    fr: 'Lien copié',
+    ar: 'تم نسخ الرابط',
+    en: 'Link copied',
+  },
+  'referral.copyPrompt': {
+    fr: 'Copiez ce lien :',
+    ar: 'انسخ هذا الرابط:',
+    en: 'Copy this link:',
+  },
+  'referral.pending': {
+    fr: 'en attente d\'activation',
+    ar: 'في انتظار التفعيل',
+    en: 'waiting for activation',
+  },
+  'referral.active': {
+    fr: 'activée',
+    ar: 'مفعّلة',
+    en: 'activated',
+  },
+  'referral.rewarded': {
+    fr: '{months} mois offerts',
+    ar: '{months} أشهر مجانية',
+    en: '{months} months given',
+  },
+  'register.referralCode': {
+    fr: 'Code de parrainage (facultatif)',
+    ar: 'رمز الترشيح (اختياري)',
+    en: 'Referral code (optional)',
+  },
+  'register.referralPlaceholder': {
+    fr: 'Code donné par une école partenaire',
+    ar: 'رمز من مدرسة شريكة',
+    en: 'Code from a partner school',
+  },
+  'login.pricing': {
+    fr: 'Offre et tarifs',
+    ar: 'العرض والأسعار',
+    en: 'Plans and pricing',
+  },
+  'pricing.kicker': {
+    fr: 'Pour les écoles privées',
+    ar: 'للمدارس الخاصة',
+    en: 'For private schools',
+  },
+  'pricing.title': {
+    fr: 'Toute l\'école dans une seule application',
+    ar: 'كل المدرسة في تطبيق واحد',
+    en: 'Your whole school in one app',
+  },
+  'pricing.copy': {
+    fr: 'Direction, enseignants et parents reliés, sur le web et sur mobile, en arabe, français et anglais.',
+    ar: 'الإدارة والأساتذة والأولياء مترابطون، على الويب والهاتف، بالعربية والفرنسية والإنجليزية.',
+    en: 'Administration, teachers and parents connected, on the web and on phones, in Arabic, French and English.',
+  },
+  'pricing.trial': {
+    fr: 'Le premier trimestre est offert',
+    ar: 'الفصل الأول مجاني',
+    en: 'Your first trimester is free',
+  },
+  'pricing.trialCopy': {
+    fr: 'Après l\'activation de votre école, vous utilisez tout gratuitement jusqu\'à la fin du trimestre en cours (ou du suivant s\'il reste moins d\'un mois).',
+    ar: 'بعد تفعيل مدرستك، تستعمل كل شيء مجانا حتى نهاية الفصل الجاري (أو الفصل الموالي إذا بقي أقل من شهر).',
+    en: 'Once your school is activated, everything is free until the end of the current trimester (or the next one if less than a month is left).',
+  },
+  'pricing.included': {
+    fr: 'Tout est inclus',
+    ar: 'كل شيء مشمول',
+    en: 'Everything included',
+  },
+  'pricing.f.grades': {
+    fr: 'Notes, moyennes et validation par la direction',
+    ar: 'النقاط والمعدلات والمصادقة من الإدارة',
+    en: 'Grades, averages and approval by the administration',
+  },
+  'pricing.f.attendance': {
+    fr: 'Appel en classe et alerte immédiate aux parents',
+    ar: 'المناداة وتنبيه فوري للأولياء',
+    en: 'Attendance with instant alerts to parents',
+  },
+  'pricing.f.reportCards': {
+    fr: 'Bulletins avec distinctions et QR de vérification',
+    ar: 'كشوف النقاط مع التمييز ورمز QR للتحقق',
+    en: 'Report cards with distinctions and a verification QR',
+  },
+  'pricing.f.messages': {
+    fr: 'Messagerie, annonces et rendez-vous parents',
+    ar: 'الرسائل والإعلانات ومواعيد الأولياء',
+    en: 'Messages, announcements and parent meetings',
+  },
+  'pricing.f.fees': {
+    fr: 'Frais scolaires, reçus et rappels',
+    ar: 'المصاريف المدرسية والوصولات والتذكيرات',
+    en: 'School fees, receipts and reminders',
+  },
+  'pricing.f.health': {
+    fr: 'Fiche santé et infirmerie (données chiffrées)',
+    ar: 'البطاقة الصحية والتمريض (بيانات مشفرة)',
+    en: 'Health sheets and infirmary (encrypted data)',
+  },
+  'pricing.f.monthly': {
+    fr: 'Bilan mensuel et suivi des élèves en difficulté',
+    ar: 'الحصيلة الشهرية ومتابعة التلاميذ المتعثرين',
+    en: 'Monthly report and early warning on struggling students',
+  },
+  'pricing.f.apps': {
+    fr: 'Application mobile pour les parents et les enseignants',
+    ar: 'تطبيق للهاتف للأولياء والأساتذة',
+    en: 'Mobile app for parents and teachers',
+  },
+  'pricing.f.security': {
+    fr: 'Données isolées par école, journal d\'activité',
+    ar: 'بيانات معزولة لكل مدرسة وسجل نشاط',
+    en: 'Data isolated per school, activity log',
+  },
+  'pricing.price': {
+    fr: 'Tarif annuel selon le nombre d\'élèves : demandez votre devis après l\'inscription.',
+    ar: 'سعر سنوي حسب عدد التلاميذ: اطلب عرض السعر بعد التسجيل.',
+    en: 'Yearly price based on the number of students: ask for your quote after signing up.',
+  },
+  'pricing.referral': {
+    fr: 'Recommandé par une autre école ? Indiquez son code à l\'inscription : deux mois offerts à chacune.',
+    ar: 'رشّحتك مدرسة أخرى؟ أدخل رمزها عند التسجيل: شهران مجانيان لكل واحدة.',
+    en: 'Recommended by another school? Enter its code when you sign up: two months free for each.',
+  },
+  'pricing.signUp': {
+    fr: 'Inscrire mon école',
+    ar: 'تسجيل مدرستي',
+    en: 'Sign up my school',
+  },
+  'pricing.demo': {
+    fr: 'Essayer la démo',
+    ar: 'تجربة العرض',
+    en: 'Try the demo',
+  },
+  'pricing.contact': {
+    fr: 'Nous contacter',
+    ar: 'اتصل بنا',
+    en: 'Contact us',
+  },
 };
 
 function normalizeLocale(value: string | null | undefined): Locale {

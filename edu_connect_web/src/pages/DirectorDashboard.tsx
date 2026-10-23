@@ -10,6 +10,7 @@ import FeesPanel from '../components/FeesPanel';
 import MonthlyReportPanel from '../components/MonthlyReportPanel';
 import SetupChecklist, { ParentCodesSheet } from '../components/SetupChecklist';
 import TeacherImport from '../components/TeacherImport';
+import ReferralCard from '../components/ReferralCard';
 import SchoolBrandingCard from '../components/SchoolBrandingCard';
 import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
@@ -1926,6 +1927,7 @@ export default function DirectorDashboard() {
       {activeTab === 'monthly' && <MonthlyReportPanel />}
       {activeTab === 'fees' && <FeesPanel canChangeSettings={currentUserRole === 'principal'} />}
       {activeTab === 'overview' && <DirectorInsightsPanel />}
+      {activeTab === 'overview' && <ReferralCard />}
       {activeTab === 'students' && renderStudents()}
       {activeTab === 'classes' && renderClasses()}
       {activeTab === 'team' && renderTeam()}

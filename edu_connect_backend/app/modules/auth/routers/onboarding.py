@@ -7,6 +7,7 @@ from sqlalchemy import select
 from app.core.rls import set_auth_lookup_email, set_request_rls_context
 from app.db.database import get_db
 from app.models import School, User, UserRole, Course, Semester
+from app.modules.schools.referral import new_referral_code
 from app.schemas import SchoolRegistration, UserOut
 from app.core.security import get_password_hash
 from app.core.rate_limit import check_rate_limit
@@ -58,6 +59,13 @@ async def register_school(
     if res.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Cet email est déjà utilisé.")
 
+    sponsor_id = None
+    if payload.referral_code and payload.referral_code.strip():
+        code = payload.referral_code.strip().upper()
+        sponsor_id = (await db.execute(select(School.id).where(School.referral_code == code))).scalar_one_or_none()
+        if sponsor_id is None:
+            raise HTTPException(status_code=400, detail="Code de parrainage inconnu. Verifiez-le ou laissez le champ vide.")
+
     # 2. Create School
     # Use first 3 letters of school name as ID prefix (e.g. "College El Amel" -> "COL")
     prefix = payload.school_name[:3].upper()
@@ -65,6 +73,8 @@ async def register_school(
         name=payload.school_name,
         student_id_prefix=prefix,
         is_active=False,
+        referral_code=new_referral_code(),
+        referred_by=sponsor_id,
         tenant_config={
             "active": False,
             "activated_at": None, 

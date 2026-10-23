@@ -5472,3 +5472,149 @@ textarea.form-input {
   text-align: end;
   color: var(--text-color);
 }
+
+/* Referral */
+.referral-card {
+  margin-top: 1.5rem;
+}
+
+.referral-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.referral-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.referral-code {
+  font-size: 1.15rem;
+  letter-spacing: 0.12em;
+}
+
+.referral-schools {
+  margin: 0.75rem 0 0;
+  padding-inline-start: 1.2rem;
+  color: var(--text-color);
+}
+
+/* Pricing */
+.pricing-page {
+  min-height: 100vh;
+  background: var(--bg-color);
+  padding: 16px;
+}
+
+.pricing-top {
+  max-width: 880px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pricing-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.pricing-brand img {
+  height: 32px;
+}
+
+.pricing-hero {
+  max-width: 720px;
+  margin: 2.5rem auto 1.5rem;
+  text-align: center;
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+}
+
+.pricing-hero h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  color: var(--text-color);
+}
+
+.pricing-hero p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.pricing-plan {
+  max-width: 720px;
+  margin: 0 auto 3rem;
+  padding: 1.75rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.pricing-plan h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+
+.pricing-offer {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--text-color);
+}
+
+.pricing-offer div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.pricing-offer span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.pricing-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.6rem 1.25rem;
+  color: var(--text-color);
+}
+
+.pricing-features li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.pricing-features svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--primary);
+}
+
+.pricing-price {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.pricing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}

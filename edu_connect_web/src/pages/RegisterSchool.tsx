@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { isAxiosError } from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ShieldAlert, Sparkles, BookOpen, HeartHandshake, ShieldCheck } from 'lucide-react';
 import LocaleSwitcher from '../components/LocaleSwitcher';
 import { api } from '../lib/api';
@@ -13,6 +13,8 @@ export default function RegisterSchool() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [referralCode, setReferralCode] = useState(() => (searchParams.get('ref') ?? '').toUpperCase().slice(0, 12));
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,6 +43,7 @@ export default function RegisterSchool() {
         admin_full_name: directorName,
         admin_password: password,
         terms_accepted: termsAccepted,
+        referral_code: referralCode.trim() || null,
       });
       setSuccess(true);
     } catch (err: unknown) {
@@ -195,6 +198,20 @@ export default function RegisterSchool() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={8}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="referralCode" className="form-label">{t('register.referralCode')}</label>
+                <input
+                  id="referralCode"
+                  type="text"
+                  className="input-field"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  maxLength={12}
+                  autoComplete="off"
+                  placeholder={t('register.referralPlaceholder')}
                 />
               </div>
 

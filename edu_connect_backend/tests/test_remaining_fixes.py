@@ -221,3 +221,55 @@ def test_infirmary_directory_lists_students_with_alerts_for_health_staff_only():
                                               current_user=make_user("nurse-a", UserRole.nurse), db=db))
     assert rows[0]["has_record"] and rows[0]["alert"] == "Allergie arachides" and rows[0]["classes"][0]["name"] == "1AM-A"
     assert not rows[1]["has_record"] and rows[1]["alert"] is None
+
+
+def test_free_trial_runs_to_the_end_of_a_real_trimester():
+    from datetime import datetime, timezone
+
+    from app.modules.schools.referral import add_months, free_trial_end
+
+    utc = timezone.utc
+    assert free_trial_end(datetime(2026, 10, 24, tzinfo=utc)).date().isoformat() == "2026-12-16"
+    # Less than a month left in the trimester: through the next one.
+    assert free_trial_end(datetime(2026, 12, 1, tzinfo=utc)).date().isoformat() == "2027-03-26"
+    # Summer: through the coming first trimester.
+    assert free_trial_end(datetime(2027, 7, 20, tzinfo=utc)).date().isoformat() == "2027-12-16"
+    assert add_months(datetime(2027, 1, 31, tzinfo=utc), 1).date().isoformat() == "2027-02-28"
+    assert add_months(datetime(2026, 12, 15, tzinfo=utc), 2).date().isoformat() == "2027-02-15"
+
+
+def test_activation_gives_the_trial_and_rewards_a_referral_once():
+    from datetime import datetime, timezone
+
+    from app.models import School
+    from app.modules.schools import referral
+
+    now = datetime(2026, 10, 24, tzinfo=timezone.utc)
+    sponsor = School(id="sponsor", name="Les Oliviers", tenant_config={},
+                     subscription_expires_at=datetime(2027, 1, 10, tzinfo=timezone.utc))
+    newcomer = School(id="new", name="El Amel", tenant_config={}, referred_by="sponsor")
+    db = LenientDb(get_map={(School, "sponsor"): sponsor},
+                   results=[FakeResult([]), FakeResult([])])  # no directors to notify in this test
+    applied = run(referral.apply_activation_benefits(db, newcomer, now))
+    assert applied["trial_until"].startswith("2026-12-16") and applied["referral_reward_months"] == 2
+    # Trial to 16 Dec, then two more months; the sponsor's own date moves two months too.
+    assert newcomer.subscription_expires_at.date().isoformat() == "2027-02-16"
+    assert sponsor.subscription_expires_at.date().isoformat() == "2027-03-10"
+    again = run(referral.apply_activation_benefits(LenientDb(get_map={(School, "sponsor"): sponsor}), newcomer, now))
+    assert again == {}
+    assert sponsor.subscription_expires_at.date().isoformat() == "2027-03-10"
+
+
+def test_unknown_referral_code_is_refused_at_sign_up():
+    import pytest
+    from fastapi import HTTPException
+
+    from app.modules.auth.routers import onboarding
+    from app.modules.schools.schemas import SchoolRegistration
+
+    payload = SchoolRegistration(school_name="El Amel", admin_email="directeur@wasel-edu.dz", admin_full_name="Directeur",
+                                 admin_password="password123", terms_accepted=True, referral_code="nope1234")
+    db = LenientDb(results=[FakeResult([]), FakeResult([])])
+    with pytest.raises(HTTPException) as exc:
+        run(onboarding.register_school(payload, make_request("/onboarding/register-school"), db=db))
+    assert exc.value.status_code == 400 and "parrainage" in exc.value.detail

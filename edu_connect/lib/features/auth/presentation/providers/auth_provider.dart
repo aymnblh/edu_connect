@@ -69,6 +69,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     required String adminEmail,
     required String adminPassword,
     required bool termsAccepted,
+    String? referralCode,
   }) async {
     // No state change yet, as we stay on the success screen or login.
     return _repo.registerSchool(
@@ -77,6 +78,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
       adminEmail: adminEmail,
       adminPassword: adminPassword,
       termsAccepted: termsAccepted,
+      referralCode: referralCode,
     );
   }
 

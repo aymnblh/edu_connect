@@ -228,3 +228,34 @@ async def parent_codes(
     )
     await db.commit()
     return codes
+
+
+@router.get("/referral")
+async def referral(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """The code to share with other schools, and the schools that joined with it."""
+    from app.modules.schools.referral import REFERRAL_REWARD_MONTHS, new_referral_code
+
+    school_id = _require_admin(current_user)
+    school = await db.get(School, school_id)
+    if school is None:
+        raise HTTPException(status_code=404, detail="School not found")
+    if not school.referral_code:
+        school.referral_code = new_referral_code()
+        await db.commit()
+    referred = (
+        await db.execute(
+            select(School.name, School.is_active, School.tenant_config).where(School.referred_by == school_id)
+        )
+    ).all()
+    return {
+        "code": school.referral_code,
+        "reward_months": REFERRAL_REWARD_MONTHS,
+        "schools": [
+            {"name": name, "active": bool(active), "rewarded": bool((config or {}).get("referral_rewarded_at"))}
+            for name, active, config in referred
+        ],
+    }
+

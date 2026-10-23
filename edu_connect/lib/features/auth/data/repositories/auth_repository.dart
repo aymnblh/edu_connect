@@ -80,6 +80,7 @@ class AuthRepository {
     required String adminEmail,
     required String adminPassword,
     required bool termsAccepted,
+    String? referralCode,
   }) async {
     await _api.post('/onboarding/register-school', data: {
       'school_name': schoolName,
@@ -87,6 +88,8 @@ class AuthRepository {
       'admin_email': adminEmail,
       'admin_password': adminPassword,
       'terms_accepted': termsAccepted,
+      if (referralCode != null && referralCode.isNotEmpty)
+        'referral_code': referralCode,
     });
     return true;
   }

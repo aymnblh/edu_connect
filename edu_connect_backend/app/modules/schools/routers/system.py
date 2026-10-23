@@ -25,6 +25,7 @@ from app.models import (
     UserRole,
 )
 from app.core.security import get_current_user
+from app.modules.schools.referral import apply_activation_benefits
 
 router = APIRouter(prefix="/system", tags=["System Administration"])
 
@@ -358,9 +359,15 @@ async def activate_school(
     config = dict(school.tenant_config) if school.tenant_config else {}
     config.update({"active": True, "activated_at": datetime.now(timezone.utc).isoformat()})
     school.tenant_config = config
+    applied = await apply_activation_benefits(db, school)
     await db.commit()
-    
-    return {"status": "success", "message": "École activée avec succès"}
+
+    message = "École activée avec succès"
+    if applied.get("trial_until"):
+        message += f" — premier trimestre offert jusqu'au {applied['trial_until'][:10]}"
+    if applied.get("referral_reward_months"):
+        message += f" — parrainage par {applied['sponsor']} : {applied['referral_reward_months']} mois offerts aux deux écoles"
+    return {"status": "success", "message": message, **applied}
 
 
 @router.post("/schools/{school_id}/deactivate")
