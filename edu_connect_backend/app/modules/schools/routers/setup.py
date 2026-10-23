@@ -44,6 +44,7 @@ def setup_steps(counts: dict[str, int]) -> list[dict]:
     students = counts["students"]
     classes = counts["classes"]
     return [
+        {"key": "logo", "done": counts.get("logo", 0) > 0, "count": counts.get("logo", 0)},
         {"key": "trimesters", "done": counts["semesters"] > 0, "count": counts["semesters"]},
         {"key": "classes", "done": classes > 0, "count": classes},
         {"key": "subjects", "done": counts["courses"] > 0, "count": counts["courses"]},
@@ -84,6 +85,7 @@ async def setup_status(
     school = await db.get(School, school_id)
     active_students = select(Student.id).where(Student.school_id == school_id, Student.archived_at.is_(None))
     counts = {
+        "logo": 1 if school and school.logo_data else 0,
         "semesters": await _scalar(db, select(func.count()).select_from(Semester).where(Semester.school_id == school_id)),
         "classes": await _scalar(db, select(func.count()).select_from(Class).where(Class.school_id == school_id)),
         "courses": await _scalar(db, select(func.count()).select_from(Course).where(Course.school_id == school_id)),

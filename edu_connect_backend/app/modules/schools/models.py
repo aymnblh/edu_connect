@@ -19,6 +19,8 @@ class School(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     subscription_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # data: URL of a small PNG/JPEG/WebP (at most 200 KB), shown on printed documents.
+    logo_data: Mapped[str | None] = mapped_column(Text, nullable=True)
     
     tenant_config: Mapped[dict] = mapped_column(
         JSONB, 

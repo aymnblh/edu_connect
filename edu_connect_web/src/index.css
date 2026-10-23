@@ -5308,3 +5308,60 @@ textarea.form-input {
   color: var(--text-secondary);
   font-size: 0.88rem;
 }
+
+/* School logo */
+.school-branding-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.75rem 0;
+}
+
+.school-branding-logo {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  color: var(--text-muted);
+  overflow: hidden;
+}
+
+.school-branding-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.printed-logo {
+  max-height: 56px;
+  max-width: 120px;
+  object-fit: contain;
+}
+
+.printed-logo--small {
+  max-height: 28px;
+  vertical-align: middle;
+  margin-inline-end: 0.4rem;
+}
+
+.fee-receipt-heading {
+  flex: 1;
+}
+
+.printed-school {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.printed-school img {
+  max-height: 22px;
+  max-width: 60px;
+  object-fit: contain;
+}

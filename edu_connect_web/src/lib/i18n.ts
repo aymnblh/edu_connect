@@ -5499,6 +5499,56 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'يوجد حساب بهذا البريد',
     en: 'an account already uses this email',
   },
+  'branding.title': {
+    fr: 'Établissement',
+    ar: 'المؤسسة',
+    en: 'School',
+  },
+  'branding.copy': {
+    fr: 'Le logo apparaît sur les reçus, les bulletins, le bilan mensuel et les codes parents imprimés.',
+    ar: 'يظهر الشعار على الوصولات وكشوف النقاط والحصيلة الشهرية ورموز الأولياء المطبوعة.',
+    en: 'The logo appears on receipts, report cards, the monthly report and printed parent codes.',
+  },
+  'branding.logoAlt': {
+    fr: 'Logo de {name}',
+    ar: 'شعار {name}',
+    en: '{name} logo',
+  },
+  'branding.upload': {
+    fr: 'Ajouter le logo',
+    ar: 'إضافة الشعار',
+    en: 'Add the logo',
+  },
+  'branding.replace': {
+    fr: 'Changer le logo',
+    ar: 'تغيير الشعار',
+    en: 'Change the logo',
+  },
+  'branding.remove': {
+    fr: 'Retirer',
+    ar: 'إزالة',
+    en: 'Remove',
+  },
+  'branding.directorOnly': {
+    fr: 'Seul le directeur peut changer le logo.',
+    ar: 'المدير وحده يمكنه تغيير الشعار.',
+    en: 'Only the director can change the logo.',
+  },
+  'setup.logo.title': {
+    fr: 'Logo de l\'école',
+    ar: 'شعار المدرسة',
+    en: 'School logo',
+  },
+  'setup.logo.hint': {
+    fr: 'Ajoutez votre logo (PNG ou JPEG, 200 Ko max) : il sera imprimé sur les reçus et bulletins.',
+    ar: 'أضف شعارك (PNG أو JPEG، 200 كيلوبايت كحد أقصى): سيُطبع على الوصولات والكشوف.',
+    en: 'Add your logo (PNG or JPEG, 200 KB max): it is printed on receipts and report cards.',
+  },
+  'setup.logo.count': {
+    fr: 'Logo ajouté',
+    ar: 'تمت إضافة الشعار',
+    en: 'Logo added',
+  },
 };
 
 function normalizeLocale(value: string | null | undefined): Locale {

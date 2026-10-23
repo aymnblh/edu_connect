@@ -62,3 +62,36 @@ def test_only_administration_imports_teachers():
             db=LenientDb(),
         ))
     assert exc.value.status_code == 403
+
+
+def test_logo_accepts_only_small_raster_images():
+    import pytest
+    from fastapi import HTTPException
+
+    from app.models import School
+    from app.modules.schools.routers import branding
+
+    png = b"\x89PNG\r\n\x1a\n" + b"0" * 100
+    assert branding.logo_media_type(png) == "image/png"
+    assert branding.logo_media_type(b"RIFF\x00\x00\x00\x00WEBPVP8 ") == "image/webp"
+    assert branding.logo_media_type(b"<svg onload=alert(1)>") is None
+
+    school = School(id="school-a", name="Les Oliviers", tenant_config={})
+    director = make_user("director-a", UserRole.principal)
+    db = LenientDb(get_map={(School, "school-a"): school})
+    out = run(branding.upload_logo(make_request("/schools/branding/logo", "PUT"),
+                                   file=UploadFile(file=io.BytesIO(png), filename="logo.png"), current_user=director, db=db))
+    assert out["logo"].startswith("data:image/png;base64,") and school.logo_data == out["logo"]
+
+    with pytest.raises(HTTPException) as exc:
+        run(branding.upload_logo(make_request("/x", "PUT"), file=UploadFile(file=io.BytesIO(b"<svg/>"), filename="x.svg"),
+                                 current_user=director, db=db))
+    assert exc.value.status_code == 400
+    with pytest.raises(HTTPException) as exc:
+        run(branding.upload_logo(make_request("/x", "PUT"), file=UploadFile(file=io.BytesIO(png + b"0" * 210_000), filename="big.png"),
+                                 current_user=director, db=db))
+    assert exc.value.status_code == 413
+    with pytest.raises(HTTPException) as exc:
+        run(branding.upload_logo(make_request("/x", "PUT"), file=UploadFile(file=io.BytesIO(png), filename="l.png"),
+                                 current_user=make_user("secretary-a", UserRole.secretary), db=db))
+    assert exc.value.status_code == 403

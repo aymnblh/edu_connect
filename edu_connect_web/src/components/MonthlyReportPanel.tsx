@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowDownRight, ArrowRight, ArrowUpRight, CalendarRange, Printer } from 'lucide-react';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
+import { useSchoolBranding } from '../lib/branding';
 import { formatDA } from '../lib/money';
 
 interface Activity {
@@ -70,6 +71,7 @@ function Delta({ current, previous, unit = '', previousLabel }: {
 export default function MonthlyReportPanel() {
   const { t, locale } = useLocale();
   const [month, setMonth] = useState<string | null>(null);
+  const logo = useSchoolBranding().data?.logo;
   const reportQuery = useQuery<MonthlyReport>({
     queryKey: ['monthly-report', month],
     queryFn: async () => (await api.get('/admin/reports/monthly', { params: month ? { month } : {} })).data,
@@ -113,7 +115,10 @@ export default function MonthlyReportPanel() {
     <section className="glass-card monthly-report monthly-print-sheet animate-fade-in" aria-labelledby="monthly-title">
       <div className="dashboard-toolbar">
         <div>
-          <p className="monthly-school">{report.school_name}</p>
+          <p className="monthly-school">
+            {logo && <img className="printed-logo printed-logo--small" src={logo} alt="" />}
+            {report.school_name}
+          </p>
           <h2 id="monthly-title" className="dashboard-section-title dashboard-section-title--plain">
             <CalendarRange size={18} /> {t('monthly.title', { month: monthLabel(report.month, locale) })}
           </h2>

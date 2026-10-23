@@ -10,6 +10,7 @@ import FeesPanel from '../components/FeesPanel';
 import MonthlyReportPanel from '../components/MonthlyReportPanel';
 import SetupChecklist, { ParentCodesSheet } from '../components/SetupChecklist';
 import TeacherImport from '../components/TeacherImport';
+import SchoolBrandingCard from '../components/SchoolBrandingCard';
 import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
@@ -1744,6 +1745,7 @@ export default function DirectorDashboard() {
 
   const renderTeam = () => (
     <div className="director-management-grid">
+      <SchoolBrandingCard canEdit={currentUserRole === 'principal'} />
       <section className="glass-card management-card">
         <h2 className="dashboard-section-title dashboard-section-title--plain">{t('director.team.inviteTitle')}</h2>
         <p className="dashboard-section-copy dashboard-section-copy--spaced">

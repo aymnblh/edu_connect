@@ -147,7 +147,7 @@ def test_demo_is_rebuilt_once_a_day_after_three_in_the_morning():
 # ── Setup checklist ──────────────────────────────────────────────────────────
 
 def _counts(**overrides):
-    counts = {"semesters": 3, "classes": 4, "courses": 6, "students": 100, "students_without_class": 0,
+    counts = {"logo": 1, "semesters": 3, "classes": 4, "courses": 6, "students": 100, "students_without_class": 0,
               "teachers": 5, "teachers_active": 3, "classes_with_teacher": 4, "students_with_parent": 50}
     counts.update(overrides)
     return counts
@@ -166,6 +166,7 @@ def test_setup_steps_follow_the_school_state():
 
     empty = setup.setup_steps(_counts(classes=0, students=0, classes_with_teacher=0, students_with_parent=0))
     assert [step["key"] for step in empty if not step["done"]] == ["classes", "students", "assignments", "parents"]
+    assert not setup.setup_steps(_counts(logo=0))[0]["done"]
 
 
 def test_only_school_administration_sees_setup_tools():

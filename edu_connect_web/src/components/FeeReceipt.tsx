@@ -1,4 +1,5 @@
 import { Printer } from 'lucide-react';
+import { useSchoolBranding } from '../lib/branding';
 import { useLocale } from '../lib/i18n';
 import { formatDA, formatDay, type FeeInvoice, type FeePayment } from '../lib/money';
 import { Modal } from './DirectorRecordsPanels';
@@ -14,6 +15,7 @@ type ReceiptModalProps = {
 /** A payment receipt the school or the parent can print or save as PDF. */
 export default function ReceiptModal({ schoolName, studentName, invoice, payment, onClose }: ReceiptModalProps) {
   const { t, locale } = useLocale();
+  const logo = useSchoolBranding().data?.logo;
   // What was left right after this payment, from the payments made up to it.
   const paidUpTo = invoice.payments
     .filter((item) => item.paid_at <= payment.paid_at)
@@ -24,7 +26,8 @@ export default function ReceiptModal({ schoolName, studentName, invoice, payment
     <Modal title={t('fees.receipt')} onClose={onClose}>
       <article className="fee-receipt-sheet">
         <header>
-          <div>
+          {logo && <img className="printed-logo" src={logo} alt="" />}
+          <div className="fee-receipt-heading">
             <strong className="fee-receipt-school">{schoolName}</strong>
             <span>{t('fees.receiptTitle')}</span>
           </div>

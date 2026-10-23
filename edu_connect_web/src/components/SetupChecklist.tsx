@@ -3,12 +3,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, Download, Printer, Rocket, X } from 'lucide-react';
 import { api } from '../lib/api';
+import { useSchoolBranding } from '../lib/branding';
 import { downloadStudentTemplate } from '../lib/downloads';
 import { useLocale } from '../lib/i18n';
 import { Modal } from './DirectorRecordsPanels';
 
 interface SetupStep {
-  key: 'trimesters' | 'classes' | 'subjects' | 'students' | 'teachers' | 'assignments' | 'parents';
+  key: 'logo' | 'trimesters' | 'classes' | 'subjects' | 'students' | 'teachers' | 'assignments' | 'parents';
   done: boolean;
   count: number;
   total?: number;
@@ -23,6 +24,7 @@ interface SetupStatus {
 }
 
 const STEP_ROUTES: Record<SetupStep['key'], string> = {
+  logo: '/director/team',
   trimesters: '/director/classes',
   classes: '/director/classes',
   subjects: '/director/classes',
@@ -140,6 +142,7 @@ export function ParentCodesSheet({ onClose }: { onClose: () => void }) {
   const { t } = useLocale();
   const [classId, setClassId] = useState('');
   const [onlyUnlinked, setOnlyUnlinked] = useState(true);
+  const branding = useSchoolBranding().data;
   const classesQuery = useQuery<Array<{ id: string; name: string }>>({
     queryKey: ['director-classes'],
     queryFn: async () => (await api.get('/classes/')).data,
@@ -171,6 +174,12 @@ export function ParentCodesSheet({ onClose }: { onClose: () => void }) {
       <div className="parent-codes-sheet">
         {codes.map((code) => (
           <article key={code.student_id} className="parent-code-card">
+            {branding && (
+              <div className="printed-school">
+                {branding.logo && <img src={branding.logo} alt="" />}
+                <span>{branding.name}</span>
+              </div>
+            )}
             <header>
               <strong>{code.student_name}</strong>
               {code.class_name && <span>{code.class_name}</span>}
