@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum as SAEnum, Float, ForeignKey, String, Text
+from sqlalchemy import DateTime, Enum as SAEnum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -30,6 +30,9 @@ class TuitionInvoice(Base):
     status: Mapped[TuitionInvoiceStatus] = mapped_column(SAEnum(TuitionInvoiceStatus), default=TuitionInvoiceStatus.unpaid)
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    # Payment reminders sent to the parents (manual or automatic).
+    last_reminded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reminder_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
     student: Mapped["Student"] = relationship("Student")
     payments: Mapped[list["TuitionPayment"]] = relationship("TuitionPayment", back_populates="invoice", cascade="all, delete-orphan")

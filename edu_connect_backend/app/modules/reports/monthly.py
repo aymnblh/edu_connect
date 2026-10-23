@@ -24,6 +24,7 @@ from app.models import (
     School,
     Student,
     StudentParent,
+    TuitionPayment,
     User,
     UserRole,
 )
@@ -158,6 +159,19 @@ async def period_activity(db: AsyncSession, school_id: str, start: datetime, end
             select(func.count()).select_from(MeetingSlot).where(
                 MeetingSlot.school_id == school_id, MeetingSlot.booked_at >= start, MeetingSlot.booked_at < end
             ),
+        ),
+        "fees_collected": round(
+            float(
+                await _count(
+                    db,
+                    select(func.coalesce(func.sum(TuitionPayment.amount), 0)).where(
+                        TuitionPayment.school_id == school_id,
+                        TuitionPayment.paid_at >= start,
+                        TuitionPayment.paid_at < end,
+                    ),
+                )
+            ),
+            2,
         ),
     }
 

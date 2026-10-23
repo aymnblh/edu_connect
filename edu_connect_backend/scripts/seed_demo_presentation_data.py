@@ -640,7 +640,10 @@ async def seed_demo_data(*, reset_demo: bool, accounts_output: Path | None, forc
                 amount_due=amount_due,
                 amount_paid=paid,
                 status=status,
-                due_date=today + timedelta(days=10),
+                # Unpaid ones are a couple of weeks late, so the fees screen has follow-ups to show.
+                due_date=today - timedelta(days=12) if status == TuitionInvoiceStatus.unpaid else today + timedelta(days=5),
+                reminder_count=1 if status == TuitionInvoiceStatus.unpaid else 0,
+                last_reminded_at=today - timedelta(days=4) if status == TuitionInvoiceStatus.unpaid else None,
             )
             db.add(invoice)
             await db.flush()

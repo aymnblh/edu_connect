@@ -247,8 +247,8 @@ def test_period_activity_counts_attendance_and_engagement():
         (AttendanceStatus.absent, False, 2),
     ]
     # attendance, then: notifications, parents, teachers, grades, homework, lessons,
-    # direct messages, class messages, announcements, report cards, meetings
-    counts = [40, 30, 4, 120, 8, 9, 15, 5, 2, 0, 3]
+    # direct messages, class messages, announcements, report cards, meetings, fees collected
+    counts = [40, 30, 4, 120, 8, 9, 15, 5, 2, 0, 3, 85000.0]
     db = FakeDb(results=[FakeResult(attendance)] + [FakeResult([value]) for value in counts])
     start, end = monthly.month_bounds(2026, 10)
     activity = run(monthly.period_activity(db, "school-a", start, end))
@@ -256,6 +256,7 @@ def test_period_activity_counts_attendance_and_engagement():
     assert activity["absences"] == 5 and activity["unjustified_absences"] == 2 and activity["lates"] == 5
     assert activity["parent_notifications"] == 40 and activity["active_parents"] == 30
     assert activity["messages"] == 20 and activity["meetings_booked"] == 3
+    assert activity["fees_collected"] == 85000.0
 
 
 def test_an_empty_month_has_no_rate_instead_of_zero():

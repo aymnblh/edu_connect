@@ -23,9 +23,13 @@ def start_background_jobs() -> list[asyncio.Task]:
     if settings.app_env.lower() in {"test", "testing"} or not settings.background_jobs_enabled:
         return []
     from app.modules.demo.refresh import refresh_demo_if_stale
+    from app.modules.finance.fees import send_automatic_reminders
     from app.modules.reports.monthly import notify_monthly_reports
 
-    tasks = [asyncio.create_task(run_every(3600, notify_monthly_reports, "monthly_reports"))]
+    tasks = [
+        asyncio.create_task(run_every(3600, notify_monthly_reports, "monthly_reports")),
+        asyncio.create_task(run_every(3600, send_automatic_reminders, "fee_reminders")),
+    ]
     if settings.public_demo_enabled:
         tasks.append(asyncio.create_task(run_every(1800, refresh_demo_if_stale, "demo_refresh")))
     return tasks
