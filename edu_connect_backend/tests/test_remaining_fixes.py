@@ -192,7 +192,8 @@ def test_nurse_reads_records_with_audit_and_only_the_director_invites_nurses():
     out = run(health_router.get_health_record("s1", make_request("/students/s1/health", "GET"),
                                               current_user=make_user("nurse-a", UserRole.nurse), db=db))
     assert out.allergies == "Arachides"
-    assert next(item for item in db.added if isinstance(item, AuditEvent)).action == "health.viewed"
+    # By name: other test modules reload app.models, so the class object can differ.
+    assert next(item for item in db.added if type(item).__name__ == "AuditEvent").action == "health.viewed"
 
     with pytest.raises(HTTPException) as exc:
         run(admin.create_staff(admin.CreateStaffRequest(email="infirmiere@wasel-edu.dz", full_name="Inf", role=UserRole.nurse),
