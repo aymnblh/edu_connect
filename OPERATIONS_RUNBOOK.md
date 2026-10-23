@@ -183,6 +183,12 @@ Suggested alert thresholds:
 - One access line per request (`educonnect.access`): method, path **without query string**, status, duration, user id, client IP. Health checks log at DEBUG only. Uvicorn's own access log is disabled (`--no-access-log`) because it prints full URLs.
 - Passwords, tokens, `Bearer` headers, JWTs, invite codes and PINs are masked (`[REDACTED]`) before any line is written, including exception tracebacks. Never add a log line that prints a request body wholesale.
 
+### Health data encryption key
+
+- Health records are encrypted in the database with `HEALTH_DATA_KEY` (required in production; the API refuses to start without a valid one). Generate it once with `python manage.py generate-health-key`.
+- **Keep a copy outside the server** (password manager, sealed envelope). Database backups are useless for health records without this key.
+- To change the key: put the new one in `HEALTH_DATA_KEY` and the old one in `HEALTH_DATA_PREVIOUS_KEYS`, restart. Rows are re-encrypted with the new key as they are saved; keep the old key listed until then.
+
 ### Background jobs
 
 - The API runs hourly jobs (`BACKGROUND_JOBS_ENABLED`, on by default; they are safe with several workers):

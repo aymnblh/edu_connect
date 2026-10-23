@@ -108,3 +108,42 @@ def test_profile_says_whether_the_session_is_the_public_demo(monkeypatch):
     assert run(users.get_me(current_user=demo)).is_demo is True
     monkeypatch.setattr(settings, "public_demo_enabled", False)
     assert run(users.get_me(current_user=demo)).is_demo is False
+
+
+def test_health_fields_are_encrypted_at_rest_and_old_rows_still_read():
+    from app.core import crypto
+
+    stored = crypto.EncryptedText().process_bind_param("Arachides", None)
+    assert stored.startswith("enc:v1:") and "Arachides" not in stored
+    assert crypto.EncryptedText().process_result_value(stored, None) == "Arachides"
+    contacts = [{"name": "Nadia", "phone": "0555 01 02 03"}]
+    stored_json = crypto.EncryptedJSON().process_bind_param(contacts, None)
+    assert "Nadia" not in stored_json
+    assert crypto.EncryptedJSON().process_result_value(stored_json, None) == contacts
+    # Written before encryption existed.
+    assert crypto.EncryptedText().process_result_value("O+", None) == "O+"
+    assert crypto.EncryptedJSON().process_result_value('[{"name": "X"}]', None) == [{"name": "X"}]
+
+
+def test_health_key_can_be_rotated(monkeypatch):
+    from cryptography.fernet import Fernet
+
+    from app.core import crypto
+    from app.core.config import settings
+
+    old, new = Fernet.generate_key().decode(), Fernet.generate_key().decode()
+    monkeypatch.setattr(settings, "health_data_key", old)
+    crypto._cipher.cache_clear()
+    stored = crypto.encrypt("Asthme")
+    monkeypatch.setattr(settings, "health_data_key", new)
+    monkeypatch.setattr(settings, "health_data_previous_keys", old)
+    crypto._cipher.cache_clear()
+    assert crypto.decrypt(stored) == "Asthme"
+    monkeypatch.setattr(settings, "health_data_previous_keys", "")
+    crypto._cipher.cache_clear()
+    import pytest
+
+    with pytest.raises(RuntimeError):
+        crypto.decrypt(stored)
+    monkeypatch.undo()
+    crypto._cipher.cache_clear()
