@@ -6,6 +6,7 @@ import AnnouncementsPanel from '../components/AnnouncementsPanel';
 import AuditLogPanel from '../components/AuditLogPanel';
 import { StudentFileModal, TeacherHistoryModal } from '../components/DirectorRecordsPanels';
 import DirectorInsightsPanel from '../components/DirectorInsightsPanel';
+import FeesPanel from '../components/FeesPanel';
 import MonthlyReportPanel from '../components/MonthlyReportPanel';
 import SetupChecklist, { ParentCodesSheet } from '../components/SetupChecklist';
 import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
@@ -46,6 +47,7 @@ import {
   TrendingUp,
   UserPlus,
   Users,
+  Wallet,
   X,
 } from 'lucide-react';
 
@@ -181,7 +183,7 @@ interface ClassCourseAssignment {
 }
 
 type ToastType = 'success' | 'error' | 'warning';
-type DirectorTab = 'overview' | 'monthly' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
+type DirectorTab = 'overview' | 'monthly' | 'fees' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
 
 interface Toast {
   id: number;
@@ -210,6 +212,7 @@ const directorTabs: Array<{
   { id: 'monthly', labelKey: 'director.tab.monthly', route: '/director/monthly-report', icon: CalendarRange },
   { id: 'students', labelKey: 'director.tab.students', route: '/director/students', icon: Users },
   { id: 'classes', labelKey: 'director.tab.classes', route: '/director/classes', icon: BookOpen },
+  { id: 'fees', labelKey: 'director.tab.fees', route: '/director/fees', icon: Wallet },
   { id: 'team', labelKey: 'director.tab.team', route: '/director/team', icon: UserPlus },
   { id: 'reports', labelKey: 'director.tab.reports', route: '/director/report-cards', icon: FileText },
   { id: 'announcements', labelKey: 'director.tab.announcements', route: '/director/announcements', icon: Megaphone },
@@ -251,6 +254,7 @@ function readCurrentUserRole(): string {
 
 function tabFromPath(pathname: string): DirectorTab {
   if (pathname.includes('/director/monthly-report')) return 'monthly';
+  if (pathname.includes('/director/fees')) return 'fees';
   if (pathname.includes('/director/students')) return 'students';
   if (pathname.includes('/director/classes')) return 'classes';
   if (pathname.includes('/director/team')) return 'team';
@@ -1913,6 +1917,7 @@ export default function DirectorDashboard() {
       {activeTab === 'overview' && <SetupChecklist />}
       {activeTab === 'overview' && renderOverview()}
       {activeTab === 'monthly' && <MonthlyReportPanel />}
+      {activeTab === 'fees' && <FeesPanel canChangeSettings={currentUserRole === 'principal'} />}
       {activeTab === 'overview' && <DirectorInsightsPanel />}
       {activeTab === 'students' && renderStudents()}
       {activeTab === 'classes' && renderClasses()}

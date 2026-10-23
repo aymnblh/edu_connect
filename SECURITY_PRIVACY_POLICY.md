@@ -60,6 +60,12 @@ This file is the implementation contract for access control, audit, retention, c
 - Student records should be archived on transfer or graduation, not hard-deleted during ordinary school operations.
 - Hard deletion should be restricted to system-admin workflows after contractual/legal retention windows and should preserve required audit evidence.
 
+## School Fees
+
+- Fee records (label, amount owed, due date), payments (amount, method, receipt number) and reminders are visible only to the school administration (`/finance/ledger`) and to the student's linked parents (`/finance/my-fees`).
+- Creating fees, recording or cancelling a payment (with its reason), reminders and the automatic-reminder setting are recorded in the activity log.
+- Reminders go only to the student's own parents, at most once every 3 days by hand and weekly when automatic (4 at most, 08:00–20:00 Algeria time). Online payment is not handled by the platform.
+
 ## Student Health Records
 
 - Health data is sensitive personal data under Law 18-07: it is collected only with recorded parent consent (`consent_method` = `app` when the parent agrees in the app, `paper` when the school attests a signed form).

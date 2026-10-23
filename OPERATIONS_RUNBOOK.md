@@ -185,7 +185,8 @@ Suggested alert thresholds:
 
 ### Background jobs
 
-- The API runs two hourly jobs (`BACKGROUND_JOBS_ENABLED`, on by default; they are safe with several workers):
+- The API runs hourly jobs (`BACKGROUND_JOBS_ENABLED`, on by default; they are safe with several workers):
+  - **Fee reminders** (schools where the director turned on automatic reminders): parents of unpaid fees get a heads-up up to 3 days before the due date, then one reminder a week once overdue, at most 4, only between 08:00 and 20:00 Algeria time. Rows are locked while handled (`FOR UPDATE SKIP LOCKED`).
   - **Monthly report notifications:** on the 1st, each director gets "Votre bilan de … est prêt". Each school remembers the month it was told about (`tenant_config.monthly_report_notified`), so a restart never sends it twice.
   - **Public demo refresh** (only with `PUBLIC_DEMO_ENABLED=true`): seeds the demo school if it is missing and rebuilds it once a day after 03:00 Algeria time. A Postgres advisory lock keeps it to one worker.
 - Public demo safety: demo accounts (`@demo.educonnect.dz`) are read-only (HTTP writes and chat WebSockets refused), their sessions are not audited, visitors' IPs and browsers are never shown, demo PINs cannot register a parent, no platform admin is created and the password is random. To close the demo, set `PUBLIC_DEMO_ENABLED=false` and restart; the demo school stays in the database, but nobody can sign in to it (its password is random); delete it if you no longer need it.

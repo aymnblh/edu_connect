@@ -109,9 +109,19 @@ Dans l'onglet « Vue d'ensemble », sous les indicateurs habituels, pour le trim
 - **Import Excel des élèves** : onglet « Élèves » → « Modèle Excel » télécharge un fichier avec les colonnes `prenom ; nom ; classe`. Remplissez-le, enregistrez-le en CSV, puis « Importer CSV ». Les élèves dont la classe existe déjà y sont placés automatiquement ; les classes inconnues sont listées pour être créées.
 - **Codes parents à imprimer** : « Imprimer les codes parents » (onglet « Élèves » ou dans la liste de démarrage) produit une carte à découper par élève avec son identifiant, son PIN et la marche à suivre. Filtre par classe et « seulement les élèves sans parent connecté ». Chaque code ouvre le dossier de l'enfant : remettez-le en main propre ou sous enveloppe. L'impression est enregistrée dans le journal.
 
+### Frais scolaires
+- **Direction / secrétariat — onglet « Frais scolaires »** :
+  - **Nouveaux frais** : un intitulé (ex. « Frais du 1er trimestre »), un montant, une échéance, pour une classe ou toute l'école. Les élèves déjà facturés avec le même intitulé ne le sont pas deux fois.
+  - **Encaisser** : montant (le reste à payer est proposé), mode (espèces, virement, CCP / BaridiMob, chèque), remarque. Le reçu s'affiche aussitôt, à imprimer ou enregistrer en PDF, et les parents le reçoivent dans l'application.
+  - **Suivi** : totaux facturé / encaissé / reste / en retard, filtres (en retard, non payés, partiels, payés, classe, frais), totaux par classe.
+  - **Rappels** : la cloche à côté d'un élève, ou « Relancer les retards » pour tous. Un même frais n'est pas rappelé deux fois en 3 jours. Le directeur peut activer les **rappels automatiques** : 3 jours avant l'échéance, puis une fois par semaine en cas de retard (4 au maximum, entre 8 h et 20 h).
+  - **Erreurs** : un paiement saisi par erreur s'annule (bouton reçu → « Annuler », avec la raison, gardée dans le journal) ; des frais sans paiement se suppriment.
+- **Parents — onglet « Frais » (web) ou menu « Frais scolaires » (mobile)** : reste à payer par enfant, chaque frais avec son échéance, et tous les reçus. Le paiement lui-même se fait toujours au secrétariat.
+
 ### Bilan mensuel (direction)
 - Onglet **« Bilan mensuel »** : pour le mois choisi, comparé au mois précédent — taux de présence, notifications envoyées aux parents, parents actifs, notes saisies, absences (dont non justifiées), retards, devoirs, séances, messages, annonces, bulletins, rendez-vous, enseignants actifs, part des élèves ayant un parent connecté et présence par classe.
 - « Imprimer / PDF » pour le présenter au propriétaire ou au conseil de l'école.
+- Le bilan inclut aussi les **frais encaissés** dans le mois.
 - Le **1er de chaque mois**, le directeur reçoit une notification « Votre bilan de … est prêt » avec les chiffres clés.
 
 ### Démo publique

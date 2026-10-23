@@ -5057,3 +5057,216 @@ textarea.form-input {
 .monthly-delta svg {
   flex-shrink: 0;
 }
+
+/* School fees */
+.fees-panel {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.fees-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fees-summary {
+  margin-top: 1rem;
+}
+
+.fees-auto {
+  margin-top: 1rem;
+  align-items: flex-start;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.fees-auto strong {
+  color: var(--text-color);
+}
+
+.fees-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.fees-filters .student-filter-bar {
+  flex: 1 1 220px;
+  margin: 0;
+}
+
+.fees-filters select {
+  flex: 0 1 200px;
+}
+
+.fees-table td {
+  vertical-align: top;
+}
+
+.fees-table td .status-badge {
+  margin-top: 0.25rem;
+  white-space: nowrap;
+}
+
+.fees-amount {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.fees-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.fees-payments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.fees-payments li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.fees-payments li > div:first-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.parent-fees {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.parent-fees-total {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.parent-fee-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.parent-fee-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+}
+
+.parent-fee-card dl,
+.fee-receipt-sheet dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.5rem 1rem;
+}
+
+.parent-fee-card .status-badge {
+  white-space: nowrap;
+}
+
+.parent-fee-card dt,
+.fee-receipt-sheet dt {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.parent-fee-card dd,
+.fee-receipt-sheet dd {
+  margin: 0;
+  color: var(--text-color);
+}
+
+.fee-receipt-sheet {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  color: var(--text-color);
+}
+
+.fee-receipt-sheet header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fee-receipt-sheet header > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.fee-receipt-school {
+  font-size: 1.1rem;
+}
+
+.fee-receipt-sheet header span {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.fee-receipt-number {
+  text-align: end;
+}
+
+.fee-receipt-number strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.fee-receipt-amount dd {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.fee-receipt-sheet footer {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.fee-receipt-actions {
+  justify-content: flex-end;
+}
+
+@media print {
+  .fee-receipt-sheet,
+  .fee-receipt-sheet * {
+    visibility: visible !important;
+  }
+
+  .fee-receipt-sheet {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    max-width: 160mm;
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #9ca3af !important;
+  }
+}

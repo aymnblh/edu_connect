@@ -4989,6 +4989,461 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'أقسام غير موجودة، أنشئها ثم أعد الاستيراد أو ضعهم يدويًا: {classes}',
     en: 'Classes not found — create them and re-import, or place students by hand: {classes}',
   },
+  'fees.currency': {
+    fr: 'DA',
+    ar: 'دج',
+    en: 'DZD',
+  },
+  'fees.tab': {
+    fr: 'Frais',
+    ar: 'المصاريف',
+    en: 'Fees',
+  },
+  'director.tab.fees': {
+    fr: 'Frais scolaires',
+    ar: 'المصاريف المدرسية',
+    en: 'School fees',
+  },
+  'nav.fees': {
+    fr: 'Frais scolaires',
+    ar: 'المصاريف المدرسية',
+    en: 'School fees',
+  },
+  'monthly.feesCollected': {
+    fr: 'Frais encaissés',
+    ar: 'مصاريف محصّلة',
+    en: 'Fees collected',
+  },
+  'fees.title': {
+    fr: 'Frais scolaires',
+    ar: 'المصاريف المدرسية',
+    en: 'School fees',
+  },
+  'fees.copy': {
+    fr: 'Qui doit quoi, les paiements, les reçus et les rappels aux parents.',
+    ar: 'من عليه ماذا، المدفوعات، الوصولات وتذكير الأولياء.',
+    en: 'Who owes what, payments, receipts and reminders to parents.',
+  },
+  'fees.new': {
+    fr: 'Nouveaux frais',
+    ar: 'مصاريف جديدة',
+    en: 'New fees',
+  },
+  'fees.remindAll': {
+    fr: 'Relancer les retards ({count})',
+    ar: 'تذكير المتأخرين ({count})',
+    en: 'Remind overdue ({count})',
+  },
+  'fees.remindAllConfirm': {
+    fr: 'Envoyer un rappel aux parents de {count} élève(s) en retard ? Les frais déjà rappelés il y a moins de 3 jours sont ignorés.',
+    ar: 'إرسال تذكير لأولياء {count} تلميذ متأخر؟ تُتجاهل المصاريف التي ذُكّر بها منذ أقل من 3 أيام.',
+    en: 'Send a reminder to the parents of {count} overdue student(s)? Fees reminded less than 3 days ago are skipped.',
+  },
+  'fees.billed': {
+    fr: 'Facturé',
+    ar: 'المفوتر',
+    en: 'Billed',
+  },
+  'fees.collected': {
+    fr: 'Encaissé',
+    ar: 'المحصّل',
+    en: 'Collected',
+  },
+  'fees.collectionRate': {
+    fr: '{rate} % recouvré',
+    ar: '{rate}٪ محصّل',
+    en: '{rate}% collected',
+  },
+  'fees.thisMonth': {
+    fr: '{amount} ce mois-ci',
+    ar: '{amount} هذا الشهر',
+    en: '{amount} this month',
+  },
+  'fees.outstanding': {
+    fr: 'Reste à encaisser',
+    ar: 'الباقي للتحصيل',
+    en: 'Outstanding',
+  },
+  'fees.overdue': {
+    fr: 'En retard',
+    ar: 'متأخر',
+    en: 'Overdue',
+  },
+  'fees.overdueStudents': {
+    fr: '{count} élève(s) concerné(s)',
+    ar: '{count} تلميذ معني',
+    en: '{count} student(s)',
+  },
+  'fees.autoReminders': {
+    fr: 'Rappels automatiques',
+    ar: 'تذكير تلقائي',
+    en: 'Automatic reminders',
+  },
+  'fees.autoRemindersCopy': {
+    fr: 'un message aux parents 3 jours avant l\'échéance, puis une fois par semaine en cas de retard (4 au maximum, entre 8 h et 20 h).',
+    ar: 'رسالة للأولياء قبل 3 أيام من الأجل، ثم مرة في الأسبوع عند التأخر (4 كحد أقصى، بين 8 و20 سا).',
+    en: 'a message to parents 3 days before the due date, then once a week when late (at most 4, between 8 am and 8 pm).',
+  },
+  'fees.directorOnly': {
+    fr: '(réglage réservé au directeur)',
+    ar: '(إعداد خاص بالمدير)',
+    en: '(director only)',
+  },
+  'fees.search': {
+    fr: 'Rechercher un élève',
+    ar: 'بحث عن تلميذ',
+    en: 'Search a student',
+  },
+  'fees.statusFilter': {
+    fr: 'Statut',
+    ar: 'الحالة',
+    en: 'Status',
+  },
+  'fees.filter.all': {
+    fr: 'Tous les statuts',
+    ar: 'كل الحالات',
+    en: 'All statuses',
+  },
+  'fees.filter.overdue': {
+    fr: 'En retard',
+    ar: 'متأخر',
+    en: 'Overdue',
+  },
+  'fees.filter.unpaid': {
+    fr: 'Non payés',
+    ar: 'غير مدفوع',
+    en: 'Unpaid',
+  },
+  'fees.filter.partial': {
+    fr: 'Partiellement payés',
+    ar: 'مدفوع جزئيا',
+    en: 'Partly paid',
+  },
+  'fees.filter.paid': {
+    fr: 'Payés',
+    ar: 'مدفوع',
+    en: 'Paid',
+  },
+  'fees.classFilter': {
+    fr: 'Classe',
+    ar: 'القسم',
+    en: 'Class',
+  },
+  'fees.labelFilter': {
+    fr: 'Frais',
+    ar: 'المصاريف',
+    en: 'Fee',
+  },
+  'fees.allFees': {
+    fr: 'Tous les frais',
+    ar: 'كل المصاريف',
+    en: 'All fees',
+  },
+  'fees.empty': {
+    fr: 'Aucun frais pour l\'instant. Commencez par « Nouveaux frais » : par exemple « Frais du 1er trimestre » pour toute l\'école.',
+    ar: 'لا توجد مصاريف بعد. ابدأ بـ «مصاريف جديدة»: مثلا «مصاريف الفصل الأول» لكل المدرسة.',
+    en: 'No fees yet. Start with “New fees”: for example “Term 1 fees” for the whole school.',
+  },
+  'fees.noMatch': {
+    fr: 'Aucun frais ne correspond à ces filtres.',
+    ar: 'لا توجد مصاريف تطابق هذه المرشحات.',
+    en: 'No fees match these filters.',
+  },
+  'fees.student': {
+    fr: 'Élève',
+    ar: 'التلميذ',
+    en: 'Student',
+  },
+  'fees.fee': {
+    fr: 'Frais',
+    ar: 'المصاريف',
+    en: 'Fee',
+  },
+  'fees.totalDue': {
+    fr: 'Montant',
+    ar: 'المبلغ',
+    en: 'Amount',
+  },
+  'fees.paid': {
+    fr: 'Payé',
+    ar: 'المدفوع',
+    en: 'Paid',
+  },
+  'fees.left': {
+    fr: 'Reste',
+    ar: 'الباقي',
+    en: 'Left',
+  },
+  'fees.dueDate': {
+    fr: 'Échéance',
+    ar: 'الأجل',
+    en: 'Due date',
+  },
+  'fees.reminders': {
+    fr: 'Rappels',
+    ar: 'التذكيرات',
+    en: 'Reminders',
+  },
+  'fees.noParent': {
+    fr: 'aucun parent connecté',
+    ar: 'لا ولي متصل',
+    en: 'no parent connected',
+  },
+  'fees.remindedOn': {
+    fr: '{count} rappel(s), dernier le {date}',
+    ar: '{count} تذكير، آخرها {date}',
+    en: '{count} reminder(s), last on {date}',
+  },
+  'fees.collect': {
+    fr: 'Encaisser',
+    ar: 'تحصيل',
+    en: 'Collect',
+  },
+  'fees.remind': {
+    fr: 'Envoyer un rappel aux parents',
+    ar: 'إرسال تذكير للأولياء',
+    en: 'Remind the parents',
+  },
+  'fees.receipts': {
+    fr: 'Paiements et reçus',
+    ar: 'المدفوعات والوصولات',
+    en: 'Payments and receipts',
+  },
+  'fees.deleteConfirm': {
+    fr: 'Supprimer « {label} » pour {name} ?',
+    ar: 'حذف «{label}» لـ {name}؟',
+    en: 'Delete “{label}” for {name}?',
+  },
+  'fees.deleted': {
+    fr: 'Frais supprimés.',
+    ar: 'تم حذف المصاريف.',
+    en: 'Fee deleted.',
+  },
+  'fees.byClass': {
+    fr: 'Par classe',
+    ar: 'حسب القسم',
+    en: 'By class',
+  },
+  'fees.noClass': {
+    fr: 'Sans classe',
+    ar: 'بدون قسم',
+    en: 'No class',
+  },
+  'fees.status.paid': {
+    fr: 'Payé',
+    ar: 'مدفوع',
+    en: 'Paid',
+  },
+  'fees.status.unpaid': {
+    fr: 'Non payé',
+    ar: 'غير مدفوع',
+    en: 'Unpaid',
+  },
+  'fees.status.partial': {
+    fr: 'Partiel',
+    ar: 'جزئي',
+    en: 'Partly paid',
+  },
+  'fees.overdueBy': {
+    fr: 'En retard de {days} j',
+    ar: 'متأخر بـ {days} يوم',
+    en: '{days} days late',
+  },
+  'fees.remindersResult': {
+    fr: 'Rappels envoyés : {sent}. Déjà rappelés récemment : {recent}. Sans parent connecté : {noParent}.',
+    ar: 'تذكيرات مرسلة: {sent}. ذُكّر بها مؤخرا: {recent}. بدون ولي متصل: {noParent}.',
+    en: 'Reminders sent: {sent}. Reminded recently: {recent}. No parent connected: {noParent}.',
+  },
+  'fees.loadError': {
+    fr: 'Impossible de charger les frais.',
+    ar: 'تعذر تحميل المصاريف.',
+    en: 'Could not load the fees.',
+  },
+  'fees.label': {
+    fr: 'Intitulé',
+    ar: 'العنوان',
+    en: 'Label',
+  },
+  'fees.labelHint': {
+    fr: 'Ex. Frais du 1er trimestre, Cantine octobre, Transport',
+    ar: 'مثلا: مصاريف الفصل الأول، المطعم، النقل',
+    en: 'e.g. Term 1 fees, October canteen, Transport',
+  },
+  'fees.amount': {
+    fr: 'Montant (DA)',
+    ar: 'المبلغ (دج)',
+    en: 'Amount (DZD)',
+  },
+  'fees.who': {
+    fr: 'Pour',
+    ar: 'لـ',
+    en: 'For',
+  },
+  'fees.wholeSchool': {
+    fr: 'Toute l\'école (élèves actifs)',
+    ar: 'كل المدرسة (التلاميذ النشطون)',
+    en: 'The whole school (active students)',
+  },
+  'fees.noDuplicates': {
+    fr: 'Les élèves qui ont déjà des frais avec cet intitulé ne sont pas facturés une deuxième fois.',
+    ar: 'التلاميذ الذين لديهم مصاريف بنفس العنوان لا يُفوترون مرة ثانية.',
+    en: 'Students who already have a fee with this label are not billed twice.',
+  },
+  'fees.create': {
+    fr: 'Créer les frais',
+    ar: 'إنشاء المصاريف',
+    en: 'Create the fees',
+  },
+  'fees.created': {
+    fr: '{created} élève(s) facturé(s), {skipped} déjà facturé(s).',
+    ar: 'تمت فوترة {created} تلميذ، {skipped} مفوترون مسبقا.',
+    en: '{created} student(s) billed, {skipped} already billed.',
+  },
+  'fees.amountInvalid': {
+    fr: 'Indiquez un montant supérieur à 0.',
+    ar: 'أدخل مبلغا أكبر من 0.',
+    en: 'Enter an amount above 0.',
+  },
+  'fees.collectTitle': {
+    fr: 'Encaisser — {name}',
+    ar: 'تحصيل — {name}',
+    en: 'Collect — {name}',
+  },
+  'fees.leftToPay': {
+    fr: 'reste à payer {amount}',
+    ar: 'الباقي للدفع {amount}',
+    en: '{amount} left to pay',
+  },
+  'fees.method': {
+    fr: 'Mode de paiement',
+    ar: 'طريقة الدفع',
+    en: 'Payment method',
+  },
+  'fees.method.cash': {
+    fr: 'Espèces',
+    ar: 'نقدا',
+    en: 'Cash',
+  },
+  'fees.method.bank_transfer': {
+    fr: 'Virement bancaire',
+    ar: 'تحويل بنكي',
+    en: 'Bank transfer',
+  },
+  'fees.method.ccp': {
+    fr: 'CCP / BaridiMob',
+    ar: 'CCP / بريدي موب',
+    en: 'CCP / BaridiMob',
+  },
+  'fees.method.cheque': {
+    fr: 'Chèque',
+    ar: 'صك',
+    en: 'Cheque',
+  },
+  'fees.note': {
+    fr: 'Remarque',
+    ar: 'ملاحظة',
+    en: 'Note',
+  },
+  'fees.noteHint': {
+    fr: 'Ex. n° de virement, payé par l\'oncle…',
+    ar: 'مثلا: رقم التحويل…',
+    en: 'e.g. transfer number…',
+  },
+  'fees.saveAndReceipt': {
+    fr: 'Enregistrer et afficher le reçu',
+    ar: 'حفظ وعرض الوصل',
+    en: 'Save and show the receipt',
+  },
+  'fees.amountTooHigh': {
+    fr: 'Le montant doit être entre 1 et {left}.',
+    ar: 'يجب أن يكون المبلغ بين 1 و{left}.',
+    en: 'The amount must be between 1 and {left}.',
+  },
+  'fees.paymentsTitle': {
+    fr: 'Paiements — {label} ({name})',
+    ar: 'المدفوعات — {label} ({name})',
+    en: 'Payments — {label} ({name})',
+  },
+  'fees.receipt': {
+    fr: 'Reçu',
+    ar: 'الوصل',
+    en: 'Receipt',
+  },
+  'fees.cancelPayment': {
+    fr: 'Annuler',
+    ar: 'إلغاء',
+    en: 'Cancel',
+  },
+  'fees.cancelReason': {
+    fr: 'Annuler le paiement {number} ? Indiquez la raison (elle est gardée dans le journal) :',
+    ar: 'إلغاء الدفعة {number}؟ اذكر السبب (يُحفظ في السجل):',
+    en: 'Cancel payment {number}? Give the reason (kept in the activity log):',
+  },
+  'fees.paymentCancelled': {
+    fr: 'Paiement annulé, le reste à payer est mis à jour.',
+    ar: 'أُلغيت الدفعة وحُدّث الباقي.',
+    en: 'Payment cancelled; the balance is updated.',
+  },
+  'fees.receiptTitle': {
+    fr: 'Reçu de paiement — frais scolaires',
+    ar: 'وصل دفع — مصاريف مدرسية',
+    en: 'Payment receipt — school fees',
+  },
+  'fees.receiptNumber': {
+    fr: 'Reçu n°',
+    ar: 'رقم الوصل',
+    en: 'Receipt no.',
+  },
+  'fees.date': {
+    fr: 'Date',
+    ar: 'التاريخ',
+    en: 'Date',
+  },
+  'fees.amountReceived': {
+    fr: 'Montant reçu',
+    ar: 'المبلغ المستلم',
+    en: 'Amount received',
+  },
+  'fees.leftAfter': {
+    fr: 'Reste à payer après ce paiement',
+    ar: 'الباقي بعد هذه الدفعة',
+    en: 'Left to pay after this payment',
+  },
+  'fees.settled': {
+    fr: 'Soldé',
+    ar: 'مسدد بالكامل',
+    en: 'Fully paid',
+  },
+  'fees.receiptFooter': {
+    fr: 'Reçu généré par Wasel Edu. Conservez-le comme justificatif.',
+    ar: 'وصل صادر عن Wasel Edu. احتفظ به كإثبات.',
+    en: 'Receipt generated by Wasel Edu. Keep it as proof of payment.',
+  },
+  'fees.printReceipt': {
+    fr: 'Imprimer / PDF',
+    ar: 'طباعة / PDF',
+    en: 'Print / PDF',
+  },
+  'fees.parentLeft': {
+    fr: 'Reste à payer pour cet enfant : {amount}',
+    ar: 'الباقي للدفع لهذا الطفل: {amount}',
+    en: 'Left to pay for this child: {amount}',
+  },
+  'fees.parentNothingDue': {
+    fr: 'Rien à payer pour cet enfant. Merci !',
+    ar: 'لا شيء للدفع لهذا الطفل. شكرا!',
+    en: 'Nothing to pay for this child. Thank you!',
+  },
+  'fees.parentEmpty': {
+    fr: 'L\'école n\'a pas encore enregistré de frais.',
+    ar: 'لم تسجل المدرسة أي مصاريف بعد.',
+    en: 'The school has not recorded any fees yet.',
+  },
+  'fees.parentHow': {
+    fr: 'Les paiements se font auprès du secrétariat de l\'école ; chaque paiement enregistré apparaît ici avec son reçu.',
+    ar: 'يتم الدفع لدى أمانة المدرسة؛ كل دفعة مسجلة تظهر هنا مع وصلها.',
+    en: 'Payments are made at the school office; every recorded payment appears here with its receipt.',
+  },
 };
 
 function normalizeLocale(value: string | null | undefined): Locale {

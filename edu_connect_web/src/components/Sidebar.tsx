@@ -16,7 +16,8 @@ import {
   GraduationCap,
   UserPlus,
   Megaphone,
-  CalendarRange
+  CalendarRange,
+  Wallet
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { logoutSession } from '../lib/api';
@@ -69,6 +70,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
           { to: '/director/monthly-report', label: t('nav.monthlyReport'), icon: CalendarRange },
           { to: '/director/students', label: t('nav.studentsParents'), icon: Users },
           { to: '/director/classes', label: t('nav.classesCourses'), icon: GraduationCap },
+          { to: '/director/fees', label: t('nav.fees'), icon: Wallet },
           { to: '/director/team', label: t('nav.teamTeachers'), icon: UserPlus },
           { to: '/director/report-cards', label: t('nav.reportCards'), icon: FileText },
           { to: '/director/announcements', label: t('nav.announcements'), icon: Megaphone },

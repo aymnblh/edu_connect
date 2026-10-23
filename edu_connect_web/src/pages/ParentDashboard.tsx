@@ -13,12 +13,14 @@ import {
   MessageSquare,
   NotebookText,
   RefreshCw,
+  Wallet,
 } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
 import ParentReportCardsPanel from '../components/ParentReportCardsPanel';
 import { ParentMeetingsPanel } from '../components/MeetingsPanel';
 import HealthRecordForm from '../components/HealthRecordForm';
+import ParentFeesPanel from '../components/ParentFeesPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
@@ -186,7 +188,7 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
 export default function ParentDashboard() {
   const { t, locale } = useLocale();
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
-  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'reports' | 'meetings' | 'health' | 'announcements' | 'message'>('grades');
+  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'reports' | 'meetings' | 'health' | 'fees' | 'announcements' | 'message'>('grades');
   const [scheduleSubView, setScheduleSubView] = useState<'weekly' | 'exams'>('weekly');
 
   const childrenQuery = useQuery<Student[]>({
@@ -444,6 +446,14 @@ export default function ParentDashboard() {
                 <HeartPulse size={14} /> {t('health.tab')}
               </button>
               <button
+                onClick={() => setActiveSubTab('fees')}
+                className={`tab-button ${activeSubTab === 'fees' ? 'tab-button--active' : ''}`}
+                role="tab"
+                aria-selected={activeSubTab === 'fees'}
+              >
+                <Wallet size={14} /> {t('fees.tab')}
+              </button>
+              <button
                 onClick={() => setActiveSubTab('message')}
                 className={`tab-button ${activeSubTab === 'message' ? 'tab-button--active' : ''}`}
                 role="tab"
@@ -461,7 +471,7 @@ export default function ParentDashboard() {
               </button>
             </div>
 
-            {!activeChild.classId && !['message', 'announcements', 'reports', 'meetings', 'health'].includes(activeSubTab) && (
+            {!activeChild.classId && !['message', 'announcements', 'reports', 'meetings', 'health', 'fees'].includes(activeSubTab) && (
               <p className="empty-list-copy">{t('parent.unassignedChildClass')}</p>
             )}
 
@@ -747,6 +757,7 @@ export default function ParentDashboard() {
                 <HealthRecordForm key={activeChild.student.id} studentId={activeChild.student.id} mode="parent" />
               </div>
             )}
+            {activeSubTab === 'fees' && <ParentFeesPanel key={activeChild.student.id} studentId={activeChild.student.id} />}
             {activeSubTab === 'announcements' && (
               <AnnouncementsPanel
                 scopeKey="parent"

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowDownRight, ArrowRight, ArrowUpRight, CalendarRange, Printer } from 'lucide-react';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
+import { formatDA } from '../lib/money';
 
 interface Activity {
   attendance_records: number;
@@ -20,6 +21,7 @@ interface Activity {
   announcements: number;
   report_cards: number;
   meetings_booked: number;
+  fees_collected: number;
 }
 
 interface MonthlyReport {
@@ -165,6 +167,11 @@ export default function MonthlyReportPanel() {
                     <td>{number(previous[row.key] as number)}</td>
                   </tr>
                 ))}
+                <tr>
+                  <th scope="row">{t('monthly.feesCollected')}</th>
+                  <td>{formatDA(current.fees_collected ?? 0, locale)}</td>
+                  <td>{formatDA(previous.fees_collected ?? 0, locale)}</td>
+                </tr>
               </tbody>
             </table>
           </div>
