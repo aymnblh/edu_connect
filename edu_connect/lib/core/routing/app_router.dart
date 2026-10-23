@@ -27,6 +27,7 @@ import '../../features/report_cards/presentation/report_cards_screen.dart';
 import '../../features/meetings/presentation/meetings_screen.dart';
 import '../../features/fees/fees_screen.dart';
 import '../../features/health/health_screen.dart';
+import '../../features/infirmary/infirmary_screen.dart';
 import '../../features/class/presentation/screens/admin_tools_screen.dart';
 import '../../features/class/presentation/screens/course_library_screen.dart';
 import '../../features/class/presentation/screens/linking_hub_screen.dart';
@@ -82,6 +83,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         if (isLoggedIn) {
           final user = authState.valueOrNull;
           if (user?.isSystemAdmin ?? false) return '/superadmin';
+          if (user?.isNurse ?? false) return '/infirmary';
           if (user?.isAdmin ?? false) return '/dashboard';
           return '/classes';
         }
@@ -99,8 +101,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               location == '/create-school')) {
         final user = authState.valueOrNull;
         if (user?.isSystemAdmin ?? false) return '/superadmin';
+        if (user?.isNurse ?? false) return '/infirmary';
         if (user?.isAdmin ?? false) return '/dashboard';
         return '/classes';
+      }
+
+      // The nurse account only reaches health sheets (the API refuses the rest).
+      if (!isLoading &&
+          (authState.valueOrNull?.isNurse ?? false) &&
+          !isAuthRoute &&
+          !const {'/infirmary', '/notifications', '/profile'}
+              .contains(location)) {
+        return '/infirmary';
       }
 
       if (!isLoading &&
@@ -313,6 +325,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/health',
         name: 'health',
         builder: (ctx, state) => const HealthScreen(),
+      ),
+      GoRoute(
+        path: '/infirmary',
+        name: 'infirmary',
+        builder: (ctx, state) => const InfirmaryScreen(),
       ),
       GoRoute(
         path: '/fees',

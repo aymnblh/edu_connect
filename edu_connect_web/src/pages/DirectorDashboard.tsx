@@ -161,7 +161,7 @@ interface CreateTeacherResponse extends Teacher {
   invite_code?: string | null;
 }
 
-type StaffInviteRole = 'teacher' | 'secretary';
+type StaffInviteRole = 'teacher' | 'secretary' | 'nurse';
 
 interface StaffMember extends Teacher {
   role: string;
@@ -1766,6 +1766,9 @@ export default function DirectorDashboard() {
               {currentUserRole === 'principal' && (
                 <option value="secretary">{t('director.team.roleSecretary')}</option>
               )}
+              {currentUserRole === 'principal' && (
+                <option value="nurse">{t('role.nurse')}</option>
+              )}
             </select>
           </div>
           <div className="form-group">
@@ -1847,7 +1850,7 @@ export default function DirectorDashboard() {
                     )}
                   </td>
                   <td>
-                    {(member.role === 'teacher' || (member.role === 'secretary' && currentUserRole === 'principal')) && (
+                    {(member.role === 'teacher' || ((member.role === 'secretary' || member.role === 'nurse') && currentUserRole === 'principal')) && (
                       <div className="table-actions">
                         {member.role === 'teacher' && (
                           <button

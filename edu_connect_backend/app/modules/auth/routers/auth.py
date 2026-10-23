@@ -38,7 +38,7 @@ from app.core.security import (
 )
 
 # Roles that can redeem an admin-issued activation / access-reset code.
-ACCESS_CODE_ROLES = [UserRole.teacher, UserRole.secretary, UserRole.parent]
+ACCESS_CODE_ROLES = [UserRole.teacher, UserRole.secretary, UserRole.nurse, UserRole.parent]
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -579,6 +579,7 @@ async def verify_code(
             invite_type = {
                 UserRole.teacher: "teacher_invite",
                 UserRole.secretary: "staff_invite",
+                UserRole.nurse: "staff_invite",
                 UserRole.parent: "account_reset",
             }[user.role]
             return VerifyCodeResponse(
@@ -841,6 +842,7 @@ async def _complete_staff_invite_code(
     action = {
         UserRole.teacher: "auth.teacher_completed",
         UserRole.secretary: "auth.secretary_completed",
+        UserRole.nurse: "auth.nurse_completed",
         UserRole.parent: "auth.parent_access_restored",
     }[user.role]
     await _audit_auth(db, request, action=action, user=user)

@@ -5365,3 +5365,12 @@ textarea.form-input {
   max-width: 60px;
   object-fit: contain;
 }
+
+/* Infirmary */
+.infirmary-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #92400E;
+  font-weight: 600;
+}

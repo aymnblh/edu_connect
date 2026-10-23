@@ -147,3 +147,77 @@ def test_health_key_can_be_rotated(monkeypatch):
         crypto.decrypt(stored)
     monkeypatch.undo()
     crypto._cipher.cache_clear()
+
+
+def test_nurse_tokens_only_reach_health_and_account_endpoints():
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from app.core import security
+    from app.core.middleware import NurseScopeMiddleware, nurse_may_call
+
+    for allowed in ("/students/s1/health", "/classes/c1/health-alerts", "/infirmary/students", "/auth/sessions",
+                    "/users/me", "/notifications/", "/schools/branding"):
+        assert nurse_may_call(allowed), allowed
+    for denied in ("/grades/", "/admin/students", "/finance/ledger", "/conversations", "/students/s1/file",
+                   "/admin/students/s1/file", "/classes/c1/members", "/security/audit-events"):
+        assert not nurse_may_call(denied), denied
+
+    app = FastAPI()
+    app.add_middleware(NurseScopeMiddleware)
+
+    @app.get("/grades/")
+    async def grades():
+        return {"ok": True}
+
+    client = TestClient(app)
+    nurse = security.create_access_token({"sub": "n1", "role": "nurse", "school_id": "s", "tv": 0})
+    teacher = security.create_access_token({"sub": "t1", "role": "teacher", "school_id": "s", "tv": 0})
+    assert client.get("/grades/", headers={"Authorization": f"Bearer {nurse}"}).status_code == 403
+    assert client.get("/grades/", headers={"Authorization": f"Bearer {teacher}"}).status_code == 200
+
+
+def test_nurse_reads_records_with_audit_and_only_the_director_invites_nurses():
+    import pytest
+    from fastapi import HTTPException
+
+    from app.models import Student
+    from app.modules.health.routers import health as health_router
+
+    student = Student(id="s1", school_id="school-a", student_id="EDU26-001", full_name="Amina")
+    db = LenientDb(get_map={(Student, "s1"): student}, results=[])
+    db.get_map[(health_router.StudentHealthRecord, "s1")] = health_router.StudentHealthRecord(
+        student_id="s1", school_id="school-a", emergency_contacts=[], allergies="Arachides",
+        consent_given_at=__import__("datetime").datetime.now(), consent_method="paper")
+    out = run(health_router.get_health_record("s1", make_request("/students/s1/health", "GET"),
+                                              current_user=make_user("nurse-a", UserRole.nurse), db=db))
+    assert out.allergies == "Arachides"
+    assert next(item for item in db.added if isinstance(item, AuditEvent)).action == "health.viewed"
+
+    with pytest.raises(HTTPException) as exc:
+        run(admin.create_staff(admin.CreateStaffRequest(email="infirmiere@wasel-edu.dz", full_name="Inf", role=UserRole.nurse),
+                               current_user=make_user("secretary-a", UserRole.secretary), db=LenientDb()))
+    assert exc.value.status_code == 403
+    created = run(admin.create_staff(admin.CreateStaffRequest(email="infirmiere@wasel-edu.dz", full_name="Inf", role=UserRole.nurse),
+                                     current_user=make_user("director-a", UserRole.principal), db=LenientDb(results=[FakeResult()])))
+    assert created.role == UserRole.nurse and created.invite_code
+
+
+def test_infirmary_directory_lists_students_with_alerts_for_health_staff_only():
+    import pytest
+    from fastapi import HTTPException
+
+    from app.modules.health.routers import health as health_router
+
+    with pytest.raises(HTTPException):
+        run(health_router.health_directory(make_request("/infirmary/students", "GET"),
+                                           current_user=make_user("teacher-a", UserRole.teacher), db=LenientDb()))
+    db = LenientDb(results=[
+        FakeResult([("s1", "Amina", "EDU26-001"), ("s2", "Yacine", "EDU26-002")]),
+        FakeResult([("s1", "c1", "1AM-A")]),
+        FakeResult([("s1", "Allergie arachides")]),
+    ])
+    rows = run(health_router.health_directory(make_request("/infirmary/students", "GET"),
+                                              current_user=make_user("nurse-a", UserRole.nurse), db=db))
+    assert rows[0]["has_record"] and rows[0]["alert"] == "Allergie arachides" and rows[0]["classes"][0]["name"] == "1AM-A"
+    assert not rows[1]["has_record"] and rows[1]["alert"] is None

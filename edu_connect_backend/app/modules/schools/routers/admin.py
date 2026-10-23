@@ -100,11 +100,11 @@ async def _create_invited_staff_user(
     if current_user.role not in [UserRole.principal, UserRole.secretary]:
         raise HTTPException(status_code=403, detail="Only school administration can invite staff accounts.")
 
-    if payload.role not in [UserRole.teacher, UserRole.secretary]:
-        raise HTTPException(status_code=400, detail="Only teacher and secretary invitations are supported.")
+    if payload.role not in [UserRole.teacher, UserRole.secretary, UserRole.nurse]:
+        raise HTTPException(status_code=400, detail="Only teacher, secretary and nurse invitations are supported.")
 
-    if payload.role == UserRole.secretary and current_user.role != UserRole.principal:
-        raise HTTPException(status_code=403, detail="Only the director can invite secretary accounts.")
+    if payload.role in [UserRole.secretary, UserRole.nurse] and current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Only the director can invite secretary and nurse accounts.")
 
     if not current_user.school_id:
         raise HTTPException(status_code=400, detail="You are not assigned to a school.")
@@ -228,11 +228,11 @@ async def _get_manageable_staff(user_id: str, current_user: User, db: AsyncSessi
     if (
         not staff
         or staff.school_id != current_user.school_id
-        or staff.role not in [UserRole.teacher, UserRole.secretary]
+        or staff.role not in [UserRole.teacher, UserRole.secretary, UserRole.nurse]
     ):
         raise HTTPException(status_code=404, detail="Staff member not found.")
-    if staff.role == UserRole.secretary and current_user.role != UserRole.principal:
-        raise HTTPException(status_code=403, detail="Only the director can manage secretary accounts.")
+    if staff.role in [UserRole.secretary, UserRole.nurse] and current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Only the director can manage secretary and nurse accounts.")
     return staff
 
 
@@ -339,7 +339,7 @@ async def sign_out_user(
     target = await db.get(User, user_id)
     if not target or target.school_id != current_user.school_id:
         raise HTTPException(status_code=404, detail="User not found.")
-    if target.role in [UserRole.teacher, UserRole.secretary]:
+    if target.role in [UserRole.teacher, UserRole.secretary, UserRole.nurse]:
         target = await _get_manageable_staff(user_id, current_user, db)
     elif target.role != UserRole.parent:
         raise HTTPException(status_code=403, detail="This account cannot be signed out here.")
@@ -415,7 +415,7 @@ async def list_staff(
         select(User)
         .where(
             User.school_id == current_user.school_id,
-            User.role.in_([UserRole.principal, UserRole.secretary, UserRole.teacher]),
+            User.role.in_([UserRole.principal, UserRole.secretary, UserRole.teacher, UserRole.nurse]),
         )
         .order_by(User.role.asc(), User.full_name.asc())
     )

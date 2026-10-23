@@ -241,6 +241,29 @@ class DemoReadOnlyMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+_NURSE_PREFIXES = ("/auth/", "/users/me", "/infirmary/", "/notifications", "/schools/branding")
+
+
+def nurse_may_call(path: str) -> bool:
+    if path.startswith(_NURSE_PREFIXES):
+        return True
+    parts = [part for part in path.split("/") if part]
+    # /students/{id}/health and /classes/{id}/health-alerts
+    return len(parts) == 3 and (
+        (parts[0] == "students" and parts[2] == "health") or (parts[0] == "classes" and parts[2] == "health-alerts")
+    )
+
+
+class NurseScopeMiddleware(BaseHTTPMiddleware):
+    """A school nurse sees health records and nothing else (grades, messages, fees...)."""
+
+    async def dispatch(self, request: Request, call_next):
+        payload = _try_decode_jwt(request)
+        if payload and payload.get("role") == "nurse" and not nurse_may_call(request.url.path):
+            return JSONResponse({"detail": "Reserve aux fiches sante pour le compte infirmerie."}, status_code=403)
+        return await call_next(request)
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)

@@ -5549,6 +5549,61 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'تمت إضافة الشعار',
     en: 'Logo added',
   },
+  'role.nurse': {
+    fr: 'Infirmerie',
+    ar: 'التمريض',
+    en: 'School nurse',
+  },
+  'nav.infirmary': {
+    fr: 'Infirmerie',
+    ar: 'التمريض',
+    en: 'Infirmary',
+  },
+  'infirmary.title': {
+    fr: 'Infirmerie',
+    ar: 'التمريض',
+    en: 'Infirmary',
+  },
+  'infirmary.copy': {
+    fr: '{count} élève(s) sur {total} ont une fiche santé. Votre compte n\'a accès qu\'aux fiches santé.',
+    ar: '{count} من {total} تلميذ لهم بطاقة صحية. حسابك يطلع فقط على البطاقات الصحية.',
+    en: '{count} of {total} students have a health sheet. Your account only reaches health sheets.',
+  },
+  'infirmary.onlyAlerts': {
+    fr: 'Seulement les élèves avec une alerte',
+    ar: 'فقط التلاميذ الذين لديهم تنبيه',
+    en: 'Only students with an alert',
+  },
+  'infirmary.alert': {
+    fr: 'Alerte',
+    ar: 'تنبيه',
+    en: 'Alert',
+  },
+  'infirmary.recordNoAlert': {
+    fr: 'Fiche sans alerte',
+    ar: 'بطاقة بدون تنبيه',
+    en: 'Sheet, no alert',
+  },
+  'infirmary.noRecord': {
+    fr: 'Pas de fiche',
+    ar: 'لا توجد بطاقة',
+    en: 'No sheet',
+  },
+  'infirmary.open': {
+    fr: 'Ouvrir la fiche',
+    ar: 'فتح البطاقة',
+    en: 'Open sheet',
+  },
+  'infirmary.create': {
+    fr: 'Créer la fiche',
+    ar: 'إنشاء البطاقة',
+    en: 'Create sheet',
+  },
+  'infirmary.audit': {
+    fr: 'Chaque fiche ouverte est enregistrée dans le journal d\'activité de l\'école. Une nouvelle fiche ne se crée qu\'avec le consentement écrit du parent (formulaire papier signé).',
+    ar: 'كل بطاقة تُفتح تُسجَّل في سجل نشاط المدرسة. لا تُنشأ بطاقة جديدة إلا بموافقة الولي الكتابية (استمارة ورقية موقعة).',
+    en: 'Every sheet opened is recorded in the school\'s activity log. A new sheet needs the parent\'s written consent (signed paper form).',
+  },
 };
 
 function normalizeLocale(value: string | null | undefined): Locale {

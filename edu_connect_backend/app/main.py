@@ -14,6 +14,7 @@ from app.core.middleware import (
     TenantMiddleware,
     AuditMiddleware,
     DemoReadOnlyMiddleware,
+    NurseScopeMiddleware,
     SchoolActivationMiddleware,
     SecurityHeadersMiddleware,
 )
@@ -60,6 +61,7 @@ app = FastAPI(
 )
 
 app.add_middleware(DemoReadOnlyMiddleware)
+app.add_middleware(NurseScopeMiddleware)
 app.add_middleware(AuditMiddleware)
 app.add_middleware(SchoolActivationMiddleware)
 app.add_middleware(TenantMiddleware)

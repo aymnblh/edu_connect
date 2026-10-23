@@ -18,6 +18,7 @@ const LegalPolicies = lazy(() => import('./pages/LegalPolicies'));
 const WorkspaceSelect = lazy(() => import('./pages/WorkspaceSelect'));
 const TeacherDashboard = lazy(() => import('./pages/TeacherDashboard'));
 const ParentDashboard = lazy(() => import('./pages/ParentDashboard'));
+const NurseDashboard = lazy(() => import('./pages/NurseDashboard'));
 
 function PageLoader() {
   const { t } = useLocale();
@@ -65,6 +66,7 @@ function App() {
                 <Route path="/director/announcements" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/messages" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/teacher/dashboard" element={<PageTransition><WorkspaceRoute role="teacher"><TeacherDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/infirmary" element={<PageTransition><WorkspaceRoute role="nurse"><NurseDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/parent/dashboard" element={<PageTransition><WorkspaceRoute role="parent"><ParentDashboard /></WorkspaceRoute></PageTransition>} />
               </Route>
 

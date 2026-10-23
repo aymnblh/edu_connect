@@ -17,6 +17,7 @@ import {
   UserPlus,
   Megaphone,
   CalendarRange,
+  HeartPulse,
   Wallet
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/useWorkspace';
@@ -80,6 +81,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
       case 'teacher':
         return [
           { to: '/teacher/dashboard', label: t('nav.teacherClass'), icon: BookOpen },
+          { to: '/policies', label: t('nav.legal'), icon: FileText },
+        ];
+      case 'nurse':
+        return [
+          { to: '/infirmary', label: t('nav.infirmary'), icon: HeartPulse },
           { to: '/policies', label: t('nav.legal'), icon: FileText },
         ];
       case 'parent':

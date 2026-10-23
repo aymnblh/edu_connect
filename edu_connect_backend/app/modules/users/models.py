@@ -15,6 +15,8 @@ class UserRole(str, enum.Enum):
     principal = "principal"
     secretary = "secretary"
     system_admin = "system_admin"
+    # School nurse: health records only (see NurseScopeMiddleware).
+    nurse = "nurse"
 
 
 class User(Base):
