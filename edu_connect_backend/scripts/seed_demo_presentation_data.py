@@ -69,6 +69,17 @@ def demo_password() -> str:
     return DEMO_PASSWORD or _GENERATED_PASSWORD
 
 
+_PASSWORD_HASH: str | None = None
+
+
+def demo_password_hash() -> str:
+    """Hashed once: bcrypt is slow on purpose, and the nightly rebuild runs inside the API."""
+    global _PASSWORD_HASH
+    if _PASSWORD_HASH is None:
+        _PASSWORD_HASH = get_password_hash(demo_password())
+    return _PASSWORD_HASH
+
+
 @dataclass(frozen=True)
 class DemoAccount:
     label: str
@@ -180,7 +191,7 @@ def add_user(
         email=email,
         full_name=full_name,
         role=role,
-        password_hash=get_password_hash(demo_password()),
+        password_hash=demo_password_hash(),
         phone=phone,
         terms_accepted_at=utc_now(),
         terms_version=TERMS_VERSION,
