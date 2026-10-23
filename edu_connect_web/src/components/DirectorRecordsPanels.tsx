@@ -6,7 +6,7 @@ import { api } from '../lib/api';
 import { useLocale } from '../lib/i18n';
 import HealthRecordForm, { type HealthRecord } from './HealthRecordForm';
 
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   const { t } = useLocale();
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => closeRef.current?.focus(), []);

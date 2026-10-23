@@ -183,6 +183,13 @@ Suggested alert thresholds:
 - One access line per request (`educonnect.access`): method, path **without query string**, status, duration, user id, client IP. Health checks log at DEBUG only. Uvicorn's own access log is disabled (`--no-access-log`) because it prints full URLs.
 - Passwords, tokens, `Bearer` headers, JWTs, invite codes and PINs are masked (`[REDACTED]`) before any line is written, including exception tracebacks. Never add a log line that prints a request body wholesale.
 
+### Background jobs
+
+- The API runs two hourly jobs (`BACKGROUND_JOBS_ENABLED`, on by default; they are safe with several workers):
+  - **Monthly report notifications:** on the 1st, each director gets "Votre bilan de … est prêt". Each school remembers the month it was told about (`tenant_config.monthly_report_notified`), so a restart never sends it twice.
+  - **Public demo refresh** (only with `PUBLIC_DEMO_ENABLED=true`): seeds the demo school if it is missing and rebuilds it once a day after 03:00 Algeria time. A Postgres advisory lock keeps it to one worker.
+- Public demo safety: demo accounts (`@demo.educonnect.dz`) are read-only (HTTP writes and chat WebSockets refused), their sessions are not audited, visitors' IPs and browsers are never shown, demo PINs cannot register a parent, no platform admin is created and the password is random. To close the demo, set `PUBLIC_DEMO_ENABLED=false` and restart; the demo school stays in the database, but nobody can sign in to it (its password is random); delete it if you no longer need it.
+
 ### Activity (audit) log
 
 - Directors and secretaries see it in the web app (Journal tab), filter by category, person and dates, and export CSV (max 5000 rows; the export is itself logged).

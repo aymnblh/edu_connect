@@ -104,3 +104,17 @@ Dans l'onglet « Vue d'ensemble », sous les indicateurs habituels, pour le trim
   - Les **enseignants** ne voient que l'alerte courte, en haut de l'écran de présence (mobile) et de la page de la classe (web).
   - Chaque consultation de la fiche par le personnel est enregistrée dans le journal d'activité. Ce sont des données sensibles : ne renseigner que le nécessaire.
 
+### Démarrer une nouvelle école
+- **Liste « Démarrer votre école »** (direction, page d'accueil) : sept étapes avec leur avancement — trimestres, classes, matières, élèves (tous placés dans une classe), enseignants (invités et activés), matières attribuées à chaque classe, parents connectés (au moins la moitié des élèves). Chaque étape a un bouton « Y aller ». « Masquer » la retire pour toute la direction.
+- **Import Excel des élèves** : onglet « Élèves » → « Modèle Excel » télécharge un fichier avec les colonnes `prenom ; nom ; classe`. Remplissez-le, enregistrez-le en CSV, puis « Importer CSV ». Les élèves dont la classe existe déjà y sont placés automatiquement ; les classes inconnues sont listées pour être créées.
+- **Codes parents à imprimer** : « Imprimer les codes parents » (onglet « Élèves » ou dans la liste de démarrage) produit une carte à découper par élève avec son identifiant, son PIN et la marche à suivre. Filtre par classe et « seulement les élèves sans parent connecté ». Chaque code ouvre le dossier de l'enfant : remettez-le en main propre ou sous enveloppe. L'impression est enregistrée dans le journal.
+
+### Bilan mensuel (direction)
+- Onglet **« Bilan mensuel »** : pour le mois choisi, comparé au mois précédent — taux de présence, notifications envoyées aux parents, parents actifs, notes saisies, absences (dont non justifiées), retards, devoirs, séances, messages, annonces, bulletins, rendez-vous, enseignants actifs, part des élèves ayant un parent connecté et présence par classe.
+- « Imprimer / PDF » pour le présenter au propriétaire ou au conseil de l'école.
+- Le **1er de chaque mois**, le directeur reçoit une notification « Votre bilan de … est prêt » avec les chiffres clés.
+
+### Démo publique
+- Quand elle est activée sur le serveur (`PUBLIC_DEMO_ENABLED=true`), la page de connexion propose **« Découvrir sans compte »** : directeur, enseignant ou parent, dans une école fictive.
+- La démo est **en lecture seule** : tout est consultable, rien n'est enregistré ; un bandeau le rappelle avec « Créer mon école ». Elle est reconstruite chaque nuit (après 3 h, heure d'Algérie) pour que les dates restent actuelles.
+

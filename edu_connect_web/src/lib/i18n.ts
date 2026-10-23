@@ -4564,6 +4564,431 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'إشعار السلطة الوطنية لحماية المعطيات',
     en: 'ANPDP notice',
   },
+  'demo.title': {
+    fr: 'Découvrir sans compte',
+    ar: 'اكتشف بدون حساب',
+    en: 'Explore without an account',
+  },
+  'demo.copy': {
+    fr: 'Visitez une école de démonstration remplie de données fictives, en consultation seulement.',
+    ar: 'تصفح مدرسة تجريبية ببيانات وهمية، للاطلاع فقط.',
+    en: 'Visit a demo school filled with sample data, view only.',
+  },
+  'demo.asDirector': {
+    fr: 'Directeur',
+    ar: 'مدير',
+    en: 'Director',
+  },
+  'demo.asTeacher': {
+    fr: 'Enseignant',
+    ar: 'أستاذ',
+    en: 'Teacher',
+  },
+  'demo.asParent': {
+    fr: 'Parent',
+    ar: 'ولي',
+    en: 'Parent',
+  },
+  'demo.banner': {
+    fr: 'Démo : vous visitez une école fictive. Tout est consultable, rien n\'est enregistré.',
+    ar: 'عرض تجريبي: أنت تتصفح مدرسة وهمية. يمكنك الاطلاع على كل شيء، ولا يُحفظ أي شيء.',
+    en: 'Demo: you are visiting a sample school. You can look at everything; nothing is saved.',
+  },
+  'demo.blocked': {
+    fr: 'Cette action est désactivée dans la démo. Créez votre école pour l\'essayer avec vos données.',
+    ar: 'هذا الإجراء معطل في العرض التجريبي. أنشئ مدرستك لتجربته ببياناتك.',
+    en: 'This action is disabled in the demo. Create your school to try it with your own data.',
+  },
+  'demo.createSchool': {
+    fr: 'Créer mon école',
+    ar: 'إنشاء مدرستي',
+    en: 'Create my school',
+  },
+  'demo.leave': {
+    fr: 'Quitter la démo',
+    ar: 'مغادرة العرض',
+    en: 'Leave the demo',
+  },
+  'setup.title': {
+    fr: 'Démarrer votre école',
+    ar: 'انطلاق مدرستك',
+    en: 'Get your school started',
+  },
+  'setup.copy': {
+    fr: 'Votre école est prête à {percent} %. Chaque étape débloque une partie de l\'application.',
+    ar: 'مدرستك جاهزة بنسبة {percent}٪. كل خطوة تفتح جزءًا من التطبيق.',
+    en: 'Your school is {percent}% ready. Each step unlocks part of the app.',
+  },
+  'setup.progressLabel': {
+    fr: '{done} étapes sur {total}',
+    ar: '{done} من {total} خطوات',
+    en: '{done} of {total} steps',
+  },
+  'setup.dismiss': {
+    fr: 'Masquer',
+    ar: 'إخفاء',
+    en: 'Hide',
+  },
+  'setup.go': {
+    fr: 'Y aller',
+    ar: 'انتقال',
+    en: 'Go',
+  },
+  'setup.template': {
+    fr: 'Modèle Excel',
+    ar: 'نموذج Excel',
+    en: 'Excel template',
+  },
+  'setup.trimesters.title': {
+    fr: 'Trimestres de l\'année',
+    ar: 'فصول السنة',
+    en: 'School-year trimesters',
+  },
+  'setup.trimesters.hint': {
+    fr: 'Vérifiez les dates des trois trimestres.',
+    ar: 'تحقق من تواريخ الفصول الثلاثة.',
+    en: 'Check the dates of the three trimesters.',
+  },
+  'setup.trimesters.count': {
+    fr: '{count} trimestres configurés',
+    ar: '{count} فصول مهيأة',
+    en: '{count} trimesters set up',
+  },
+  'setup.classes.title': {
+    fr: 'Classes',
+    ar: 'الأقسام',
+    en: 'Classes',
+  },
+  'setup.classes.hint': {
+    fr: 'Créez vos classes (ex. 1AM-A, 3AP-B).',
+    ar: 'أنشئ أقسامك (مثلا 1AM-A).',
+    en: 'Create your classes (e.g. 1AM-A, 3AP-B).',
+  },
+  'setup.classes.count': {
+    fr: '{count} classes',
+    ar: '{count} أقسام',
+    en: '{count} classes',
+  },
+  'setup.subjects.title': {
+    fr: 'Matières',
+    ar: 'المواد',
+    en: 'Subjects',
+  },
+  'setup.subjects.hint': {
+    fr: 'Ajoutez les matières enseignées et leurs coefficients.',
+    ar: 'أضف المواد المدرّسة ومعاملاتها.',
+    en: 'Add the subjects you teach and their coefficients.',
+  },
+  'setup.subjects.count': {
+    fr: '{count} matières',
+    ar: '{count} مواد',
+    en: '{count} subjects',
+  },
+  'setup.students.title': {
+    fr: 'Élèves',
+    ar: 'التلاميذ',
+    en: 'Students',
+  },
+  'setup.students.hint': {
+    fr: 'Importez la liste depuis Excel avec le modèle (prénom, nom, classe).',
+    ar: 'استورد القائمة من Excel باستعمال النموذج (الاسم، اللقب، القسم).',
+    en: 'Import the list from Excel with the template (first name, last name, class).',
+  },
+  'setup.students.count': {
+    fr: '{count} élèves, tous dans une classe',
+    ar: '{count} تلميذ، كلهم في قسم',
+    en: '{count} students, all in a class',
+  },
+  'setup.students.unplaced': {
+    fr: '{count} élève(s) sans classe',
+    ar: '{count} تلميذ بدون قسم',
+    en: '{count} student(s) without a class',
+  },
+  'setup.teachers.title': {
+    fr: 'Enseignants',
+    ar: 'الأساتذة',
+    en: 'Teachers',
+  },
+  'setup.teachers.hint': {
+    fr: 'Invitez vos enseignants : chacun reçoit un code d\'activation.',
+    ar: 'ادعُ أساتذتك: يتلقى كل واحد رمز تفعيل.',
+    en: 'Invite your teachers: each one gets an activation code.',
+  },
+  'setup.teachers.count': {
+    fr: '{count} enseignants',
+    ar: '{count} أساتذة',
+    en: '{count} teachers',
+  },
+  'setup.teachers.pending': {
+    fr: '{count} invités, {pending} n\'ont pas encore activé leur compte',
+    ar: '{count} مدعوون، {pending} لم يفعّلوا حسابهم بعد',
+    en: '{count} invited, {pending} have not activated their account yet',
+  },
+  'setup.assignments.title': {
+    fr: 'Matières attribuées',
+    ar: 'إسناد المواد',
+    en: 'Subjects assigned',
+  },
+  'setup.assignments.hint': {
+    fr: 'Attribuez à chaque classe ses matières et leur enseignant.',
+    ar: 'أسند لكل قسم مواده وأستاذها.',
+    en: 'Give each class its subjects and their teacher.',
+  },
+  'setup.assignments.progress': {
+    fr: '{count} classes sur {total} ont leurs enseignants',
+    ar: '{count} من {total} أقسام لها أساتذة',
+    en: '{count} of {total} classes have their teachers',
+  },
+  'setup.parents.title': {
+    fr: 'Parents connectés',
+    ar: 'الأولياء المتصلون',
+    en: 'Parents connected',
+  },
+  'setup.parents.hint': {
+    fr: 'Imprimez les codes parents et distribuez-les dans les cartables.',
+    ar: 'اطبع رموز الأولياء ووزعها في المحافظ.',
+    en: 'Print the parent codes and hand them out in school bags.',
+  },
+  'setup.parents.progress': {
+    fr: '{count} élèves sur {total} ont un parent connecté',
+    ar: '{count} من {total} تلميذ لهم ولي متصل',
+    en: '{count} of {total} students have a parent connected',
+  },
+  'codes.print': {
+    fr: 'Imprimer les codes parents',
+    ar: 'طباعة رموز الأولياء',
+    en: 'Print parent codes',
+  },
+  'codes.title': {
+    fr: 'Codes parents à distribuer',
+    ar: 'رموز الأولياء للتوزيع',
+    en: 'Parent codes to hand out',
+  },
+  'codes.class': {
+    fr: 'Classe',
+    ar: 'القسم',
+    en: 'Class',
+  },
+  'codes.allClasses': {
+    fr: 'Toutes les classes',
+    ar: 'كل الأقسام',
+    en: 'All classes',
+  },
+  'codes.onlyUnlinked': {
+    fr: 'Seulement les élèves sans parent connecté',
+    ar: 'فقط التلاميذ بدون ولي متصل',
+    en: 'Only students with no parent connected',
+  },
+  'codes.printNow': {
+    fr: 'Imprimer',
+    ar: 'طباعة',
+    en: 'Print',
+  },
+  'codes.privacy': {
+    fr: 'Chaque code donne accès au dossier de l\'élève : remettez-le en main propre ou sous enveloppe. Cette impression est enregistrée dans le journal.',
+    ar: 'كل رمز يتيح الوصول إلى ملف التلميذ: سلّمه يدا بيد أو في ظرف. تُسجَّل هذه الطباعة في السجل.',
+    en: 'Each code opens the student\'s file: hand it over in person or in an envelope. This printout is recorded in the activity log.',
+  },
+  'codes.empty': {
+    fr: 'Aucun élève à afficher.',
+    ar: 'لا يوجد تلاميذ للعرض.',
+    en: 'No students to show.',
+  },
+  'codes.studentId': {
+    fr: 'Identifiant élève',
+    ar: 'معرّف التلميذ',
+    en: 'Student ID',
+  },
+  'codes.pin': {
+    fr: 'Code PIN',
+    ar: 'الرمز السري',
+    en: 'PIN code',
+  },
+  'codes.instructions': {
+    fr: 'Installez l\'application Wasel Edu, choisissez « Code ou QR », saisissez l\'identifiant et le PIN, puis créez votre mot de passe.',
+    ar: 'ثبّت تطبيق Wasel Edu، اختر «رمز أو QR»، أدخل المعرّف والرمز السري، ثم أنشئ كلمة مرورك.',
+    en: 'Install the Wasel Edu app, choose “Code or QR”, enter the ID and PIN, then create your password.',
+  },
+  'monthly.title': {
+    fr: 'Bilan mensuel — {month}',
+    ar: 'الحصيلة الشهرية — {month}',
+    en: 'Monthly report — {month}',
+  },
+  'monthly.copy': {
+    fr: 'Ce que l\'application a fait pour votre école ce mois-ci, comparé au mois précédent.',
+    ar: 'ما قدّمه التطبيق لمدرستك هذا الشهر مقارنة بالشهر السابق.',
+    en: 'What the app did for your school this month, compared with the month before.',
+  },
+  'monthly.partial': {
+    fr: 'Mois en cours : chiffres arrêtés au {date}.',
+    ar: 'الشهر الجاري: الأرقام إلى غاية {date}.',
+    en: 'Month in progress: figures as of {date}.',
+  },
+  'monthly.error': {
+    fr: 'Impossible de charger le bilan.',
+    ar: 'تعذر تحميل الحصيلة.',
+    en: 'Could not load the report.',
+  },
+  'monthly.pickMonth': {
+    fr: 'Choisir le mois',
+    ar: 'اختيار الشهر',
+    en: 'Choose the month',
+  },
+  'monthly.print': {
+    fr: 'Imprimer / PDF',
+    ar: 'طباعة / PDF',
+    en: 'Print / PDF',
+  },
+  'monthly.attendanceRate': {
+    fr: 'Taux de présence',
+    ar: 'نسبة الحضور',
+    en: 'Attendance rate',
+  },
+  'monthly.parentNotifications': {
+    fr: 'Notifications envoyées aux parents',
+    ar: 'إشعارات أُرسلت للأولياء',
+    en: 'Notifications sent to parents',
+  },
+  'monthly.activeParents': {
+    fr: 'Parents actifs',
+    ar: 'أولياء نشطون',
+    en: 'Active parents',
+  },
+  'monthly.ofLinkedParents': {
+    fr: '{rate} des {total} parents connectés',
+    ar: '{rate} من {total} ولي متصل',
+    en: '{rate} of the {total} connected parents',
+  },
+  'monthly.gradesEntered': {
+    fr: 'Notes saisies',
+    ar: 'نقاط مُدخلة',
+    en: 'Grades entered',
+  },
+  'monthly.vsPrevious': {
+    fr: '{diff} par rapport à {month}',
+    ar: '{diff} مقارنة بـ {month}',
+    en: '{diff} vs {month}',
+  },
+  'monthly.noComparison': {
+    fr: 'Pas de comparaison possible',
+    ar: 'لا مقارنة ممكنة',
+    en: 'No comparison available',
+  },
+  'monthly.points': {
+    fr: 'pts',
+    ar: 'نقطة',
+    en: 'pts',
+  },
+  'monthly.schoolLife': {
+    fr: 'Vie de l\'école',
+    ar: 'الحياة المدرسية',
+    en: 'School life',
+  },
+  'monthly.indicator': {
+    fr: 'Indicateur',
+    ar: 'المؤشر',
+    en: 'Indicator',
+  },
+  'monthly.absences': {
+    fr: 'Absences signalées',
+    ar: 'غيابات مسجلة',
+    en: 'Absences recorded',
+  },
+  'monthly.unjustified': {
+    fr: 'dont non justifiées',
+    ar: 'منها غير مبررة',
+    en: 'of which unjustified',
+  },
+  'monthly.lates': {
+    fr: 'Retards',
+    ar: 'تأخرات',
+    en: 'Late arrivals',
+  },
+  'monthly.homework': {
+    fr: 'Devoirs publiés',
+    ar: 'واجبات منشورة',
+    en: 'Homework posted',
+  },
+  'monthly.lessons': {
+    fr: 'Séances au cahier de textes',
+    ar: 'حصص في دفتر النصوص',
+    en: 'Lessons logged',
+  },
+  'monthly.messages': {
+    fr: 'Messages échangés',
+    ar: 'رسائل متبادلة',
+    en: 'Messages exchanged',
+  },
+  'monthly.announcements': {
+    fr: 'Annonces',
+    ar: 'إعلانات',
+    en: 'Announcements',
+  },
+  'monthly.reportCards': {
+    fr: 'Bulletins publiés',
+    ar: 'كشوف نقاط منشورة',
+    en: 'Report cards published',
+  },
+  'monthly.meetings': {
+    fr: 'Rendez-vous parents réservés',
+    ar: 'مواعيد أولياء محجوزة',
+    en: 'Parent meetings booked',
+  },
+  'monthly.activeTeachers': {
+    fr: 'Enseignants actifs',
+    ar: 'أساتذة نشطون',
+    en: 'Active teachers',
+  },
+  'monthly.coverage': {
+    fr: 'Couverture',
+    ar: 'التغطية',
+    en: 'Coverage',
+  },
+  'monthly.parentCoverage': {
+    fr: 'des élèves ont un parent connecté ({linked} sur {total})',
+    ar: 'من التلاميذ لهم ولي متصل ({linked} من {total})',
+    en: 'of students have a parent connected ({linked} of {total})',
+  },
+  'monthly.teachersUsing': {
+    fr: 'enseignants ont utilisé l\'application ce mois-ci',
+    ar: 'أساتذة استعملوا التطبيق هذا الشهر',
+    en: 'teachers used the app this month',
+  },
+  'monthly.classAttendance': {
+    fr: 'Présence par classe',
+    ar: 'الحضور حسب القسم',
+    en: 'Attendance by class',
+  },
+  'monthly.noAttendance': {
+    fr: 'Aucun appel enregistré ce mois-ci.',
+    ar: 'لا توجد مناداة مسجلة هذا الشهر.',
+    en: 'No attendance recorded this month.',
+  },
+  'monthly.method': {
+    fr: 'Chiffres calculés à partir des enregistrements de l\'application (appels, notifications, journal d\'activité), heure d\'Algérie. Les retards comptent comme présents.',
+    ar: 'أرقام محسوبة من سجلات التطبيق (المناداة، الإشعارات، سجل النشاط) بتوقيت الجزائر. التأخر يُحسب حضورًا.',
+    en: 'Figures computed from the app\'s records (attendance, notifications, activity log), Algeria time. Late arrivals count as present.',
+  },
+  'director.tab.monthly': {
+    fr: 'Bilan mensuel',
+    ar: 'الحصيلة الشهرية',
+    en: 'Monthly report',
+  },
+  'nav.monthlyReport': {
+    fr: 'Bilan mensuel',
+    ar: 'الحصيلة الشهرية',
+    en: 'Monthly report',
+  },
+  'director.toast.importedAssigned': {
+    fr: '{count} élève(s) placé(s) dans leur classe.',
+    ar: 'تم وضع {count} تلميذ في أقسامهم.',
+    en: '{count} student(s) placed in their class.',
+  },
+  'director.toast.importedUnknownClasses': {
+    fr: 'Classes introuvables, à créer puis réimporter ou placer à la main : {classes}',
+    ar: 'أقسام غير موجودة، أنشئها ثم أعد الاستيراد أو ضعهم يدويًا: {classes}',
+    en: 'Classes not found — create them and re-import, or place students by hand: {classes}',
+  },
 };
 
 function normalizeLocale(value: string | null | undefined): Locale {

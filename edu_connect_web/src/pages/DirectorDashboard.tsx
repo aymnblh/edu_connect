@@ -6,9 +6,12 @@ import AnnouncementsPanel from '../components/AnnouncementsPanel';
 import AuditLogPanel from '../components/AuditLogPanel';
 import { StudentFileModal, TeacherHistoryModal } from '../components/DirectorRecordsPanels';
 import DirectorInsightsPanel from '../components/DirectorInsightsPanel';
+import MonthlyReportPanel from '../components/MonthlyReportPanel';
+import SetupChecklist, { ParentCodesSheet } from '../components/SetupChecklist';
 import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
+import { downloadStudentTemplate } from '../lib/downloads';
 import { t as translate, useLocale, type Locale } from '../lib/i18n';
 import { readWorkspaceSessionItem } from '../lib/workspace';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -17,6 +20,7 @@ import {
   Award,
   BookOpen,
   CalendarDays,
+  CalendarRange,
   CheckCircle2,
   ClipboardCopy,
   FileUp,
@@ -33,6 +37,7 @@ import {
   Megaphone,
   MessageSquare,
   Plus,
+  Printer,
   QrCode,
   Search,
   Share2,
@@ -176,7 +181,7 @@ interface ClassCourseAssignment {
 }
 
 type ToastType = 'success' | 'error' | 'warning';
-type DirectorTab = 'overview' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
+type DirectorTab = 'overview' | 'monthly' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
 
 interface Toast {
   id: number;
@@ -202,6 +207,7 @@ const directorTabs: Array<{
   icon: typeof Activity;
 }> = [
   { id: 'overview', labelKey: 'director.tab.overview', route: '/director', icon: Activity },
+  { id: 'monthly', labelKey: 'director.tab.monthly', route: '/director/monthly-report', icon: CalendarRange },
   { id: 'students', labelKey: 'director.tab.students', route: '/director/students', icon: Users },
   { id: 'classes', labelKey: 'director.tab.classes', route: '/director/classes', icon: BookOpen },
   { id: 'team', labelKey: 'director.tab.team', route: '/director/team', icon: UserPlus },
@@ -244,6 +250,7 @@ function readCurrentUserRole(): string {
 }
 
 function tabFromPath(pathname: string): DirectorTab {
+  if (pathname.includes('/director/monthly-report')) return 'monthly';
   if (pathname.includes('/director/students')) return 'students';
   if (pathname.includes('/director/classes')) return 'classes';
   if (pathname.includes('/director/team')) return 'team';
@@ -570,12 +577,16 @@ export default function DirectorDashboard() {
       const formData = new FormData();
       formData.append('file', file);
       const res = await api.post('/admin/import/students', formData);
-      return res.data as { imported: number; skipped: number };
+      return res.data as { imported: number; skipped: number; assigned?: number; unknown_classes?: string[] };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['director-students'] });
       queryClient.invalidateQueries({ queryKey: ['director-analytics'] });
       addToast(t('director.toast.importedStudents', { imported: result.imported, skipped: result.skipped }), 'success');
+      if (result.assigned) addToast(t('director.toast.importedAssigned', { count: result.assigned }), 'success');
+      if (result.unknown_classes?.length) {
+        addToast(t('director.toast.importedUnknownClasses', { classes: result.unknown_classes.join(', ') }), 'error');
+      }
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
     onError: (error) => addToast(getErrorMessage(error), 'error'),
@@ -671,6 +682,7 @@ export default function DirectorDashboard() {
   });
 
   const [fileStudentId, setFileStudentId] = useState<string | null>(null);
+  const [codesSheetOpen, setCodesSheetOpen] = useState(false);
   const [historyTeacherId, setHistoryTeacherId] = useState<string | null>(null);
 
   const signOutMutation = useMutation({
@@ -884,10 +896,6 @@ export default function DirectorDashboard() {
     const text = getQrShareText();
     void copyText(text, t('director.toast.smsCopied'));
     window.location.href = `sms:?&body=${encodeURIComponent(text)}`;
-  };
-
-  const copyCsvTemplate = () => {
-    copyText('full_name\nAmina Benali\nYacine Haddad\nNour Bensaid', t('director.toast.csvCopied'));
   };
 
   const renderToasts = () => (
@@ -1170,9 +1178,17 @@ export default function DirectorDashboard() {
               accept=".csv,text/csv"
               onChange={handleStudentImport}
             />
-            <button type="button" className="btn btn-secondary btn-compact" onClick={copyCsvTemplate}>
-              <ClipboardCopy size={15} />
-              {t('director.students.csvTemplate')}
+            <button
+              type="button"
+              className="btn btn-secondary btn-compact"
+              onClick={() => void downloadStudentTemplate().catch(() => addToast(t('common.errorGeneric'), 'error'))}
+            >
+              <FileText size={15} />
+              {t('setup.template')}
+            </button>
+            <button type="button" className="btn btn-secondary btn-compact" onClick={() => setCodesSheetOpen(true)}>
+              <Printer size={15} />
+              {t('codes.print')}
             </button>
             <button
               type="button"
@@ -1894,7 +1910,9 @@ export default function DirectorDashboard() {
 
       {renderPageTabs()}
 
+      {activeTab === 'overview' && <SetupChecklist />}
       {activeTab === 'overview' && renderOverview()}
+      {activeTab === 'monthly' && <MonthlyReportPanel />}
       {activeTab === 'overview' && <DirectorInsightsPanel />}
       {activeTab === 'students' && renderStudents()}
       {activeTab === 'classes' && renderClasses()}
@@ -1904,6 +1922,7 @@ export default function DirectorDashboard() {
           classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
         />
       )}
+      {codesSheetOpen && <ParentCodesSheet onClose={() => setCodesSheetOpen(false)} />}
       {fileStudentId && <StudentFileModal studentId={fileStudentId} onClose={() => setFileStudentId(null)} />}
       {historyTeacherId && <TeacherHistoryModal teacherId={historyTeacherId} onClose={() => setHistoryTeacherId(null)} />}
       {activeTab === 'journal' && (

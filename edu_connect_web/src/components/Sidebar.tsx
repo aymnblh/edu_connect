@@ -15,7 +15,8 @@ import {
   Users,
   GraduationCap,
   UserPlus,
-  Megaphone
+  Megaphone,
+  CalendarRange
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { logoutSession } from '../lib/api';
@@ -65,6 +66,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
       case 'secretary':
         return [
           { to: '/director', label: t('nav.directorOverview'), icon: LayoutDashboard },
+          { to: '/director/monthly-report', label: t('nav.monthlyReport'), icon: CalendarRange },
           { to: '/director/students', label: t('nav.studentsParents'), icon: Users },
           { to: '/director/classes', label: t('nav.classesCourses'), icon: GraduationCap },
           { to: '/director/team', label: t('nav.teamTeachers'), icon: UserPlus },

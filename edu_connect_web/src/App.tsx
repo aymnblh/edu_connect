@@ -55,6 +55,7 @@ function App() {
               <Route element={<AuthenticatedLayout />}>
                 <Route path="/superadmin" element={<PageTransition><WorkspaceRoute role="system_admin"><SuperAdminDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/director/monthly-report" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/students" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/classes" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/team" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
