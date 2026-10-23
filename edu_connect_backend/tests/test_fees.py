@@ -265,3 +265,10 @@ def test_ledger_totals_overdue_and_classes():
     assert ledger["by_class"] == [{"class_id": "c1", "class_name": "1AM-A", "billed": 17000, "collected": 10500, "outstanding": 6500}]
     row = next(item for item in ledger["invoices"] if item["id"] == "inv-1")
     assert row["student_name"] == "Amina" and row["days_overdue"] >= 4 and row["parents_linked"] == 1
+
+
+def test_receipt_numbers_never_repeat_after_a_cancellation():
+    """Numbers used to be the payment count: cancel 01, pay again -> a second 02."""
+    numbers = {fees.new_receipt_number(NOW) for _ in range(500)}
+    assert len(numbers) == 500
+    assert all(number.startswith("REC-20261020-") and len(number) <= 32 for number in numbers)

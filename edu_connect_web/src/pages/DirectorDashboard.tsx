@@ -9,6 +9,7 @@ import DirectorInsightsPanel from '../components/DirectorInsightsPanel';
 import FeesPanel from '../components/FeesPanel';
 import MonthlyReportPanel from '../components/MonthlyReportPanel';
 import SetupChecklist, { ParentCodesSheet } from '../components/SetupChecklist';
+import TeacherImport from '../components/TeacherImport';
 import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
@@ -1803,6 +1804,7 @@ export default function DirectorDashboard() {
             <span>{t('director.team.shareInvite', { name: staffInvite.full_name })}</span>
           </div>
         )}
+        <TeacherImport />
       </section>
 
       <section className="glass-card management-card management-card--wide">

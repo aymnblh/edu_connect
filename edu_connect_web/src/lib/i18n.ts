@@ -5444,6 +5444,61 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'يتم الدفع لدى أمانة المدرسة؛ كل دفعة مسجلة تظهر هنا مع وصلها.',
     en: 'Payments are made at the school office; every recorded payment appears here with its receipt.',
   },
+  'teacherImport.copy': {
+    fr: 'Plusieurs enseignants ? Importez un fichier CSV (prénom, nom, email) : chacun reçoit un code d\'activation valable 72 h.',
+    ar: 'عدة أساتذة؟ استورد ملف CSV (الاسم، اللقب، البريد): يتلقى كل واحد رمز تفعيل صالح 72 ساعة.',
+    en: 'Several teachers? Import a CSV file (first name, last name, email): each one gets an activation code valid for 72 hours.',
+  },
+  'teacherImport.button': {
+    fr: 'Importer des enseignants (CSV)',
+    ar: 'استيراد أساتذة (CSV)',
+    en: 'Import teachers (CSV)',
+  },
+  'teacherImport.resultTitle': {
+    fr: '{count} enseignant(s) invité(s)',
+    ar: 'تمت دعوة {count} أستاذ',
+    en: '{count} teacher(s) invited',
+  },
+  'teacherImport.codesOnce': {
+    fr: 'Les codes ne s\'affichent qu\'une fois : imprimez cette page ou remettez chaque code à son enseignant maintenant. Un code perdu se renouvelle avec « Réinitialiser l\'accès ».',
+    ar: 'تظهر الرموز مرة واحدة فقط: اطبع هذه الصفحة أو سلّم كل رمز لصاحبه الآن. الرمز الضائع يُجدَّد بـ «إعادة تعيين الوصول».',
+    en: 'The codes are shown only once: print this page or hand each code to its teacher now. A lost code is renewed with “Reset access”.',
+  },
+  'teacherImport.instructions': {
+    fr: 'Ouvrez Wasel Edu, choisissez « Activer un compte », saisissez votre email et ce code, puis choisissez votre mot de passe.',
+    ar: 'افتح Wasel Edu، اختر «تفعيل حساب»، أدخل بريدك وهذا الرمز، ثم اختر كلمة مرورك.',
+    en: 'Open Wasel Edu, choose “Activate an account”, enter your email and this code, then choose your password.',
+  },
+  'teacherImport.skipped': {
+    fr: '{count} ligne(s) non importée(s)',
+    ar: '{count} سطر لم يُستورد',
+    en: '{count} row(s) not imported',
+  },
+  'teacherImport.line': {
+    fr: 'Ligne {line}',
+    ar: 'السطر {line}',
+    en: 'Row {line}',
+  },
+  'teacherImport.reason.missing': {
+    fr: 'nom ou email manquant',
+    ar: 'الاسم أو البريد ناقص',
+    en: 'name or email missing',
+  },
+  'teacherImport.reason.invalid_email': {
+    fr: 'email invalide',
+    ar: 'بريد غير صالح',
+    en: 'invalid email',
+  },
+  'teacherImport.reason.duplicate': {
+    fr: 'email déjà présent plus haut dans le fichier',
+    ar: 'البريد مكرر في الملف',
+    en: 'email repeated in the file',
+  },
+  'teacherImport.reason.exists': {
+    fr: 'un compte existe déjà avec cet email',
+    ar: 'يوجد حساب بهذا البريد',
+    en: 'an account already uses this email',
+  },
 };
 
 function normalizeLocale(value: string | null | undefined): Locale {

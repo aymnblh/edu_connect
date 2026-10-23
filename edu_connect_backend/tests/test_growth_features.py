@@ -31,6 +31,7 @@ class LenientDb(FakeDb):
 
     async def execute(self, stmt, *args, **kwargs):
         if isinstance(stmt, TextClause):
+            self.executed.append(stmt)
             return FakeResult()
         return await super().execute(stmt, *args, **kwargs)
 

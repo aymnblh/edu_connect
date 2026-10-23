@@ -1,5 +1,6 @@
 """School fees: balances, overdue rules and payment reminders to parents."""
 import logging
+import secrets
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import select
@@ -28,6 +29,11 @@ PAYMENT_METHODS = {
     "ccp": "CCP / BaridiMob",
     "cheque": "Chèque",
 }
+
+
+def new_receipt_number(now: datetime) -> str:
+    """REC-20261024-7F3A9C21: dated and random, so it never repeats even after a cancellation."""
+    return f"REC-{now.astimezone(ALGERIA_TZ):%Y%m%d}-{secrets.token_hex(4).upper()}"
 
 
 def money(value: float) -> float:

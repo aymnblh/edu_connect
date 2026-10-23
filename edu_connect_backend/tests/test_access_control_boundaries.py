@@ -804,7 +804,8 @@ def test_pending_attendance_dashboard_filters_to_unaccepted_absences():
 
 
 def test_principal_can_invite_secretary_staff_account():
-    db = FakeDb(results=[FakeResult()])
+    # The email lookup first opens row security for that email, then searches.
+    db = FakeDb(results=[FakeResult(), FakeResult()])
 
     created = run(
         admin.create_staff(

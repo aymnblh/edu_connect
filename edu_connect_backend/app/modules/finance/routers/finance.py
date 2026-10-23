@@ -22,6 +22,7 @@ from app.models import (
 )
 from app.modules.finance.fees import (
     PAYMENT_METHODS,
+    new_receipt_number,
     days_overdue,
     format_da,
     money,
@@ -410,7 +411,7 @@ async def record_payment(
     if money(payload.amount) > remaining(invoice):
         raise HTTPException(status_code=400, detail="Payment amount exceeds remaining balance")
 
-    receipt_number = f"REC-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{invoice.id[:8].upper()}-{len(invoice.payments) + 1:02d}"
+    receipt_number = new_receipt_number(datetime.now(timezone.utc))
     payment = TuitionPayment(
         school_id=invoice.school_id,
         invoice_id=invoice.id,

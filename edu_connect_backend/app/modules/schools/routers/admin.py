@@ -20,6 +20,7 @@ from app.modules.academics.averages import (
     weighted_averages_by_group,
 )
 from app.core.audit import record_audit_event
+from app.core.rls import set_auth_lookup_email
 from app.modules.schools.calendar import ALGERIA_TZ, algerian_trimesters
 from app.modules.schools.insights import (
     AVERAGE_DROP,
@@ -108,6 +109,8 @@ async def _create_invited_staff_user(
     if not current_user.school_id:
         raise HTTPException(status_code=400, detail="You are not assigned to a school.")
 
+    # Row security hides other schools' users unless the lookup email is declared.
+    await set_auth_lookup_email(db, str(payload.email))
     stmt = select(User).where(User.email == payload.email)
     result = await db.execute(stmt)
     if result.scalar_one_or_none():
@@ -838,43 +841,109 @@ async def regenerate_pin(
     
     return {"status": "success", "new_pin": pin, "notified": payload.notify if payload else False}
 
+TEACHER_IMPORT_MAX_ROWS = 300
+
+
+def _email_from_csv_row(row: dict[str | None, str | None]) -> str:
+    normalized = _normalized_csv_row(row)
+    return (
+        normalized.get("email")
+        or normalized.get("e-mail")
+        or normalized.get("mail")
+        or normalized.get("courriel")
+        or normalized.get("البريد_الإلكتروني")
+        or normalized.get("البريد")
+        or ""
+    ).strip().lower()
+
+
 @router.post("/import/teachers")
 async def import_teachers(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Import teachers from a CSV file.
-    Expected columns: full_name, email
-    Note: these teachers will receive local EduConnect invite accounts.
+    Invite teachers from a CSV file: full_name (or prenom + nom) and email.
+    Each new teacher gets a first-login code, valid 72 hours, returned once so the
+    school can hand it out. Existing emails and invalid rows are reported, not imported.
     """
     if current_user.role.value not in ["principal", "secretary"]:
         raise HTTPException(status_code=403, detail="Only admins can import data")
-    
+
     if not current_user.school_id:
         raise HTTPException(status_code=400, detail="User not assigned to a school")
 
     content = await file.read(settings.media_max_upload_bytes + 1)
     if len(content) > settings.media_max_upload_bytes:
         raise HTTPException(status_code=413, detail="CSV file is too large.")
-    decoded = content.decode("utf-8")
-    reader = csv.DictReader(io.StringIO(decoded))
-    
-    import_count = 0
-    for row in reader:
-        name = row.get("full_name")
-        email = row.get("email")
-        if name and email:
-            # Check if teacher already exists
-            stmt = select(User).where(User.email == email)
-            existing = await db.execute(stmt)
-            if not existing.scalar_one_or_none():
-                # Normal flow handles local user creation. This import is for invitations.
-                pass
-            import_count += 1
-            
-    return {"status": "feature_partially_implemented", "msg": "Teacher invites coming soon"}
+    decoded = content.decode("utf-8-sig", errors="replace")
+    try:
+        dialect = csv.Sniffer().sniff(decoded[:4096], delimiters=",;\t")
+    except csv.Error:
+        dialect = csv.excel
+    rows = list(csv.DictReader(io.StringIO(decoded), dialect=dialect))
+    if len(rows) > TEACHER_IMPORT_MAX_ROWS:
+        raise HTTPException(status_code=400, detail=f"Au plus {TEACHER_IMPORT_MAX_ROWS} enseignants par fichier.")
+
+    invited: list[dict] = []
+    skipped: list[dict] = []
+    seen: set[str] = set()
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=72)
+    for line, row in enumerate(rows, start=2):
+        name = _student_name_from_csv_row(row)
+        email = _email_from_csv_row(row)
+        if not name or not email:
+            skipped.append({"line": line, "email": email, "reason": "missing"})
+            continue
+        try:
+            email = str(_EmailCheck(email=email).email).lower()
+        except ValueError:
+            skipped.append({"line": line, "email": email, "reason": "invalid_email"})
+            continue
+        if email in seen:
+            skipped.append({"line": line, "email": email, "reason": "duplicate"})
+            continue
+        seen.add(email)
+        # Row security hides other schools' users unless the lookup email is declared.
+        await set_auth_lookup_email(db, email)
+        if (await db.execute(select(User.id).where(User.email == email))).scalar_one_or_none():
+            skipped.append({"line": line, "email": email, "reason": "exists"})
+            continue
+        code = generate_invite_code()
+        db.add(
+            User(
+                id=str(uuid.uuid4()),
+                email=email,
+                full_name=name[:255],
+                role=UserRole.teacher,
+                school_id=current_user.school_id,
+                password_hash=None,
+                invite_code=code,
+                invite_expires_at=expires_at,
+            )
+        )
+        invited.append({"full_name": name, "email": email, "invite_code": code, "invite_expires_at": expires_at})
+
+    await record_audit_event(
+        db,
+        action="staff.teachers_imported",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="staff",
+        method=request.method,
+        path=request.url.path,
+        # Emails only: the codes are credentials.
+        metadata={"invited": [item["email"] for item in invited], "skipped": len(skipped)},
+    )
+    await db.commit()
+    return {"invited": invited, "skipped": skipped}
+
+
+class _EmailCheck(BaseModel):
+    email: EmailStr
+
 
 # ─── Parent Linking & Audit ───────────────────────────────────────────────────
 
