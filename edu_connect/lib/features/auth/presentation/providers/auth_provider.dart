@@ -10,6 +10,16 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
 });
 
+/// False when the demo is closed or the server cannot be reached.
+final publicDemoAvailableProvider =
+    FutureProvider.autoDispose<bool>((ref) async {
+  try {
+    return await ref.watch(authRepositoryProvider).demoAvailable();
+  } catch (_) {
+    return false;
+  }
+});
+
 // ── Auth notifier ──────────────────────────────────────────────────────────
 class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   final AuthRepository _repo;
@@ -74,6 +84,17 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     state = const AsyncValue.loading();
     try {
       final user = await _repo.login(email: email, password: password);
+      state = AsyncValue.data(user);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> demoLogin(String role) async {
+    state = const AsyncValue.loading();
+    try {
+      final user = await _repo.demoLogin(role);
       state = AsyncValue.data(user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);

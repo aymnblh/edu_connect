@@ -39,6 +39,22 @@ class AuthRepository {
     return _fetchAndSaveProfile();
   }
 
+  /// Whether the server offers the public, read-only demo school.
+  Future<bool> demoAvailable() async {
+    final response = await _api.get('/auth/demo');
+    return response is Map && response['enabled'] == true;
+  }
+
+  /// Opens a read-only session on the demo school as [role]
+  /// ('teacher' or 'parent'), without an account.
+  Future<UserModel> demoLogin(String role) async {
+    _signedOut = false;
+    final response = await _api.post('/auth/demo-login', data: {'role': role});
+    final data = response as Map<String, dynamic>;
+    await _saveTokens(data['access_token'], data['refresh_token']);
+    return _fetchAndSaveProfile();
+  }
+
   Future<UserModel> register({
     required String email,
     required String password,

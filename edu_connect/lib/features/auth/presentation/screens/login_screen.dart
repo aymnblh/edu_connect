@@ -62,6 +62,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _openDemo(String role) async {
+    if (_isLoading) return;
+    final l10n = AppLocalizations.of(context)!;
+    // The router leaves this screen as soon as the session opens.
+    final messenger = ScaffoldMessenger.of(context);
+    final readOnly = _DText.of(context).readOnly;
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(authNotifierProvider.notifier).demoLogin(role);
+      messenger.showSnackBar(SnackBar(
+        content: Text(readOnly),
+        behavior: SnackBarBehavior.floating,
+      ));
+    } on DioException catch (e) {
+      if (mounted) _showError(_authErrorMessage(e, l10n));
+    } catch (_) {
+      if (mounted) _showError(l10n.error);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   String _authErrorMessage(DioException error, AppLocalizations l10n) {
     if (error.type == DioExceptionType.connectionError ||
         error.type == DioExceptionType.connectionTimeout ||
@@ -322,6 +344,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 ),
                               ).animate().fadeIn(delay: 350.ms),
+                              if (ref
+                                      .watch(publicDemoAvailableProvider)
+                                      .valueOrNull ==
+                                  true) ...[
+                                const SizedBox(height: 20),
+                                _DemoEntry(busy: _isLoading, onOpen: _openDemo),
+                              ],
                             ],
                           ),
                         ),
@@ -420,4 +449,73 @@ String _passwordVisibilityTooltip(BuildContext context) {
     default:
       return 'Afficher ou masquer le mot de passe';
   }
+}
+
+/// Read-only visit of the demo school, offered when the server allows it.
+class _DemoEntry extends StatelessWidget {
+  final bool busy;
+  final Future<void> Function(String role) onOpen;
+
+  const _DemoEntry({required this.busy, required this.onOpen});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = _DText.of(context);
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(children: [
+          Icon(Icons.visibility_outlined,
+              size: 18, color: theme.colorScheme.primary),
+          const SizedBox(width: 6),
+          Expanded(child: Text(text.title, style: theme.textTheme.titleSmall)),
+        ]),
+        const SizedBox(height: 4),
+        Text(text.copy, style: theme.textTheme.bodySmall),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(
+            child: TextButton.icon(
+              onPressed: busy ? null : () => onOpen('parent'),
+              icon: const Icon(Icons.family_restroom),
+              label: Text(text.asParent),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextButton.icon(
+              onPressed: busy ? null : () => onOpen('teacher'),
+              icon: const Icon(Icons.co_present_outlined),
+              label: Text(text.asTeacher),
+            ),
+          ),
+        ]),
+      ],
+    );
+  }
+}
+
+class _DText {
+  final String code;
+  const _DText(this.code);
+
+  static _DText of(BuildContext context) =>
+      _DText(Localizations.localeOf(context).languageCode);
+
+  String pick(String ar, String fr, String en) =>
+      code == 'ar' ? ar : (code == 'fr' ? fr : en);
+
+  String get title => pick(
+      'اكتشف بدون حساب', 'Decouvrir sans compte', 'Explore without an account');
+  String get copy => pick(
+      'تصفح مدرسة تجريبية ببيانات وهمية، للاطلاع فقط.',
+      'Visitez une ecole de demonstration remplie de donnees fictives, en consultation seulement.',
+      'Visit a demo school filled with sample data, view only.');
+  String get asParent => pick('كولي', 'En parent', 'As a parent');
+  String get asTeacher => pick('كأستاذ', 'En enseignant', 'As a teacher');
+  String get readOnly => pick(
+      'عرض تجريبي: يمكنك الاطلاع على كل شيء، ولا يُحفظ أي شيء.',
+      "Demo : tout est consultable, rien n'est enregistre.",
+      'Demo: you can look at everything; nothing is saved.');
 }
