@@ -28,6 +28,8 @@ import '../../features/meetings/presentation/meetings_screen.dart';
 import '../../features/fees/fees_screen.dart';
 import '../../features/health/health_screen.dart';
 import '../../features/infirmary/infirmary_screen.dart';
+import '../../features/director/fees_admin_screen.dart';
+import '../../features/director/monthly_report_screen.dart';
 import '../../features/class/presentation/screens/admin_tools_screen.dart';
 import '../../features/class/presentation/screens/course_library_screen.dart';
 import '../../features/class/presentation/screens/linking_hub_screen.dart';
@@ -117,7 +119,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       if (!isLoading &&
           isLoggedIn &&
-          location.startsWith('/admin-tools') &&
+          (location.startsWith('/admin-tools') ||
+              location.startsWith('/director/')) &&
           !(authState.valueOrNull?.isAdmin ?? false)) {
         return '/classes';
       }
@@ -325,6 +328,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/health',
         name: 'health',
         builder: (ctx, state) => const HealthScreen(),
+      ),
+      GoRoute(
+        path: '/director/monthly',
+        builder: (ctx, state) => const MonthlyReportScreen(),
+      ),
+      GoRoute(
+        path: '/director/fees',
+        builder: (ctx, state) => const FeesAdminScreen(),
       ),
       GoRoute(
         path: '/infirmary',

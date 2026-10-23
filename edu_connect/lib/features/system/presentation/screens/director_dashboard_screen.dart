@@ -9,6 +9,7 @@ import '../../../../core/widgets/app_drawer.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../director/setup_checklist_card.dart';
 import '../../data/models/analytics_overview.dart';
 import '../providers/analytics_provider.dart';
 
@@ -81,7 +82,9 @@ class DirectorDashboardScreen extends ConsumerWidget {
                           _QuickActions()
                               .animate()
                               .fadeIn(delay: 80.ms, duration: 220.ms),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
+                          const SetupChecklistCard(),
+                          const SizedBox(height: 4),
                           _KpiGrid(data: data)
                               .animate()
                               .fadeIn(delay: 120.ms, duration: 260.ms)
@@ -223,6 +226,22 @@ class _QuickActions extends StatelessWidget {
                 icon: Icons.mark_email_unread_outlined,
                 label: l10n.chat,
                 onTap: () => context.push('/messaging'),
+              ),
+            ),
+            SizedBox(
+              width: itemWidth,
+              child: _ActionButton(
+                icon: Icons.insights_outlined,
+                label: text.monthlyReport,
+                onTap: () => context.push('/director/monthly'),
+              ),
+            ),
+            SizedBox(
+              width: itemWidth,
+              child: _ActionButton(
+                icon: Icons.account_balance_wallet_outlined,
+                label: text.fees,
+                onTap: () => context.push('/director/fees'),
               ),
             ),
           ],
@@ -658,6 +677,17 @@ class _DashText {
 
   bool get _ar => languageCode == 'ar';
   bool get _fr => languageCode == 'fr';
+
+  String get monthlyReport => _ar
+      ? 'الحصيلة الشهرية'
+      : _fr
+          ? 'Bilan mensuel'
+          : 'Monthly report';
+  String get fees => _ar
+      ? 'المصاريف'
+      : _fr
+          ? 'Frais scolaires'
+          : 'School fees';
 
   String get direction => _ar
       ? 'الإدارة'
