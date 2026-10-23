@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, func, select
 from pydantic import BaseModel
+from app.modules.demo.access import is_read_only_demo_user
 from app.core.audit import record_audit_event
 from app.db.database import get_db
 from app.models import (
@@ -44,7 +45,9 @@ async def create_user(
 
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    out = UserOut.model_validate(current_user)
+    out.is_demo = is_read_only_demo_user(current_user)
+    return out
 
 
 @router.put("/me", response_model=UserOut)

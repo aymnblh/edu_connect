@@ -13,6 +13,9 @@ class UserModel extends Equatable {
   final String? pushToken;
   final DateTime createdAt;
 
+  /// The shared, read-only public demo account.
+  final bool isDemo;
+
   const UserModel({
     required this.id,
     required this.email,
@@ -23,6 +26,7 @@ class UserModel extends Equatable {
     required this.role,
     this.pushToken,
     required this.createdAt,
+    this.isDemo = false,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -55,6 +59,7 @@ class UserModel extends Equatable {
       avatarUrl: json['avatar_url'] as String?,
       pushToken: json['push_token'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
+      isDemo: json['is_demo'] as bool? ?? false,
     );
   }
 
@@ -68,6 +73,7 @@ class UserModel extends Equatable {
     String? avatarUrl,
     String? pushToken,
     DateTime? createdAt,
+    bool? isDemo,
   }) =>
       UserModel(
         id: id ?? this.id,
@@ -79,6 +85,7 @@ class UserModel extends Equatable {
         avatarUrl: avatarUrl ?? this.avatarUrl,
         pushToken: pushToken ?? this.pushToken,
         createdAt: createdAt ?? this.createdAt,
+        isDemo: isDemo ?? this.isDemo,
       );
 
   bool get isTeacher => role == UserRole.teacher;
@@ -98,6 +105,7 @@ class UserModel extends Equatable {
         avatarUrl,
         schoolId,
         role,
+        isDemo,
         pushToken,
         createdAt
       ];

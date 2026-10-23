@@ -12,6 +12,7 @@ import 'core/routing/app_router.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/widgets/adaptive_scroll_behavior.dart';
+import 'core/widgets/demo_banner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -101,7 +102,7 @@ class _WaselEduAppState extends ConsumerState<WaselEduApp>
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          child: child ?? const SizedBox.shrink(),
+          child: DemoBanner(child: child ?? const SizedBox.shrink()),
         );
       },
     );

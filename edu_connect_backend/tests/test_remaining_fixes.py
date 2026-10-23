@@ -95,3 +95,16 @@ def test_logo_accepts_only_small_raster_images():
         run(branding.upload_logo(make_request("/x", "PUT"), file=UploadFile(file=io.BytesIO(png), filename="l.png"),
                                  current_user=make_user("secretary-a", UserRole.secretary), db=db))
     assert exc.value.status_code == 403
+
+
+def test_profile_says_whether_the_session_is_the_public_demo(monkeypatch):
+    from app.core.config import settings
+    from app.modules.users.routers import users
+
+    demo = User(id="d1", school_id="s", email="parent.nadia@demo.educonnect.dz", full_name="Nadia", role=UserRole.parent,
+                created_at=__import__("datetime").datetime.now())
+    demo.students_linking = []
+    monkeypatch.setattr(settings, "public_demo_enabled", True)
+    assert run(users.get_me(current_user=demo)).is_demo is True
+    monkeypatch.setattr(settings, "public_demo_enabled", False)
+    assert run(users.get_me(current_user=demo)).is_demo is False
