@@ -70,7 +70,7 @@ This file is the implementation contract for access control, audit, retention, c
 
 - Health fields (contacts, allergies, conditions, medication, blood group, doctor, instructions, teacher alert) are encrypted at rest with a dedicated key (`HEALTH_DATA_KEY`), separate from database credentials and backups.
 - Health data is sensitive personal data under Law 18-07: it is collected only with recorded parent consent (`consent_method` = `app` when the parent agrees in the app, `paper` when the school attests a signed form).
-- Full record (emergency contacts, allergies, conditions, medication, blood group, doctor, instructions): school administration and the student's linked parents only, via `GET/PUT/DELETE /students/{id}/health`.
+- Full record (emergency contacts, allergies, conditions, medication, blood group, doctor, instructions): school administration, the school nurse account and the student's linked parents only, via `GET/PUT/DELETE /students/{id}/health`.
 - Teachers never read the full record; they see only the short `teacher_alert` of students in classes they teach (`GET /classes/{id}/health-alerts`).
 - Every staff view (`health.viewed`), change (`health.updated`, field names only, never values) and deletion (`health.deleted`) is audited.
 - A parent can withdraw consent at any time by deleting the record; it is then erased, not archived.
