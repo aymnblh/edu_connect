@@ -40,6 +40,13 @@ async def set_auth_user_id(db: AsyncSession, user_id: str) -> None:
     )
 
 
+async def set_report_card_verify_code(db: AsyncSession, code: str) -> None:
+    await db.execute(
+        text("SELECT set_config('app.report_card_verify_code', :code, true)"),
+        {"code": code.strip()},
+    )
+
+
 async def set_pending_link_token(db: AsyncSession, token: str) -> None:
     await db.execute(
         text("SELECT set_config('app.pending_link_token', :token, true)"),

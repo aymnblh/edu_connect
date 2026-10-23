@@ -34,3 +34,5 @@ class ReportCard(Base):
     data: Mapped[dict] = mapped_column(JSONB, nullable=False)
     published_by: Mapped[str | None] = mapped_column(String(128), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    # Printed as a QR code; anyone can check the card at /verify/<code>.
+    verify_code: Mapped[str | None] = mapped_column(String(32), nullable=True, unique=True, index=True)

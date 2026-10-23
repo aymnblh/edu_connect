@@ -19,6 +19,7 @@ const WorkspaceSelect = lazy(() => import('./pages/WorkspaceSelect'));
 const TeacherDashboard = lazy(() => import('./pages/TeacherDashboard'));
 const ParentDashboard = lazy(() => import('./pages/ParentDashboard'));
 const NurseDashboard = lazy(() => import('./pages/NurseDashboard'));
+const VerifyReportCard = lazy(() => import('./pages/VerifyReportCard'));
 
 function PageLoader() {
   const { t } = useLocale();
@@ -50,6 +51,7 @@ function App() {
               <Route path="/register-school" element={<PageTransition><RegisterSchool /></PageTransition>} />
               <Route path="/activate" element={<PageTransition><ActivateAccount /></PageTransition>} />
               <Route path="/policies" element={<PageTransition><LegalPolicies /></PageTransition>} />
+              <Route path="/verify/:code" element={<PageTransition><VerifyReportCard /></PageTransition>} />
               <Route path="/workspace/select" element={<PageTransition><WorkspaceSelect /></PageTransition>} />
               
               {/* Authenticated Workspace Scopes wrapped with Sidebar Layout */}

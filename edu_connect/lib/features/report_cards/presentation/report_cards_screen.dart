@@ -155,6 +155,8 @@ class ReportCardDetailScreen extends ConsumerWidget {
                 text.attendance,
                 text.attendanceCounts(
                     card.absences, card.justifiedAbsences, card.lates)),
+            if (card.mention != null)
+              _Fact(text.distinction, text.mention(card.mention!)),
           ],
         ),
       ),
@@ -281,6 +283,12 @@ class _RcText {
   String get coef => pick('المعامل', 'Coef.', 'Coef.');
   String get average => pick('المعدل', 'Moyenne', 'Average');
   String get classAvg => pick('معدل القسم', 'Moy. classe', 'Class avg.');
+  String get distinction => pick('التمييز', 'Distinction', 'Distinction');
+  String mention(String key) => switch (key) {
+        'felicitations' => pick('تهنئة', 'Felicitations', 'Congratulations'),
+        'encouragements' => pick('تشجيع', 'Encouragements', 'Encouragement'),
+        _ => pick('لوحة الشرف', "Tableau d'honneur", 'Honour roll'),
+      };
   String get overall =>
       pick('المعدل العام', 'Moyenne generale', 'Overall average');
   String get rank => pick('الرتبة', 'Rang', 'Rank');

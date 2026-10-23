@@ -5604,6 +5604,81 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'كل بطاقة تُفتح تُسجَّل في سجل نشاط المدرسة. لا تُنشأ بطاقة جديدة إلا بموافقة الولي الكتابية (استمارة ورقية موقعة).',
     en: 'Every sheet opened is recorded in the school\'s activity log. A new sheet needs the parent\'s written consent (signed paper form).',
   },
+  'reportCards.republic': {
+    fr: 'République algérienne démocratique et populaire',
+    ar: 'الجمهورية الجزائرية الديمقراطية الشعبية',
+    en: 'People\'s Democratic Republic of Algeria',
+  },
+  'reportCards.mention.felicitations': {
+    fr: 'Félicitations',
+    ar: 'تهنئة',
+    en: 'Congratulations',
+  },
+  'reportCards.mention.encouragements': {
+    fr: 'Encouragements',
+    ar: 'تشجيع',
+    en: 'Encouragement',
+  },
+  'reportCards.mention.tableau_honneur': {
+    fr: 'Tableau d\'honneur',
+    ar: 'لوحة الشرف',
+    en: 'Honour roll',
+  },
+  'reportCards.verifyHint': {
+    fr: 'Scannez pour vérifier l\'authenticité de ce bulletin.',
+    ar: 'امسح للتحقق من صحة هذا الكشف.',
+    en: 'Scan to check this report card is genuine.',
+  },
+  'verify.genuine': {
+    fr: 'Bulletin authentique',
+    ar: 'كشف أصلي',
+    en: 'Genuine report card',
+  },
+  'verify.copy': {
+    fr: 'Voici ce que l\'établissement a publié pour ce bulletin.',
+    ar: 'هذا ما نشرته المؤسسة لهذا الكشف.',
+    en: 'This is what the school published for this report card.',
+  },
+  'verify.compare': {
+    fr: 'Comparez avec le document papier : toute différence signifie qu\'il a été modifié.',
+    ar: 'قارن مع الوثيقة الورقية: أي اختلاف يعني أنها عُدّلت.',
+    en: 'Compare with the paper copy: any difference means it was altered.',
+  },
+  'verify.school': {
+    fr: 'Établissement',
+    ar: 'المؤسسة',
+    en: 'School',
+  },
+  'verify.term': {
+    fr: 'Trimestre',
+    ar: 'الفصل',
+    en: 'Term',
+  },
+  'verify.mention': {
+    fr: 'Distinction',
+    ar: 'التمييز',
+    en: 'Distinction',
+  },
+  'verify.published': {
+    fr: 'Publié le',
+    ar: 'نُشر في',
+    en: 'Published on',
+  },
+  'verify.notFound': {
+    fr: 'Bulletin introuvable',
+    ar: 'الكشف غير موجود',
+    en: 'Report card not found',
+  },
+  'verify.notFoundCopy': {
+    fr: 'Ce code ne correspond à aucun bulletin publié, ou l\'établissement l\'a retiré. Contactez l\'école.',
+    ar: 'هذا الرمز لا يطابق أي كشف منشور، أو سحبته المؤسسة. اتصل بالمدرسة.',
+    en: 'This code matches no published report card, or the school withdrew it. Contact the school.',
+  },
+  'verify.home': {
+    fr: 'Aller sur Wasel Edu',
+    ar: 'الذهاب إلى Wasel Edu',
+    en: 'Go to Wasel Edu',
+  },
 };
 
 function normalizeLocale(value: string | null | undefined): Locale {

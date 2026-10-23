@@ -1,3 +1,4 @@
+import secrets
 import uuid
 from datetime import datetime, time, timedelta, timezone
 
@@ -7,6 +8,8 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit_event
+from app.core.rate_limit import check_rate_limit
+from app.core.rls import set_report_card_verify_code
 from app.core.security import get_current_user
 from app.db.database import get_db
 from app.models import (
@@ -25,7 +28,7 @@ from app.models import (
     UserRole,
 )
 from app.modules.academics.averages import load_grade_coefficients
-from app.modules.reports.compute import AttendanceRow, CourseRow, StudentRow, build_report_cards
+from app.modules.reports.compute import AttendanceRow, CourseRow, StudentRow, build_report_cards, mention_for
 from app.modules.reports.models import ReportCard
 from app.utils.notifications import create_notification
 
@@ -125,7 +128,7 @@ async def compute_class_report_cards(db: AsyncSession, cls: Class, semester: Sem
     ).all()
     school = await db.get(School, cls.school_id)
 
-    return build_report_cards(
+    cards = build_report_cards(
         students=[StudentRow(id=row[0], full_name=row[1], student_number=row[2]) for row in students],
         courses=[CourseRow(course_id=row[0], name=row[1], coefficient=row[2]) for row in courses],
         grades=grades,
@@ -146,6 +149,10 @@ async def compute_class_report_cards(db: AsyncSession, cls: Class, semester: Sem
             "period_end": semester.end_date.date().isoformat(),
         },
     )
+    thresholds = (school.tenant_config or {}).get("mentions") if school else None
+    for card in cards:
+        card["mention"] = mention_for(card["overall_average"], thresholds)
+    return cards
 
 
 @router.get("/preview")
@@ -173,13 +180,19 @@ async def publish_report_cards(
     cls, semester = await _class_and_semester(db, school_id, payload.class_id, payload.semester_id)
     cards = await compute_class_report_cards(db, cls, semester)
 
-    existing = (
-        await db.execute(
-            select(func.count())
-            .select_from(ReportCard)
-            .where(ReportCard.class_id == cls.id, ReportCard.semester_id == semester.id)
-        )
-    ).scalar_one()
+    # Keep each student's verification code, so cards already printed still check out.
+    previous_codes = dict(
+        (
+            await db.execute(
+                select(ReportCard.student_id, ReportCard.verify_code).where(
+                    ReportCard.school_id == school_id,
+                    ReportCard.class_id == cls.id,
+                    ReportCard.semester_id == semester.id,
+                )
+            )
+        ).all()
+    )
+    existing = len(previous_codes)
     await db.execute(
         delete(ReportCard).where(
             ReportCard.school_id == school_id,
@@ -187,8 +200,10 @@ async def publish_report_cards(
             ReportCard.semester_id == semester.id,
         )
     )
+    await db.flush()
     now = datetime.now(timezone.utc)
     for card in cards:
+        card["verify_code"] = previous_codes.get(card["student_id"]) or secrets.token_urlsafe(12)
         db.add(
             ReportCard(
                 id=str(uuid.uuid4()),
@@ -202,6 +217,7 @@ async def publish_report_cards(
                 data=card,
                 published_by=current_user.id,
                 published_at=now,
+                verify_code=card["verify_code"],
             )
         )
 
@@ -341,3 +357,36 @@ async def get_report_card(
     if not card:
         raise HTTPException(status_code=404, detail="Bulletin introuvable.")
     return {**_summary(card), "data": card.data}
+
+
+public_router = APIRouter(prefix="/public/report-cards", tags=["Report cards"])
+
+
+@public_router.get("/{code}")
+async def verify_report_card(
+    code: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """What the school published for the report card behind a QR code (no account needed)."""
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    await check_rate_limit(f"report_card_verify:{ip_address}", limit=60, window_seconds=3600)
+    if not 8 <= len(code) <= 32:
+        raise HTTPException(status_code=404, detail="Bulletin introuvable.")
+    await set_report_card_verify_code(db, code)
+    card = (await db.execute(select(ReportCard).where(ReportCard.verify_code == code))).scalar_one_or_none()
+    if card is None:
+        raise HTTPException(status_code=404, detail="Bulletin introuvable ou retire par l'etablissement.")
+    data = card.data or {}
+    return {
+        "school_name": data.get("school_name"),
+        "student_name": data.get("student_name"),
+        "class_name": data.get("class_name"),
+        "semester_name": data.get("semester_name"),
+        "overall_average": card.overall_average,
+        "rank": card.rank,
+        "class_size": card.class_size,
+        "mention": data.get("mention"),
+        "published_at": card.published_at,
+    }
+

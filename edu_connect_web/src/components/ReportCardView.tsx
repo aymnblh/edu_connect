@@ -1,4 +1,6 @@
-import { Printer } from 'lucide-react';
+import { Award, Printer } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { useSchoolBranding } from '../lib/branding';
 import { useLocale } from '../lib/i18n';
 
 export interface ReportCardSubject {
@@ -25,6 +27,12 @@ export interface ReportCardData {
   class_size: number;
   class_average: number | null;
   attendance: { absences: number; justified_absences: number; lates: number };
+  mention?: 'felicitations' | 'encouragements' | 'tableau_honneur' | null;
+  verify_code?: string | null;
+}
+
+function verifyUrl(code: string) {
+  return `${window.location.origin}/verify/${code}`;
 }
 
 function score(value: number | null | undefined) {
@@ -39,6 +47,7 @@ type ReportCardViewProps = {
 
 export default function ReportCardView({ data, publishedAt, draft = false }: ReportCardViewProps) {
   const { t } = useLocale();
+  const logo = useSchoolBranding().data?.logo;
 
   return (
     <div className="report-card-print">
@@ -50,7 +59,9 @@ export default function ReportCardView({ data, publishedAt, draft = false }: Rep
       </div>
       <article className="report-card-sheet">
         <header className="report-card-header">
+          {logo && <img className="printed-logo" src={logo} alt="" />}
           <div>
+            <div className="report-card-republic">{t('reportCards.republic')}</div>
             <strong>{data.school_name}</strong>
             <div>{t('reportCards.sheetTitle', { term: data.semester_name ?? '' })}</div>
             {data.period_start && data.period_end && (
@@ -109,11 +120,25 @@ export default function ReportCardView({ data, publishedAt, draft = false }: Rep
             </strong>
           </div>
         </div>
-        {publishedAt && (
-          <footer className="report-card-muted">
-            {t('reportCards.publishedOn', { date: new Date(publishedAt).toLocaleDateString() })}
-          </footer>
+        {data.mention && (
+          <div className="report-card-mention">
+            <Award size={18} aria-hidden="true" />
+            <strong>{t(`reportCards.mention.${data.mention}`)}</strong>
+          </div>
         )}
+        <footer className="report-card-footer">
+          {publishedAt && (
+            <span className="report-card-muted">
+              {t('reportCards.publishedOn', { date: new Date(publishedAt).toLocaleDateString() })}
+            </span>
+          )}
+          {data.verify_code && !draft && (
+            <div className="report-card-verify">
+              <QRCodeSVG value={verifyUrl(data.verify_code)} size={72} level="M" />
+              <span>{t('reportCards.verifyHint')}</span>
+            </div>
+          )}
+        </footer>
       </article>
     </div>
   );

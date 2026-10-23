@@ -42,6 +42,7 @@ api_router.include_router(health.router)
 api_router.include_router(classes.router)
 api_router.include_router(grades.router)
 api_router.include_router(report_cards.router)
+api_router.include_router(report_cards.public_router)
 api_router.include_router(homework.router)
 api_router.include_router(lessons.router)
 

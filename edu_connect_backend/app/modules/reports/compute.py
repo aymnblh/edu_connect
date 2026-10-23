@@ -60,6 +60,24 @@ def competition_ranks(averages: dict[str, float | None]) -> dict[str, int | None
     return ranks
 
 
+# Distinctions on the general average out of 20, highest first. Defaults follow
+# common Algerian practice; a school can set its own in tenant_config["mentions"].
+DEFAULT_MENTIONS = {"felicitations": 16.0, "encouragements": 14.0, "tableau_honneur": 12.0}
+MENTION_ORDER = ("felicitations", "encouragements", "tableau_honneur")
+
+
+def mention_for(average: float | None, thresholds: dict | None = None) -> str | None:
+    """The distinction earned by a general average, or None."""
+    if average is None:
+        return None
+    limits = {**DEFAULT_MENTIONS, **(thresholds or {})}
+    for key in MENTION_ORDER:
+        limit = limits.get(key)
+        if limit is not None and average >= float(limit):
+            return key
+    return None
+
+
 def build_report_cards(
     *,
     students: Iterable[StudentRow],

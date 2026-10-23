@@ -162,11 +162,12 @@ def test_publish_saves_snapshots_and_notifies_linked_parents(monkeypatch):
     monkeypatch.setattr(report_router, "compute_class_report_cards", fake_compute)
     monkeypatch.setattr(report_router, "create_notification", fake_notification)
 
+    previous = [("s1", "kept-code-s1"), ("s2", "kept-code-s2")]
     for existing, expected_title in ((0, "Bulletin disponible"), (2, "Bulletin mis a jour")):
         notified.clear()
         db = FakeDb(
             get_map={(Class, "class-a"): cls, (Semester, "sem-a"): semester},
-            results=[FakeResult([existing]), FakeResult(), FakeResult([("parent-a", "s1")]), FakeResult()],
+            results=[FakeResult(previous[:existing]), FakeResult(), FakeResult([("parent-a", "s1")]), FakeResult()],
         )
         result = run(report_router.publish_report_cards(
             report_router.PublishRequest(class_id="class-a", semester_id="sem-a"),
@@ -183,3 +184,45 @@ def test_publish_saves_snapshots_and_notifies_linked_parents(monkeypatch):
         assert [(n["user_id"], n["title"]) for n in notified] == [("parent-a", expected_title)]
         assert "Amine" in notified[0]["content"]
         assert result == {"published": 2, "republished": bool(existing), "parents_notified": 1}
+        codes = [card.verify_code for card in saved]
+        if existing:
+            # Re-publishing keeps the codes already printed on paper.
+            assert codes == ["kept-code-s1", "kept-code-s2"]
+        else:
+            assert all(len(code) >= 16 for code in codes) and codes[0] != codes[1]
+
+
+def test_mentions_follow_the_general_average():
+    from app.modules.reports.compute import mention_for
+
+    assert mention_for(16.5) == "felicitations"
+    assert mention_for(14) == "encouragements"
+    assert mention_for(12.01) == "tableau_honneur"
+    assert mention_for(11.99) is None
+    assert mention_for(None) is None
+    # A school with its own rules.
+    assert mention_for(15, {"felicitations": 15}) == "felicitations"
+
+
+def test_public_verification_shows_only_the_published_summary():
+    import pytest
+    from fastapi import HTTPException
+
+    card = report_router.ReportCard(
+        id="rc1", school_id="school-a", class_id="c", semester_id="s", student_id="s1",
+        overall_average=14.2, rank=3, class_size=28, verify_code="abcdefghijklmnop",
+        published_at=datetime(2026, 12, 20),
+        data={"school_name": "Les Oliviers", "student_name": "Amine", "class_name": "3A",
+              "semester_name": "Trimestre 1", "mention": "encouragements",
+              "subjects": [{"subject": "Maths", "average": 15}], "attendance": {"absences": 2}},
+    )
+    db = FakeDb(results=[FakeResult(), FakeResult([card])])
+    out = run(report_router.verify_report_card("abcdefghijklmnop", make_request("/public/report-cards/x", "GET"), db=db))
+    assert out["student_name"] == "Amine" and out["mention"] == "encouragements" and out["overall_average"] == 14.2
+    # Subject grades and attendance stay private.
+    assert "subjects" not in out and "attendance" not in out
+    with pytest.raises(HTTPException):
+        run(report_router.verify_report_card("short", make_request("/x", "GET"), db=FakeDb()))
+    with pytest.raises(HTTPException):
+        run(report_router.verify_report_card("unknowncode12345", make_request("/x", "GET"), db=FakeDb(results=[FakeResult(), FakeResult()])))
+

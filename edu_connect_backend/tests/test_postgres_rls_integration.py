@@ -543,3 +543,47 @@ def test_audit_events_are_tenant_scoped_append_only_and_retention_purgeable(app_
         ).rowcount
 
     assert purged == 1
+
+
+def test_report_card_verification_lookup_reveals_only_the_card_with_that_code(admin_engine, app_engine, seeded_rls_data):
+    suffix = uuid.uuid4().hex[:8]
+    semesters = {"a": f"sem-a-{suffix}", "b": f"sem-b-{suffix}"}
+    cards = {"a": f"card-a-{suffix}", "b": f"card-b-{suffix}"}
+    codes = {"a": f"verify-a-{suffix}", "b": f"verify-b-{suffix}"}
+    with admin_engine.begin() as conn:
+        for key in ("a", "b"):
+            conn.execute(
+                text(
+                    "INSERT INTO semesters (id, school_id, name, start_date, end_date, is_active, created_at) "
+                    "VALUES (:id, :school, 'T1', now(), now() + interval '90 days', true, now())"
+                ),
+                {"id": semesters[key], "school": seeded_rls_data[f"school_{key}"]},
+            )
+            conn.execute(
+                text(
+                    "INSERT INTO report_cards (id, school_id, class_id, semester_id, student_id, class_size, data, "
+                    "published_at, verify_code) VALUES (:id, :school, :class, :semester, :student, 1, '{}'::jsonb, now(), :code)"
+                ),
+                {
+                    "id": cards[key], "school": seeded_rls_data[f"school_{key}"], "class": seeded_rls_data[f"class_{key}"],
+                    "semester": semesters[key], "student": seeded_rls_data[f"student_{key}"], "code": codes[key],
+                },
+            )
+    try:
+        with app_engine.begin() as conn:
+            assert conn.execute(text("SELECT id FROM report_cards")).scalars().all() == []
+        with app_engine.begin() as conn:
+            conn.execute(text("SELECT set_config('app.report_card_verify_code', :code, true)"), {"code": codes["a"]})
+            assert conn.execute(text("SELECT id FROM report_cards")).scalars().all() == [cards["a"]]
+        with app_engine.begin() as conn:
+            conn.execute(text("SELECT set_config('app.report_card_verify_code', 'no-such-code', true)"))
+            assert conn.execute(text("SELECT id FROM report_cards")).scalars().all() == []
+        # The lookup is read-only: it never allows changing the card.
+        with app_engine.begin() as conn:
+            conn.execute(text("SELECT set_config('app.report_card_verify_code', :code, true)"), {"code": codes["a"]})
+            updated = conn.execute(text("UPDATE report_cards SET rank = 1 WHERE id = :id"), {"id": cards["a"]})
+            assert updated.rowcount == 0
+    finally:
+        with admin_engine.begin() as conn:
+            conn.execute(text("DELETE FROM report_cards WHERE id IN (:a, :b)"), cards)
+            conn.execute(text("DELETE FROM semesters WHERE id IN (:a, :b)"), semesters)

@@ -69,6 +69,9 @@ class ReportCardDetail {
   final int justifiedAbsences;
   final int lates;
 
+  /// felicitations, encouragements or tableau_honneur (null if none).
+  final String? mention;
+
   const ReportCardDetail({
     required this.summary,
     this.schoolName,
@@ -81,6 +84,7 @@ class ReportCardDetail {
     required this.absences,
     required this.justifiedAbsences,
     required this.lates,
+    this.mention,
   });
 
   factory ReportCardDetail.fromJson(Map<String, dynamic> json) {
@@ -100,6 +104,7 @@ class ReportCardDetail {
       absences: attendance['absences'] as int? ?? 0,
       justifiedAbsences: attendance['justified_absences'] as int? ?? 0,
       lates: attendance['lates'] as int? ?? 0,
+      mention: data['mention'] as String?,
     );
   }
 }
