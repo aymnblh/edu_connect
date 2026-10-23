@@ -9,7 +9,7 @@ class LegalPoliciesScreen extends StatelessWidget {
 
   static const _contactEmail = 'privacy@waseledu.dz';
   static const _policyUrl = 'https://app.educonnect.dz/policies';
-  static final _updatedAt = DateTime(2026, 10, 21);
+  static final _updatedAt = DateTime(2026, 10, 24);
 
   @override
   Widget build(BuildContext context) {
@@ -302,10 +302,10 @@ class _LegalText {
                 : 'Algerian legal framework';
       case 'schoolData':
         return _ar
-            ? 'البيانات المدرسية المعالجة'
+            ? 'البيانات المدرسية المعالجة المصاريف المدرسية: عناوين ومبالغ المستحقات لكل تلميذ، الدفعات المستلمة (المبلغ، الطريقة، رقم الوصل)، الآجال والتذكيرات المرسلة للأولياء. يطلع عليها فقط الإدارة والأمانة وأولياء التلميذ؛ وتُسجَّل كل دفعة وإلغاء وتذكير في السجل.'
             : _fr
-                ? 'Données scolaires traitées'
-                : 'Processed school data';
+                ? 'Données scolaires traitées Frais scolaires : intitulés et montants dus par élève, paiements reçus (montant, mode, n° de reçu), échéances et rappels envoyés aux parents. Visibles par la direction, le secrétariat et les parents de l\'élève uniquement ; chaque paiement, annulation et rappel est enregistré dans le journal.'
+                : 'Processed school data School fees: fee labels and amounts owed per student, payments received (amount, method, receipt number), due dates and reminders sent to parents. Visible only to the school administration and the student\'s parents; every payment, cancellation and reminder is recorded in the activity log.';
       case 'minors':
         return _ar
             ? 'بيانات القاصرين'

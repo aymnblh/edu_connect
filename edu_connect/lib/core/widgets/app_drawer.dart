@@ -97,6 +97,12 @@ class AppDrawer extends ConsumerWidget {
                     ),
                   if (user.isParent)
                     _DrawerItem(
+                      icon: Icons.account_balance_wallet_outlined,
+                      label: text.fees,
+                      onTap: () => _go(context, '/fees', replace: false),
+                    ),
+                  if (user.isParent)
+                    _DrawerItem(
                       icon: Icons.description_outlined,
                       label: text.reportCards,
                       onTap: () =>
@@ -465,6 +471,7 @@ class _DrawerText {
         'Direction',
       );
   String get health => pick('البطاقة الصحية', 'Fiche sante', 'Health sheet');
+  String get fees => pick('المصاريف المدرسية', 'Frais scolaires', 'School fees');
   String get meetings => pick('المواعيد', 'Rendez-vous', 'Meetings');
   String get reportCards => pick('كشوف النقاط', 'Bulletins', 'Report cards');
   String get announcements =>
