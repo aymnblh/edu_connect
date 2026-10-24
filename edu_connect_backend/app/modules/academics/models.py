@@ -102,6 +102,7 @@ class Grade(Base):
     max_score: Mapped[float] = mapped_column(default=20.0)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_approved: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_by: Mapped[str | None] = mapped_column(String(128), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     approved_by: Mapped[str | None] = mapped_column(String(128), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     date: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
@@ -141,6 +142,7 @@ class Homework(Base):
     lesson_content: Mapped[str | None] = mapped_column(Text, nullable=True)
     homework_content: Mapped[str] = mapped_column(Text, nullable=False)
     due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_by: Mapped[str | None] = mapped_column(String(128), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
     cls: Mapped["Class"] = relationship("Class", back_populates="homework")

@@ -1,0 +1,37 @@
+{
+ "school_name": "EduConnect Demo Academy",
+ "student_name": "Sami Meriem",
+ "total_remaining": 0.0,
+ "invoices": [
+  {
+   "id": "292fb8b7-3baf-40e0-9ca8-c4f8e841f720",
+   "student_id": "7b3e8135-004c-4162-829e-5a270363f6ba",
+   "label": "Frais de scolarite - Trimestre 1",
+   "amount_due": 8500.0,
+   "amount_paid": 8500.0,
+   "remaining": 0.0,
+   "status": "paid",
+   "due_date": "2026-10-28T09:00:00+00:00",
+   "days_overdue": 0,
+   "last_reminded_at": null,
+   "reminder_count": 0,
+   "created_at": "2026-10-23T22:17:02.939403+00:00",
+   "payments": [
+    {
+     "id": "6697f1e4-4a2f-4ea2-8cce-a8a91736c2ee",
+     "amount": 8500.0,
+     "payment_method": "cash",
+     "receipt_number": "DEMO-RCPT-0001",
+     "notes": "Paiement demo pour presentation.",
+     "paid_at": "2026-10-18T09:00:00+00:00"
+    }
+   ]
+  }
+ ],
+ "payment_methods": {
+  "cash": "Espèces",
+  "bank_transfer": "Virement bancaire",
+  "ccp": "CCP / BaridiMob",
+  "cheque": "Chèque"
+ }
+}

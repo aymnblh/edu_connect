@@ -47,6 +47,7 @@ def _production_env(tmp_path: Path, **overrides: str) -> dict[str, str]:
             "MEDIA_MALWARE_SCAN_ENABLED": "true",
             "MEDIA_MALWARE_SCAN_REQUIRED": "true",
             "NTFY_AUTH_TOKEN": "prod-ntfy-token-with-32-chars",
+            "HEALTH_DATA_KEY": "q3Xb0m1j4u8uQh5yq9Q2rWw7Jc6a0VYlS4f2kQm9uZs=",
         }
     )
     env.update(overrides)
@@ -116,3 +117,13 @@ def test_production_config_rejects_missing_previous_rotation_key(tmp_path):
 
     assert result.returncode != 0
     assert "Previous public key path" in result.stderr
+
+
+def test_production_config_requires_a_health_data_key(tmp_path):
+    result = _import_config(_production_env(tmp_path, HEALTH_DATA_KEY=""))
+    assert result.returncode != 0
+    assert "HEALTH_DATA_KEY must be set" in result.stderr + result.stdout
+
+    result = _import_config(_production_env(tmp_path, HEALTH_DATA_KEY="not-a-key"))
+    assert result.returncode != 0
+    assert "HEALTH_DATA_KEY is not a valid key" in result.stderr + result.stdout

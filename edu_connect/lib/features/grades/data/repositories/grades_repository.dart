@@ -11,6 +11,7 @@ class GradesRepository {
     required String studentName,
     required String subject,
     required double score,
+    String? courseId,
     double maxScore = 20.0,
     String? comment,
   }) async {
@@ -18,6 +19,7 @@ class GradesRepository {
       'student_id': studentId,
       'student_name': studentName,
       'subject': subject,
+      if (courseId != null) 'course_id': courseId,
       'score': score,
       'max_score': maxScore,
       if (comment != null) 'comment': comment,
@@ -44,6 +46,25 @@ class GradesRepository {
   Future<String> getGradesCsv(String classId) async {
     final data = await _api.get('/classes/$classId/grades/export');
     return data.toString();
+  }
+
+  Future<void> updateGrade({
+    required String classId,
+    required String gradeId,
+    required double score,
+    String? comment,
+  }) async {
+    await _api.patch('/classes/$classId/grades/$gradeId', data: {
+      'score': score,
+      'comment': comment,
+    });
+  }
+
+  Future<void> deleteGrade({
+    required String classId,
+    required String gradeId,
+  }) async {
+    await _api.delete('/classes/$classId/grades/$gradeId');
   }
 
   Future<void> approveGrade({

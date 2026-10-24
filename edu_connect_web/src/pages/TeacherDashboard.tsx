@@ -1,15 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import {
   BookOpen,
   Calendar,
+  CalendarClock,
   ClipboardList,
+  Megaphone,
   MessageSquare,
   NotebookText,
+  Pencil,
   RefreshCw,
+  Trash2,
   UserCheck,
   Users,
 } from 'lucide-react';
+import AnnouncementsPanel from '../components/AnnouncementsPanel';
+import { TeacherMeetingsPanel } from '../components/MeetingsPanel';
+import { ClassHealthAlerts } from '../components/DirectorRecordsPanels';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
@@ -63,7 +71,17 @@ interface Homework {
   lesson_content?: string | null;
   homework_content: string;
   due_date: string;
+  created_by?: string | null;
   created_at: string;
+}
+
+function apiErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error)) {
+    const detail = error.response?.data?.detail;
+    if (typeof detail === 'string') return detail;
+    if (detail && typeof detail.message === 'string') return detail.message;
+  }
+  return fallback;
 }
 
 interface ScheduleSlot {
@@ -144,7 +162,7 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
 }
 
 export default function TeacherDashboard() {
-  const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'homework' | 'schedule' | 'chat'>('classes');
+  const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'homework' | 'schedule' | 'meetings' | 'announcements' | 'chat'>('classes');
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [attendanceState, setAttendanceState] = useState<Record<string, 'present' | 'absent'>>({});
   const [gradeForm, setGradeForm] = useState({
@@ -210,6 +228,14 @@ export default function TeacherDashboard() {
     },
   });
 
+  const meQuery = useQuery<{ id: string }>({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const response = await api.get('/users/me');
+      return response.data;
+    },
+  });
+
   const classCoursesQuery = useQuery<ClassCourse[]>({
     queryKey: ['teacher', 'courses', selectedClass?.id],
     enabled: Boolean(selectedClass?.id),
@@ -250,7 +276,14 @@ export default function TeacherDashboard() {
     () => studentsQuery.data ?? selectedClass?.members ?? [],
     [selectedClass?.members, studentsQuery.data],
   );
-  const classCourses = useMemo(() => classCoursesQuery.data ?? [], [classCoursesQuery.data]);
+  const myId = meQuery.data?.id;
+  // Teachers only work on the subjects assigned to them; substitutes with no
+  // assigned subject keep the full list (the API enforces the same rule).
+  const classCourses = useMemo(() => {
+    const all = classCoursesQuery.data ?? [];
+    const mine = myId ? all.filter((course) => course.teacher_id === myId) : [];
+    return mine.length > 0 ? mine : all;
+  }, [classCoursesQuery.data, myId]);
   const grades = useMemo(() => gradesQuery.data ?? [], [gradesQuery.data]);
   const homework = useMemo(() => homeworkQuery.data ?? [], [homeworkQuery.data]);
   const exams = useMemo(() => examsQuery.data ?? [], [examsQuery.data]);
@@ -389,6 +422,65 @@ export default function TeacherDashboard() {
     },
   });
 
+  const [editingGrade, setEditingGrade] = useState<{ id: string; score: string; comment: string } | null>(null);
+  const [editingHomework, setEditingHomework] = useState<{ id: string; content: string; dueDate: string } | null>(null);
+
+  const updateGradeMutation = useMutation({
+    mutationFn: async (draft: { id: string; score: string; comment: string }) => {
+      await api.patch(`/classes/${selectedClass?.id}/grades/${draft.id}`, {
+        score: Number(draft.score.replace(',', '.')),
+        comment: draft.comment.trim() || null,
+      });
+    },
+    onSuccess: () => {
+      setEditingGrade(null);
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'grades', selectedClass?.id] });
+      addToast(t('teacher.toastSaved'), 'success');
+    },
+    onError: (error) => addToast(apiErrorMessage(error, t('auth.connectionError')), 'error'),
+  });
+
+  const deleteGradeMutation = useMutation({
+    mutationFn: async (gradeId: string) => {
+      await api.delete(`/classes/${selectedClass?.id}/grades/${gradeId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'grades', selectedClass?.id] });
+      addToast(t('teacher.entryDeleted'), 'success');
+    },
+    onError: (error) => addToast(apiErrorMessage(error, t('auth.connectionError')), 'error'),
+  });
+
+  const updateHomeworkMutation = useMutation({
+    mutationFn: async (draft: { id: string; content: string; dueDate: string }) => {
+      await api.patch(`/classes/${selectedClass?.id}/homework/${draft.id}`, {
+        homework_content: draft.content.trim(),
+        due_date: new Date(`${draft.dueDate}T12:00:00`).toISOString(),
+      });
+    },
+    onSuccess: () => {
+      setEditingHomework(null);
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'homework', selectedClass?.id] });
+      addToast(t('teacher.toastSaved'), 'success');
+    },
+    onError: (error) => addToast(apiErrorMessage(error, t('auth.connectionError')), 'error'),
+  });
+
+  const deleteHomeworkMutation = useMutation({
+    mutationFn: async (homeworkId: string) => {
+      await api.delete(`/classes/${selectedClass?.id}/homework/${homeworkId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'homework', selectedClass?.id] });
+      addToast(t('teacher.entryDeleted'), 'success');
+    },
+    onError: (error) => addToast(apiErrorMessage(error, t('auth.connectionError')), 'error'),
+  });
+
+  const confirmDelete = (onConfirm: () => void) => {
+    if (window.confirm(t('teacher.confirmDelete'))) onConfirm();
+  };
+
   const addGradeMutation = useMutation({
     mutationFn: async () => {
       if (!selectedClass) throw new Error(t('teacher.classNotFound'));
@@ -438,6 +530,7 @@ export default function TeacherDashboard() {
 
       await api.post(`/classes/${selectedClass.id}/homework/`, {
         kind: homeworkForm.kind,
+        course_id: selectedHomeworkCourse?.course_id ?? null,
         subject,
         lesson_content: homeworkForm.lessonContent.trim() || null,
         homework_content: content,
@@ -622,6 +715,24 @@ export default function TeacherDashboard() {
         >
           <MessageSquare size={16} /> {t('teacher.tabChat')}
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('meetings')}
+          className={`tab-button ${activeTab === 'meetings' ? 'tab-button--active' : ''}`}
+          role="tab"
+          aria-selected={activeTab === 'meetings'}
+        >
+          <CalendarClock size={16} /> {t('meetings.tab')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('announcements')}
+          className={`tab-button ${activeTab === 'announcements' ? 'tab-button--active' : ''}`}
+          role="tab"
+          aria-selected={activeTab === 'announcements'}
+        >
+          <Megaphone size={16} /> {t('announcements.tab')}
+        </button>
       </div>
 
       <div className="glass-card dashboard-card-pad">
@@ -640,6 +751,7 @@ export default function TeacherDashboard() {
           <p className="empty-list-copy">{t('teacher.emptyClasses')}</p>
         )}
 
+        {!isLoading && selectedClass && activeTab === 'classes' && <ClassHealthAlerts classId={selectedClass.id} />}
         {!isLoading && selectedClass && activeTab === 'classes' && (
           <div className="animate-fade-in dashboard-split" role="tabpanel">
             <div className="dashboard-side">
@@ -891,13 +1003,75 @@ export default function TeacherDashboard() {
                             <div className="grade-date">
                               {grade.student_name} - {formatDate(grade.date, locale)}
                             </div>
-                            {grade.comment && <div className="teacher-grade-comment-text">{grade.comment}</div>}
+                            {editingGrade?.id === grade.id ? (
+                              <form
+                                className="inline-edit-form"
+                                onSubmit={(event) => {
+                                  event.preventDefault();
+                                  updateGradeMutation.mutate(editingGrade);
+                                }}
+                              >
+                                <label className="form-label" htmlFor={`grade-score-${grade.id}`}>
+                                  {t('teacher.gradeScoreOutOf', { max: grade.max_score })}
+                                </label>
+                                <input
+                                  id={`grade-score-${grade.id}`}
+                                  className="form-input"
+                                  inputMode="decimal"
+                                  value={editingGrade.score}
+                                  onChange={(event) => setEditingGrade({ ...editingGrade, score: event.target.value })}
+                                  required
+                                />
+                                <input
+                                  className="form-input"
+                                  aria-label={t('teacher.gradeComment')}
+                                  placeholder={t('teacher.gradeComment')}
+                                  value={editingGrade.comment}
+                                  onChange={(event) => setEditingGrade({ ...editingGrade, comment: event.target.value })}
+                                />
+                                <div className="table-actions">
+                                  <button type="submit" className="btn btn-primary btn-compact" disabled={updateGradeMutation.isPending}>
+                                    {t('common.save')}
+                                  </button>
+                                  <button type="button" className="btn btn-secondary btn-compact" onClick={() => setEditingGrade(null)}>
+                                    {t('common.cancel')}
+                                  </button>
+                                </div>
+                              </form>
+                            ) : (
+                              grade.comment && <div className="teacher-grade-comment-text">{grade.comment}</div>
+                            )}
                           </div>
                           <div className="teacher-grade-status">
                             <span className="grade-score">{score.toFixed(1)}/20</span>
                             <span className={`badge badge-compact ${grade.is_approved ? 'badge-success' : 'badge-warning'}`}>
                               {grade.is_approved ? t('teacher.gradeApproved') : t('teacher.gradePending')}
                             </span>
+                            {!grade.is_approved && editingGrade?.id !== grade.id && (
+                              <div className="table-actions">
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary btn-compact"
+                                  aria-label={t('common.edit')}
+                                  title={t('common.edit')}
+                                  onClick={() =>
+                                    setEditingGrade({ id: grade.id, score: String(grade.score), comment: grade.comment ?? '' })
+                                  }
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-danger btn-compact"
+                                  aria-label={t('common.delete')}
+                                  title={t('common.delete')}
+                                  disabled={deleteGradeMutation.isPending}
+                                  onClick={() => confirmDelete(() => deleteGradeMutation.mutate(grade.id))}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -1067,10 +1241,69 @@ export default function TeacherDashboard() {
                             </span>
                           </div>
                           <h4>{item.subject}</h4>
-                          <p>{item.homework_content}</p>
+                          {editingHomework?.id === item.id ? (
+                            <form
+                              className="inline-edit-form"
+                              onSubmit={(event) => {
+                                event.preventDefault();
+                                updateHomeworkMutation.mutate(editingHomework);
+                              }}
+                            >
+                              <textarea
+                                className="form-input"
+                                aria-label={t('teacher.homeworkContentLabel')}
+                                value={editingHomework.content}
+                                onChange={(event) => setEditingHomework({ ...editingHomework, content: event.target.value })}
+                                required
+                              />
+                              <input
+                                className="form-input"
+                                type="date"
+                                aria-label={t('teacher.homeworkDueLabel')}
+                                value={editingHomework.dueDate}
+                                onChange={(event) => setEditingHomework({ ...editingHomework, dueDate: event.target.value })}
+                                required
+                              />
+                              <div className="table-actions">
+                                <button type="submit" className="btn btn-primary btn-compact" disabled={updateHomeworkMutation.isPending}>
+                                  {t('common.save')}
+                                </button>
+                                <button type="button" className="btn btn-secondary btn-compact" onClick={() => setEditingHomework(null)}>
+                                  {t('common.cancel')}
+                                </button>
+                              </div>
+                            </form>
+                          ) : (
+                            <p>{item.homework_content}</p>
+                          )}
                           {item.lesson_content && (
                             <div className="homework-preparation-note">
                               {t('teacher.homeworkPreparation')}: {item.lesson_content}
+                            </div>
+                          )}
+                          {item.created_by && item.created_by === myId && editingHomework?.id !== item.id && (
+                            <div className="table-actions">
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-compact"
+                                onClick={() =>
+                                  setEditingHomework({
+                                    id: item.id,
+                                    content: item.homework_content,
+                                    dueDate: item.due_date.slice(0, 10),
+                                  })
+                                }
+                              >
+                                <Pencil size={14} /> {t('common.edit')}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-danger btn-compact"
+                                disabled={deleteHomeworkMutation.isPending}
+                                onClick={() => confirmDelete(() => deleteHomeworkMutation.mutate(item.id))}
+                              >
+                                <Trash2 size={14} /> {t('common.delete')}
+                              </button>
                             </div>
                           )}
                         </div>
@@ -1305,6 +1538,19 @@ export default function TeacherDashboard() {
         )}
 
         {!isLoading && activeTab === 'chat' && <DirectMessagingPanel scopeKey="teacher" />}
+        {!isLoading && activeTab === 'meetings' && (
+          <TeacherMeetingsPanel
+            classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
+          />
+        )}
+        {!isLoading && activeTab === 'announcements' && (
+          <AnnouncementsPanel
+            scopeKey="teacher"
+            canCreate={classes.length > 0}
+            allowWholeSchool={false}
+            classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
+          />
+        )}
       </div>
     </div>
   );

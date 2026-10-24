@@ -9,8 +9,9 @@ from app.schemas import MessageOut
 from app.core.access import assert_class_read_access, assert_school_is_active
 from app.core.rate_limit import check_rate_limit
 from app.core.rls import set_request_rls_context
-from app.core.security import get_current_user, decode_token
+from app.core.security import get_current_user, decode_token, session_rejection
 from app.ws_manager import manager
+from app.modules.demo.access import DEMO_READ_ONLY_MESSAGE, is_read_only_demo_user
 from sqlalchemy.orm import selectinload
 
 router = APIRouter(prefix="/classes/{class_id}", tags=["Chat"])
@@ -222,6 +223,8 @@ async def _user_from_ws(websocket: WebSocket, db: AsyncSession) -> User | None:
     user = result.scalar_one_or_none()
     if not user or user.role.value != payload.get("role"):
         return None
+    if session_rejection(user, payload):
+        return None
     try:
         assert_school_is_active(user)
     except HTTPException:
@@ -277,6 +280,9 @@ async def ws_chat(
     try:
         while True:
             data = await websocket.receive_json()
+            if is_read_only_demo_user(sender):
+                await websocket.send_json({"error": DEMO_READ_ONLY_MESSAGE})
+                continue
 
             is_announcement = bool(data.get("is_announcement", False))
             if is_announcement and sender.role not in _STAFF_ROLES:

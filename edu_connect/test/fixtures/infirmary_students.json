@@ -1,0 +1,54 @@
+[
+ {
+  "student_id": "cc539a15-fd3b-4d8b-831d-6247f3717586",
+  "student_name": "Adam Khelifi",
+  "student_code": "DEMO-006",
+  "classes": [
+   {
+    "id": "8a16d830-7ac9-47e2-bcd2-caec92768200",
+    "name": "3AP-A"
+   }
+  ],
+  "has_record": false,
+  "alert": null
+ },
+ {
+  "student_id": "512dafdd-4e73-4b65-8357-ac630f2d4b6e",
+  "student_name": "Aya Mansouri",
+  "student_code": "DEMO-011",
+  "classes": [
+   {
+    "id": "bd318efc-c6cd-4487-ad48-ca6562ba5dcc",
+    "name": "2AM-B"
+   }
+  ],
+  "has_record": false,
+  "alert": null
+ },
+ {
+  "student_id": "c3d166f8-c401-4eaf-a5a0-325231455971",
+  "student_name": "Ilyes Saadi",
+  "student_code": "DEMO-008",
+  "classes": [
+   {
+    "id": "bd318efc-c6cd-4487-ad48-ca6562ba5dcc",
+    "name": "2AM-B"
+   }
+  ],
+  "has_record": false,
+  "alert": null
+ },
+ {
+  "student_id": "ac8e0079-318c-4fac-8052-70f0aaa07ef0",
+  "student_name": "Ines Djerad",
+  "student_code": "DEMO-004",
+  "classes": [
+   {
+    "id": "d6f2e30b-ee78-4217-9439-9742a4dbbf9c",
+    "name": "1AM-A"
+   }
+  ],
+  "has_record": false,
+  "alert": null
+ }
+]

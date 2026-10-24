@@ -1,0 +1,225 @@
+{
+ "school_name": "EduConnect Demo Academy",
+ "auto_reminders": false,
+ "summary": {
+  "billed": 102000.0,
+  "collected": 50000.0,
+  "outstanding": 52000.0,
+  "overdue": 34000.0,
+  "collected_this_month": 50000.0,
+  "collection_rate": 49.0,
+  "overdue_students": 4,
+  "overdue_invoices": 4
+ },
+ "by_class": [
+  {
+   "class_id": "d6f2e30b-ee78-4217-9439-9742a4dbbf9c",
+   "class_name": "1AM-A",
+   "billed": 34000.0,
+   "collected": 34000.0,
+   "outstanding": 0.0
+  },
+  {
+   "class_id": "bd318efc-c6cd-4487-ad48-ca6562ba5dcc",
+   "class_name": "2AM-B",
+   "billed": 34000.0,
+   "collected": 16000.0,
+   "outstanding": 18000.0
+  },
+  {
+   "class_id": "8a16d830-7ac9-47e2-bcd2-caec92768200",
+   "class_name": "3AP-A",
+   "billed": 34000.0,
+   "collected": 0.0,
+   "outstanding": 34000.0
+  }
+ ],
+ "invoices": [
+  {
+   "id": "f85f32c5-bbad-4ce1-a360-eebe6a23df17",
+   "student_id": "524f1964-386d-4dbb-833b-bb6720358a01",
+   "label": "Frais de scolarite - Trimestre 1",
+   "amount_due": 8500.0,
+   "amount_paid": 0.0,
+   "remaining": 8500.0,
+   "status": "unpaid",
+   "due_date": "2026-10-11T09:00:00+00:00",
+   "days_overdue": 12,
+   "last_reminded_at": "2026-10-19T09:00:00+00:00",
+   "reminder_count": 1,
+   "created_at": "2026-10-23T22:17:03.319395+00:00",
+   "payments": [],
+   "student_name": "Mehdi Khelifi",
+   "student_code": "DEMO-012",
+   "student_archived": false,
+   "classes": [
+    {
+     "id": "8a16d830-7ac9-47e2-bcd2-caec92768200",
+     "name": "3AP-A"
+    }
+   ],
+   "parents_linked": 1
+  },
+  {
+   "id": "5b170dee-2208-4f63-b32e-e8d54643d83e",
+   "student_id": "512dafdd-4e73-4b65-8357-ac630f2d4b6e",
+   "label": "Frais de scolarite - Trimestre 1",
+   "amount_due": 8500.0,
+   "amount_paid": 4000.0,
+   "remaining": 4500.0,
+   "status": "partial",
+   "due_date": "2026-10-28T09:00:00+00:00",
+   "days_overdue": 0,
+   "last_reminded_at": null,
+   "reminder_count": 0,
+   "created_at": "2026-10-23T22:17:03.303644+00:00",
+   "payments": [
+    {
+     "id": "22810399-c016-41d6-b5b8-f457e9d9e003",
+     "amount": 4000.0,
+     "payment_method": "cash",
+     "receipt_number": "DEMO-RCPT-0011",
+     "notes": "Paiement demo pour presentation.",
+     "paid_at": "2026-10-18T09:00:00+00:00"
+    }
+   ],
+   "student_name": "Aya Mansouri",
+   "student_code": "DEMO-011",
+   "student_archived": false,
+   "classes": [
+    {
+     "id": "bd318efc-c6cd-4487-ad48-ca6562ba5dcc",
+     "name": "2AM-B"
+    }
+   ],
+   "parents_linked": 1
+  },
+  {
+   "id": "c0e55d49-0abd-4ee6-afe2-56998f3e3885",
+   "student_id": "8390304d-61ee-43bb-82cc-875a40ca682a",
+   "label": "Frais de scolarite - Trimestre 1",
+   "amount_due": 8500.0,
+   "amount_paid": 8500.0,
+   "remaining": 0.0,
+   "status": "paid",
+   "due_date": "2026-10-28T09:00:00+00:00",
+   "days_overdue": 0,
+   "last_reminded_at": null,
+   "reminder_count": 0,
+   "created_at": "2026-10-23T22:17:03.297580+00:00",
+   "payments": [
+    {
+     "id": "b96bb839-6849-450b-b590-920a0fb0bf50",
+     "amount": 8500.0,
+     "payment_method": "bank_transfer",
+     "receipt_number": "DEMO-RCPT-0010",
+     "notes": "Paiement demo pour presentation.",
+     "paid_at": "2026-10-18T09:00:00+00:00"
+    }
+   ],
+   "student_name": "Malek Djerad",
+   "student_code": "DEMO-010",
+   "student_archived": false,
+   "classes": [
+    {
+     "id": "d6f2e30b-ee78-4217-9439-9742a4dbbf9c",
+     "name": "1AM-A"
+    }
+   ],
+   "parents_linked": 1
+  },
+  {
+   "id": "2f5f16c3-9570-4196-9436-d5e329205006",
+   "student_id": "57e63b65-7875-4829-aaa9-69d672f4431e",
+   "label": "Frais de scolarite - Trimestre 1",
+   "amount_due": 8500.0,
+   "amount_paid": 0.0,
+   "remaining": 8500.0,
+   "status": "unpaid",
+   "due_date": "2026-10-11T09:00:00+00:00",
+   "days_overdue": 12,
+   "last_reminded_at": "2026-10-19T09:00:00+00:00",
+   "reminder_count": 1,
+   "created_at": "2026-10-23T22:17:03.281916+00:00",
+   "payments": [],
+   "student_name": "Nour Ait Ali",
+   "student_code": "DEMO-009",
+   "student_archived": false,
+   "classes": [
+    {
+     "id": "8a16d830-7ac9-47e2-bcd2-caec92768200",
+     "name": "3AP-A"
+    }
+   ],
+   "parents_linked": 1
+  },
+  {
+   "id": "195f548c-0edb-4142-8718-b2b71c6db9aa",
+   "student_id": "c3d166f8-c401-4eaf-a5a0-325231455971",
+   "label": "Frais de scolarite - Trimestre 1",
+   "amount_due": 8500.0,
+   "amount_paid": 4000.0,
+   "remaining": 4500.0,
+   "status": "partial",
+   "due_date": "2026-10-28T09:00:00+00:00",
+   "days_overdue": 0,
+   "last_reminded_at": null,
+   "reminder_count": 0,
+   "created_at": "2026-10-23T22:17:03.267424+00:00",
+   "payments": [
+    {
+     "id": "257b78ea-60b7-4e6b-ab5a-81bc4113814d",
+     "amount": 4000.0,
+     "payment_method": "bank_transfer",
+     "receipt_number": "DEMO-RCPT-0008",
+     "notes": "Paiement demo pour presentation.",
+     "paid_at": "2026-10-18T09:00:00+00:00"
+    }
+   ],
+   "student_name": "Ilyes Saadi",
+   "student_code": "DEMO-008",
+   "student_archived": false,
+   "classes": [
+    {
+     "id": "bd318efc-c6cd-4487-ad48-ca6562ba5dcc",
+     "name": "2AM-B"
+    }
+   ],
+   "parents_linked": 1
+  },
+  {
+   "id": "486ab67d-da2e-46ab-9253-7169079fe47c",
+   "student_id": "2d4d34a6-0f4c-4fcc-b9c5-cad10e9230ab",
+   "label": "Frais de scolarite - Trimestre 1",
+   "amount_due": 8500.0,
+   "amount_paid": 8500.0,
+   "remaining": 0.0,
+   "status": "paid",
+   "due_date": "2026-10-28T09:00:00+00:00",
+   "days_overdue": 0,
+   "last_reminded_at": null,
+   "reminder_count": 0,
+   "created_at": "2026-10-23T22:17:03.252068+00:00",
+   "payments": [
+    {
+     "id": "897146c8-5fd3-4666-8871-e922f3a6feeb",
+     "amount": 8500.0,
+     "payment_method": "cash",
+     "receipt_number": "DEMO-RCPT-0007",
+     "notes": "Paiement demo pour presentation.",
+     "paid_at": "2026-10-18T09:00:00+00:00"
+    }
+   ],
+   "student_name": "Rania Meriem",
+   "student_code": "DEMO-007",
+   "student_archived": false,
+   "classes": [
+    {
+     "id": "d6f2e30b-ee78-4217-9439-9742a4dbbf9c",
+     "name": "1AM-A"
+    }
+   ],
+   "parents_linked": 2
+  }
+ ]
+}

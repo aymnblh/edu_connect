@@ -18,6 +18,9 @@ const LegalPolicies = lazy(() => import('./pages/LegalPolicies'));
 const WorkspaceSelect = lazy(() => import('./pages/WorkspaceSelect'));
 const TeacherDashboard = lazy(() => import('./pages/TeacherDashboard'));
 const ParentDashboard = lazy(() => import('./pages/ParentDashboard'));
+const NurseDashboard = lazy(() => import('./pages/NurseDashboard'));
+const VerifyReportCard = lazy(() => import('./pages/VerifyReportCard'));
+const Pricing = lazy(() => import('./pages/Pricing'));
 
 function PageLoader() {
   const { t } = useLocale();
@@ -49,17 +52,25 @@ function App() {
               <Route path="/register-school" element={<PageTransition><RegisterSchool /></PageTransition>} />
               <Route path="/activate" element={<PageTransition><ActivateAccount /></PageTransition>} />
               <Route path="/policies" element={<PageTransition><LegalPolicies /></PageTransition>} />
+              <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
+              <Route path="/verify/:code" element={<PageTransition><VerifyReportCard /></PageTransition>} />
               <Route path="/workspace/select" element={<PageTransition><WorkspaceSelect /></PageTransition>} />
               
               {/* Authenticated Workspace Scopes wrapped with Sidebar Layout */}
               <Route element={<AuthenticatedLayout />}>
                 <Route path="/superadmin" element={<PageTransition><WorkspaceRoute role="system_admin"><SuperAdminDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/director/monthly-report" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/director/fees" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/students" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/classes" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/team" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/director/report-cards" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/director/audit-log" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/director/announcements" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/messages" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/teacher/dashboard" element={<PageTransition><WorkspaceRoute role="teacher"><TeacherDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/infirmary" element={<PageTransition><WorkspaceRoute role="nurse"><NurseDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/parent/dashboard" element={<PageTransition><WorkspaceRoute role="parent"><ParentDashboard /></WorkspaceRoute></PageTransition>} />
               </Route>
 

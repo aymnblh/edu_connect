@@ -8,6 +8,7 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from app.core.config import settings
+from app.modules.demo.access import is_read_only_demo_user
 from app.core.rls import (
     set_auth_user_id,
     set_refresh_family_lookup,
@@ -63,10 +64,23 @@ def create_access_token(data: dict) -> str:
 
 def access_payload_for_user(user: User) -> dict:
     """Build the canonical access-token payload used by API and tenant middleware."""
-    payload = {"sub": user.id, "role": user.role.value}
+    payload = {"sub": user.id, "role": user.role.value, "tv": user.token_version or 0}
     if user.school_id:
         payload["school_id"] = user.school_id
+    if is_read_only_demo_user(user):
+        payload["demo"] = True
     return payload
+
+
+def session_rejection(user: User, claims: dict) -> str | None:
+    """Return why an access token can no longer act for this user, or None if it can."""
+    if user.deactivated_at is not None:
+        return "deactivated"
+    if user.password_hash is None:
+        return "password_setup_required"
+    if int(claims.get("tv", 0)) != (user.token_version or 0):
+        return "revoked"
+    return None
 
 def create_access_token_for_user(user: User) -> str:
     return create_access_token(access_payload_for_user(user))
@@ -146,8 +160,13 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Session role is no longer valid.")
     if user.role.value != "system_admin" and expected_school_id != user.school_id:
         raise HTTPException(status_code=401, detail="Session tenant is no longer valid.")
-    if user.password_hash is None:
+    rejection = session_rejection(user, claims)
+    if rejection == "deactivated":
+        raise HTTPException(status_code=403, detail="Account deactivated.")
+    if rejection == "password_setup_required":
         raise HTTPException(status_code=403, detail="Password setup is required.")
+    if rejection == "revoked":
+        raise HTTPException(status_code=401, detail="Session expired. Please login again.")
     
     return user
 
@@ -240,6 +259,11 @@ async def rotate_refresh_token(
     
     # 4. Save new refresh hash
     new_hash = hashlib.sha256(new_refresh.encode()).hexdigest()
+    lifetime = timedelta(days=settings.refresh_token_expire_days)
+    if is_read_only_demo_user(user):
+        # Shared demo account: keep nothing that identifies the visitor, and expire soon.
+        device_metadata = {"device_platform": (device_metadata or {}).get("device_platform")}
+        lifetime = timedelta(days=1)
     new_db_token = RefreshToken(
         school_id=user.school_id,
         user_id=user_id,
@@ -247,7 +271,7 @@ async def rotate_refresh_token(
         family_id=family_id,
         **(device_metadata or {}),
         last_used_at=datetime.now(timezone.utc),
-        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+        expires_at=datetime.now(timezone.utc) + lifetime
     )
     db.add(new_db_token)
     await db.commit()

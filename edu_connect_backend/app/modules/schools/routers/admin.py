@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status, UploadFi
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete, update
 from app.db.database import get_db
-from app.models import User, UserRole, School, Course, Student, Class, Semester, PendingLink, StudentParent, RefreshToken, Grade, Attendance, AttendanceStatus
+from app.models import User, UserRole, School, Course, Student, Class, ClassMember, Semester, PendingLink, StudentParent, RefreshToken, Grade, Attendance, AttendanceStatus
 from app.schemas import (
     SchoolCreate, SchoolOut, CourseCreate, CourseOut, StudentAdminOut,
     StudentRegeneratePin, SemesterOut, SemesterUpdate,
@@ -20,6 +20,19 @@ from app.modules.academics.averages import (
     weighted_averages_by_group,
 )
 from app.core.audit import record_audit_event
+from app.core.rls import set_auth_lookup_email
+from app.modules.schools.calendar import ALGERIA_TZ, algerian_trimesters
+from app.modules.schools.insights import (
+    AVERAGE_DROP,
+    LATES_30D,
+    LOW_AVERAGE,
+    UNJUSTIFIED_ABSENCES_30D,
+    AttendanceFact,
+    attendance_weeks,
+    class_attendance,
+    students_at_risk,
+    week_start,
+)
 from app.core.config import settings
 from app.core.security import get_current_user, get_password_hash
 from app.utils.notifications import create_notification
@@ -47,6 +60,7 @@ class UserSimpleOut(BaseModel):
     full_name: str
     role: str
     invite_code: str | None = None
+    deactivated_at: datetime | None = None
     model_config = {"from_attributes": True}
 
 
@@ -86,15 +100,17 @@ async def _create_invited_staff_user(
     if current_user.role not in [UserRole.principal, UserRole.secretary]:
         raise HTTPException(status_code=403, detail="Only school administration can invite staff accounts.")
 
-    if payload.role not in [UserRole.teacher, UserRole.secretary]:
-        raise HTTPException(status_code=400, detail="Only teacher and secretary invitations are supported.")
+    if payload.role not in [UserRole.teacher, UserRole.secretary, UserRole.nurse]:
+        raise HTTPException(status_code=400, detail="Only teacher, secretary and nurse invitations are supported.")
 
-    if payload.role == UserRole.secretary and current_user.role != UserRole.principal:
-        raise HTTPException(status_code=403, detail="Only the director can invite secretary accounts.")
+    if payload.role in [UserRole.secretary, UserRole.nurse] and current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Only the director can invite secretary and nurse accounts.")
 
     if not current_user.school_id:
         raise HTTPException(status_code=400, detail="You are not assigned to a school.")
 
+    # Row security hides other schools' users unless the lookup email is declared.
+    await set_auth_lookup_email(db, str(payload.email))
     stmt = select(User).where(User.email == payload.email)
     result = await db.execute(stmt)
     if result.scalar_one_or_none():
@@ -158,6 +174,18 @@ def _student_name_from_csv_row(row: dict[str | None, str | None]) -> str:
     )
     return " ".join(part for part in [first_name, last_name] if part)
 
+def _class_name_from_csv_row(row: dict[str | None, str | None]) -> str:
+    normalized = _normalized_csv_row(row)
+    return (
+        normalized.get("classe")
+        or normalized.get("class")
+        or normalized.get("division")
+        or normalized.get("القسم")
+        or normalized.get("الفوج")
+        or ""
+    )
+
+
 @router.post("/create-teacher", response_model=UserSimpleOut, status_code=status.HTTP_201_CREATED)
 async def create_teacher(
     payload: CreateTeacherRequest,
@@ -189,6 +217,189 @@ async def create_staff(
     return await _create_invited_staff_user(payload=payload, current_user=current_user, db=db)
 
 
+async def _get_manageable_staff(user_id: str, current_user: User, db: AsyncSession) -> User:
+    """Load a teacher/secretary the current admin may reset or deactivate."""
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Only school administration can manage staff access.")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+
+    staff = await db.get(User, user_id)
+    if (
+        not staff
+        or staff.school_id != current_user.school_id
+        or staff.role not in [UserRole.teacher, UserRole.secretary, UserRole.nurse]
+    ):
+        raise HTTPException(status_code=404, detail="Staff member not found.")
+    if staff.role in [UserRole.secretary, UserRole.nurse] and current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Only the director can manage secretary and nurse accounts.")
+    return staff
+
+
+async def _revoke_user_access(db: AsyncSession, user: User, *, school_id: str, issue_code: bool) -> None:
+    """Invalidate a user's password and every session; optionally issue a 72h access code."""
+    user.password_hash = None
+    user.token_version = (user.token_version or 0) + 1
+    if issue_code:
+        user.invite_code = generate_invite_code()
+        user.invite_expires_at = datetime.now(timezone.utc) + timedelta(hours=72)
+        user.deactivated_at = None
+    else:
+        user.invite_code = None
+        user.invite_expires_at = None
+    await db.execute(
+        delete(RefreshToken).where(
+            RefreshToken.school_id == school_id,
+            RefreshToken.user_id == user.id,
+        )
+    )
+
+
+@router.post("/staff/{user_id}/reset-access", response_model=UserSimpleOut)
+async def reset_staff_access(
+    user_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Issue a new first-login code for a teacher or secretary.
+
+    Used when an invitation expired or a staff member lost their password.
+    The current password stops working and every session is signed out until
+    the code is redeemed on the activation page.
+    """
+    staff = await _get_manageable_staff(user_id, current_user, db)
+
+    reactivated = staff.deactivated_at is not None
+    await _revoke_user_access(db, staff, school_id=current_user.school_id, issue_code=True)
+    await record_audit_event(
+        db,
+        action="staff.access_reset",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="user",
+        resource_id=staff.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"role": staff.role.value, "sessions_revoked": True, "reactivated": reactivated},
+    )
+    await db.commit()
+    await db.refresh(staff)
+    return staff
+
+
+@router.post("/staff/{user_id}/deactivate", response_model=UserSimpleOut)
+async def deactivate_staff(
+    user_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Block a teacher or secretary who left the school.
+
+    Login stops working at once, every session (including open WebSockets) is
+    revoked and no activation code remains. "Reset access" reactivates them.
+    """
+    staff = await _get_manageable_staff(user_id, current_user, db)
+    if staff.id == current_user.id:
+        raise HTTPException(status_code=400, detail="You cannot deactivate your own account.")
+    await _revoke_user_access(db, staff, school_id=current_user.school_id, issue_code=False)
+    staff.deactivated_at = datetime.now(timezone.utc)
+    await record_audit_event(
+        db,
+        action="staff.deactivated",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="user",
+        resource_id=staff.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"role": staff.role.value, "sessions_revoked": True},
+    )
+    await db.commit()
+    await db.refresh(staff)
+    return staff
+
+
+@router.post("/users/{user_id}/sign-out")
+async def sign_out_user(
+    user_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """End every session of a staff member or parent (their password still works)."""
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Only school administration can sign users out.")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Use 'sign out my other devices' for your own account.")
+
+    target = await db.get(User, user_id)
+    if not target or target.school_id != current_user.school_id:
+        raise HTTPException(status_code=404, detail="User not found.")
+    if target.role in [UserRole.teacher, UserRole.secretary, UserRole.nurse]:
+        target = await _get_manageable_staff(user_id, current_user, db)
+    elif target.role != UserRole.parent:
+        raise HTTPException(status_code=403, detail="This account cannot be signed out here.")
+
+    target.token_version = (target.token_version or 0) + 1
+    await db.execute(
+        delete(RefreshToken).where(
+            RefreshToken.school_id == current_user.school_id,
+            RefreshToken.user_id == target.id,
+        )
+    )
+    await record_audit_event(
+        db,
+        action="user.signed_out",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="user",
+        resource_id=target.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"role": target.role.value},
+    )
+    await db.commit()
+    return {"status": "signed_out"}
+
+
+@router.post("/parents/{parent_id}/reset-access", response_model=UserSimpleOut)
+async def reset_parent_access(
+    parent_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Issue a new access code for a parent who lost their password."""
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Only school administration can reset parent access.")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="You are not assigned to a school.")
+
+    parent = await db.get(User, parent_id)
+    if not parent or parent.role != UserRole.parent or parent.school_id != current_user.school_id:
+        raise HTTPException(status_code=404, detail="Parent not found.")
+
+    await _revoke_user_access(db, parent, school_id=current_user.school_id, issue_code=True)
+    await record_audit_event(
+        db,
+        action="parent.access_reset",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="user",
+        resource_id=parent.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"sessions_revoked": True},
+    )
+    await db.commit()
+    await db.refresh(parent)
+    return parent
+
+
 @router.get("/staff", response_model=list[UserSimpleOut])
 async def list_staff(
     current_user: User = Depends(get_current_user),
@@ -204,7 +415,7 @@ async def list_staff(
         select(User)
         .where(
             User.school_id == current_user.school_id,
-            User.role.in_([UserRole.principal, UserRole.secretary, UserRole.teacher]),
+            User.role.in_([UserRole.principal, UserRole.secretary, UserRole.teacher, UserRole.nurse]),
         )
         .order_by(User.role.asc(), User.full_name.asc())
     )
@@ -227,12 +438,6 @@ ALGERIAN_CORE_SUBJECTS = [
     "الفلسفة (Philosophy)"
 ]
 
-ALGERIAN_TRIMESTERS = [
-    # (name, start_month, start_day, end_month, end_day)
-    ("Trimester 1", 9, 15, 12, 15),
-    ("Trimester 2", 1, 5, 3, 25),
-    ("Trimester 3", 4, 5, 7, 5),
-]
 
 @router.post("/schools", response_model=SchoolOut, status_code=status.HTTP_201_CREATED)
 async def create_school(
@@ -254,20 +459,18 @@ async def create_school(
         db.add(course)
     
     # Assign current user to this school if they don't have one
-    if not current_user.school_id:
+    # Never assign a system_admin to a school — they must remain school-agnostic
+    if not current_user.school_id and current_user.role != UserRole.system_admin:
         current_user.school_id = school.id
         
     # Seed Algerian standard semesters (Trimesters)
-    current_year = datetime.now().year
-    for name, sm, sd, em, ed in ALGERIAN_TRIMESTERS:
-        start_dt = datetime(current_year if sm > 8 else current_year + 1, sm, sd)
-        end_dt = datetime(current_year if em > 8 else current_year + 1, em, ed)
+    for name, start_dt, end_dt, is_active in algerian_trimesters():
         semester = Semester(
             name=name,
             start_date=start_dt,
             end_date=end_dt,
             school_id=school.id,
-            is_active=(name == "Trimester 1") # Default T1 as active
+            is_active=is_active,
         )
         db.add(semester)
 
@@ -506,7 +709,8 @@ async def import_students(
 ):
     """
     Import students from a CSV file.
-    Expected columns: full_name, or prenom + nom.
+    Expected columns: full_name, or prenom + nom; optional classe to enrol each
+    student in an existing class of that name.
     """
     if current_user.role.value not in ["principal", "secretary"]:
         raise HTTPException(status_code=403, detail="Only admins can import data")
@@ -534,7 +738,15 @@ async def import_students(
     existing_count = count_res.scalar() or 0
     import_count = 0
     skipped_count = 0
+    assigned_count = 0
+    unknown_classes: set[str] = set()
     used_codes: set[str] = set()
+    classes_by_name = {
+        name.strip().lower(): class_id
+        for class_id, name in (
+            await db.execute(select(Class.id, Class.name).where(Class.school_id == current_user.school_id))
+        ).all()
+    }
     for row in reader:
         name = _student_name_from_csv_row(row)
         if name:
@@ -557,6 +769,7 @@ async def import_students(
             pin = f"{secrets.randbelow(1_000_000):06d}"
             
             student = Student(
+                id=str(uuid.uuid4()),
                 full_name=name, 
                 school_id=current_user.school_id,
                 student_id=student_id_code,
@@ -564,6 +777,14 @@ async def import_students(
             )
             db.add(student)
             import_count += 1
+            class_name = _class_name_from_csv_row(row)
+            if class_name:
+                class_id = classes_by_name.get(class_name.lower())
+                if class_id:
+                    db.add(ClassMember(school_id=current_user.school_id, class_id=class_id, student_id=student.id))
+                    assigned_count += 1
+                else:
+                    unknown_classes.add(class_name)
         else:
             skipped_count += 1
             
@@ -572,7 +793,13 @@ async def import_students(
         school.prefix_locked = True
         
     await db.commit()
-    return {"status": "success", "imported": import_count, "skipped": skipped_count}
+    return {
+        "status": "success",
+        "imported": import_count,
+        "skipped": skipped_count,
+        "assigned": assigned_count,
+        "unknown_classes": sorted(unknown_classes),
+    }
 
 @router.post("/students/{student_id}/regenerate-pin")
 async def regenerate_pin(
@@ -614,43 +841,109 @@ async def regenerate_pin(
     
     return {"status": "success", "new_pin": pin, "notified": payload.notify if payload else False}
 
+TEACHER_IMPORT_MAX_ROWS = 300
+
+
+def _email_from_csv_row(row: dict[str | None, str | None]) -> str:
+    normalized = _normalized_csv_row(row)
+    return (
+        normalized.get("email")
+        or normalized.get("e-mail")
+        or normalized.get("mail")
+        or normalized.get("courriel")
+        or normalized.get("البريد_الإلكتروني")
+        or normalized.get("البريد")
+        or ""
+    ).strip().lower()
+
+
 @router.post("/import/teachers")
 async def import_teachers(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Import teachers from a CSV file.
-    Expected columns: full_name, email
-    Note: these teachers will receive local EduConnect invite accounts.
+    Invite teachers from a CSV file: full_name (or prenom + nom) and email.
+    Each new teacher gets a first-login code, valid 72 hours, returned once so the
+    school can hand it out. Existing emails and invalid rows are reported, not imported.
     """
     if current_user.role.value not in ["principal", "secretary"]:
         raise HTTPException(status_code=403, detail="Only admins can import data")
-    
+
     if not current_user.school_id:
         raise HTTPException(status_code=400, detail="User not assigned to a school")
 
     content = await file.read(settings.media_max_upload_bytes + 1)
     if len(content) > settings.media_max_upload_bytes:
         raise HTTPException(status_code=413, detail="CSV file is too large.")
-    decoded = content.decode("utf-8")
-    reader = csv.DictReader(io.StringIO(decoded))
-    
-    import_count = 0
-    for row in reader:
-        name = row.get("full_name")
-        email = row.get("email")
-        if name and email:
-            # Check if teacher already exists
-            stmt = select(User).where(User.email == email)
-            existing = await db.execute(stmt)
-            if not existing.scalar_one_or_none():
-                # Normal flow handles local user creation. This import is for invitations.
-                pass
-            import_count += 1
-            
-    return {"status": "feature_partially_implemented", "msg": "Teacher invites coming soon"}
+    decoded = content.decode("utf-8-sig", errors="replace")
+    try:
+        dialect = csv.Sniffer().sniff(decoded[:4096], delimiters=",;\t")
+    except csv.Error:
+        dialect = csv.excel
+    rows = list(csv.DictReader(io.StringIO(decoded), dialect=dialect))
+    if len(rows) > TEACHER_IMPORT_MAX_ROWS:
+        raise HTTPException(status_code=400, detail=f"Au plus {TEACHER_IMPORT_MAX_ROWS} enseignants par fichier.")
+
+    invited: list[dict] = []
+    skipped: list[dict] = []
+    seen: set[str] = set()
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=72)
+    for line, row in enumerate(rows, start=2):
+        name = _student_name_from_csv_row(row)
+        email = _email_from_csv_row(row)
+        if not name or not email:
+            skipped.append({"line": line, "email": email, "reason": "missing"})
+            continue
+        try:
+            email = str(_EmailCheck(email=email).email).lower()
+        except ValueError:
+            skipped.append({"line": line, "email": email, "reason": "invalid_email"})
+            continue
+        if email in seen:
+            skipped.append({"line": line, "email": email, "reason": "duplicate"})
+            continue
+        seen.add(email)
+        # Row security hides other schools' users unless the lookup email is declared.
+        await set_auth_lookup_email(db, email)
+        if (await db.execute(select(User.id).where(User.email == email))).scalar_one_or_none():
+            skipped.append({"line": line, "email": email, "reason": "exists"})
+            continue
+        code = generate_invite_code()
+        db.add(
+            User(
+                id=str(uuid.uuid4()),
+                email=email,
+                full_name=name[:255],
+                role=UserRole.teacher,
+                school_id=current_user.school_id,
+                password_hash=None,
+                invite_code=code,
+                invite_expires_at=expires_at,
+            )
+        )
+        invited.append({"full_name": name, "email": email, "invite_code": code, "invite_expires_at": expires_at})
+
+    await record_audit_event(
+        db,
+        action="staff.teachers_imported",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="staff",
+        method=request.method,
+        path=request.url.path,
+        # Emails only: the codes are credentials.
+        metadata={"invited": [item["email"] for item in invited], "skipped": len(skipped)},
+    )
+    await db.commit()
+    return {"invited": invited, "skipped": skipped}
+
+
+class _EmailCheck(BaseModel):
+    email: EmailStr
+
 
 # ─── Parent Linking & Audit ───────────────────────────────────────────────────
 
@@ -738,6 +1031,52 @@ async def list_student_links(
             parent_name=parent_name
         ))
     return out
+
+
+class StudentParentOut(BaseModel):
+    id: str
+    full_name: str
+    email: str
+    label: str | None = None
+    model_config = {"from_attributes": True}
+
+
+@router.get("/students/{student_id}/parents", response_model=list[StudentParentOut])
+async def get_student_parents(
+    student_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all parents linked to a student."""
+    if current_user.role.value not in ["principal", "secretary"]:
+        raise HTTPException(status_code=403, detail="Unprivileged")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="User not assigned to a school")
+
+    student = await db.get(Student, student_id)
+    if not student or student.school_id != current_user.school_id:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    stmt = (
+        select(User.id, User.full_name, User.email)
+        .join(StudentParent, StudentParent.parent_id == User.id)
+        .where(
+            StudentParent.student_id == student_id,
+            StudentParent.school_id == current_user.school_id,
+            User.school_id == current_user.school_id,
+        )
+        .order_by(User.full_name)
+    )
+    result = await db.execute(stmt)
+    return [
+        StudentParentOut(
+            id=row.id,
+            full_name=row.full_name,
+            email=row.email,
+        )
+        for row in result.all()
+    ]
+
 
 @router.delete("/students/{student_id}/parents/{parent_id}")
 async def unlink_parent_from_student(
@@ -859,6 +1198,148 @@ async def revoke_student_link(
     return {"status": "success", "message": "Accès révoqué. Toutes les sessions du parent ont été invalidées."}
 # ─── Analytics ────────────────────────────────────────────────────────────────
 
+def _whole_days(start: datetime, end: datetime) -> tuple[datetime, datetime]:
+    return (
+        datetime.combine(start.date(), datetime.min.time(), tzinfo=timezone.utc),
+        datetime.combine(end.date() + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc),
+    )
+
+
+async def _term_averages(db: AsyncSession, school_id: str, semester: Semester | None) -> dict[tuple[str, str], float]:
+    """Weighted average per (student, class) from approved grades dated in the term."""
+    if semester is None:
+        return {}
+    start, end = _whole_days(semester.start_date, semester.end_date)
+    grades = (
+        await db.execute(
+            select(Grade).where(
+                Grade.school_id == school_id,
+                Grade.is_approved == True,
+                Grade.date >= start,
+                Grade.date < end,
+            )
+        )
+    ).scalars().all()
+    coefficients = await load_grade_coefficients(db, grades)
+    return weighted_averages_by_group(grades, coefficients, lambda grade: (grade.student_id, grade.class_id))
+
+
+@router.get("/analytics/insights")
+async def analytics_insights(
+    semester_id: str | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Early warning for the director: students at risk, attendance trend, pending work."""
+    if current_user.role not in [UserRole.principal, UserRole.secretary]:
+        raise HTTPException(status_code=403, detail="Unprivileged")
+    school_id = current_user.school_id
+    if not school_id:
+        raise HTTPException(status_code=400, detail="User not assigned to a school")
+
+    semesters = (
+        await db.execute(select(Semester).where(Semester.school_id == school_id).order_by(Semester.start_date))
+    ).scalars().all()
+    now = datetime.now(timezone.utc)
+    current = None
+    if semester_id:
+        current = next((item for item in semesters if item.id == semester_id), None)
+        if current is None:
+            raise HTTPException(status_code=404, detail="Trimestre introuvable.")
+    else:
+        started = [item for item in semesters if item.start_date.replace(tzinfo=item.start_date.tzinfo or timezone.utc) <= now]
+        current = next((item for item in semesters if item.is_active), None) or (started[-1] if started else None)
+    previous = None
+    if current is not None:
+        earlier = [item for item in semesters if item.start_date < current.start_date]
+        previous = earlier[-1] if earlier else None
+
+    class_names = dict(
+        (await db.execute(select(Class.id, Class.name).where(Class.school_id == school_id))).all()
+    )
+    students = {
+        (row[0], row[1]): row[2]
+        for row in (
+            await db.execute(
+                select(ClassMember.student_id, ClassMember.class_id, Student.full_name)
+                .join(Student, Student.id == ClassMember.student_id)
+                .where(
+                    ClassMember.school_id == school_id,
+                    Student.school_id == school_id,
+                    Student.archived_at.is_(None),
+                )
+            )
+        ).all()
+    }
+    current_averages = await _term_averages(db, school_id, current)
+    previous_averages = await _term_averages(db, school_id, previous)
+
+    today = datetime.now(ALGERIA_TZ).date()
+    window_start = week_start(today) - timedelta(weeks=11)
+    term_start, term_end = _whole_days(current.start_date, current.end_date) if current else (None, None)
+    fetch_from = datetime.combine(
+        min(window_start, term_start.date()) if term_start else window_start,
+        datetime.min.time(),
+        tzinfo=timezone.utc,
+    )
+    facts = [
+        AttendanceFact(
+            student_id=row[0],
+            class_id=row[1],
+            day=row[2].date(),
+            status=row[3].value if hasattr(row[3], "value") else str(row[3]),
+            is_justified=bool(row[4]),
+        )
+        for row in (
+            await db.execute(
+                select(
+                    Attendance.student_id,
+                    Attendance.class_id,
+                    Attendance.date,
+                    Attendance.status,
+                    Attendance.is_justified,
+                ).where(Attendance.school_id == school_id, Attendance.date >= fetch_from)
+            )
+        ).all()
+    ]
+    recent_from = today - timedelta(days=30)
+    recent = [fact for fact in facts if fact.day >= recent_from]
+    term_facts = (
+        [fact for fact in facts if term_start.date() <= fact.day < term_end.date()] if term_start else []
+    )
+
+    pending_approvals = (
+        await db.execute(
+            select(func.count()).select_from(Grade).where(Grade.school_id == school_id, Grade.is_approved == False)
+        )
+    ).scalar_one()
+
+    return {
+        "semester": {"id": current.id, "name": current.name} if current else None,
+        "previous_semester": {"id": previous.id, "name": previous.name} if previous else None,
+        "semesters": [{"id": item.id, "name": item.name} for item in semesters],
+        "attendance_weeks": attendance_weeks(
+            [fact for fact in facts if fact.day >= window_start], today=today, weeks=12
+        ),
+        "class_attendance": class_attendance(term_facts, class_names),
+        "at_risk": students_at_risk(
+            students=students,
+            class_names=class_names,
+            current_averages=current_averages,
+            previous_averages=previous_averages,
+            recent_facts=recent,
+        ),
+        "pending_grade_approvals": pending_approvals,
+        "unjustified_absences_30d": sum(1 for fact in recent if fact.status == "absent" and not fact.is_justified),
+        "thresholds": {
+            "low_average": LOW_AVERAGE,
+            "average_drop": AVERAGE_DROP,
+            "unjustified_absences_30d": UNJUSTIFIED_ABSENCES_30D,
+            "lates_30d": LATES_30D,
+        },
+    }
+
+
 @router.get("/analytics/overview", response_model=AnalyticsOverview)
 async def analytics_overview(
     current_user: User = Depends(get_current_user),
@@ -979,7 +1460,8 @@ async def analytics_overview(
         func.count(Attendance.id).label("total"),
         func.sum(
             case(
-                (Attendance.status.in_(["absent", "late"]), 1),
+                # Late arrivals are not absences.
+                (Attendance.status == AttendanceStatus.absent, 1),
                 else_=0
             )
         ).label("absences")

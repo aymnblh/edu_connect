@@ -1,4 +1,4 @@
-﻿from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager
 
 import secrets
 
@@ -13,11 +13,17 @@ from app.core.config import settings
 from app.core.middleware import (
     TenantMiddleware,
     AuditMiddleware,
+    DemoReadOnlyMiddleware,
+    NurseScopeMiddleware,
     SchoolActivationMiddleware,
     SecurityHeadersMiddleware,
 )
 from app.core.observability import ObservabilityMiddleware, metrics
+from app.core.logging_config import RequestLoggingMiddleware, configure_logging
 from app.ws_manager import manager
+from app.core.background import start_background_jobs, stop_background_jobs
+
+configure_logging(settings.log_level, settings.resolved_log_format)
 
 
 @asynccontextmanager
@@ -35,9 +41,11 @@ async def lifespan(app: FastAPI):
         )
         print(report)
     await manager.startup()
+    jobs = start_background_jobs()
     try:
         yield
     finally:
+        await stop_background_jobs(jobs)
         await manager.shutdown()
 
 
@@ -46,8 +54,14 @@ app = FastAPI(
     description="Private backend for Wasel Edu - Local JWT Auth + PostgreSQL data",
     version="1.0.0",
     lifespan=lifespan,
+    # The interactive docs map every endpoint; keep them off in production.
+    docs_url=None if settings.is_production else "/docs",
+    redoc_url=None if settings.is_production else "/redoc",
+    openapi_url=None if settings.is_production else "/openapi.json",
 )
 
+app.add_middleware(DemoReadOnlyMiddleware)
+app.add_middleware(NurseScopeMiddleware)
 app.add_middleware(AuditMiddleware)
 app.add_middleware(SchoolActivationMiddleware)
 app.add_middleware(TenantMiddleware)
@@ -63,9 +77,13 @@ app.add_middleware(
         "X-Device-Id",
         "X-Device-Platform",
         "X-Workspace-Role",
+        "X-Request-ID",
     ],
+    expose_headers=["X-Request-ID", "X-Demo-Read-Only"],
 )
 app.add_middleware(ObservabilityMiddleware)
+# Outermost: request ID + access log for every request, including rejected ones.
+app.add_middleware(RequestLoggingMiddleware)
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────

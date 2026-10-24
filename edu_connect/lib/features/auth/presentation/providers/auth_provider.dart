@@ -10,6 +10,16 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
 });
 
+/// False when the demo is closed or the server cannot be reached.
+final publicDemoAvailableProvider =
+    FutureProvider.autoDispose<bool>((ref) async {
+  try {
+    return await ref.watch(authRepositoryProvider).demoAvailable();
+  } catch (_) {
+    return false;
+  }
+});
+
 // ── Auth notifier ──────────────────────────────────────────────────────────
 class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   final AuthRepository _repo;
@@ -59,6 +69,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     required String adminEmail,
     required String adminPassword,
     required bool termsAccepted,
+    String? referralCode,
   }) async {
     // No state change yet, as we stay on the success screen or login.
     return _repo.registerSchool(
@@ -67,6 +78,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
       adminEmail: adminEmail,
       adminPassword: adminPassword,
       termsAccepted: termsAccepted,
+      referralCode: referralCode,
     );
   }
 
@@ -74,6 +86,17 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     state = const AsyncValue.loading();
     try {
       final user = await _repo.login(email: email, password: password);
+      state = AsyncValue.data(user);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> demoLogin(String role) async {
+    state = const AsyncValue.loading();
+    try {
+      final user = await _repo.demoLogin(role);
       state = AsyncValue.data(user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -115,11 +138,17 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     }
   }
 
+  /// Deletes the account on the server first; the local session is only
+  /// cleared once the server confirmed, so a failure is never hidden.
   Future<void> deleteAccount() async {
-    // Delete account from backend API if needed locally.
-    // For now, we clear the session.
-    await _repo.signOut();
-    state = const AsyncValue.data(null);
+    await _repo.deleteAccount();
+    try {
+      await _repo.signOut();
+    } catch (_) {
+      // Sessions were already revoked server-side; clear locally anyway.
+    } finally {
+      state = const AsyncValue.data(null);
+    }
   }
 
   /// Reloads the cached user from storage and updates the auth state.

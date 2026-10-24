@@ -131,19 +131,18 @@ def check_openapi(
 
 
 def _check_openapi_once(client: httpx.Client, api_url: str) -> CheckResult:
-    try:
-        status_code, data = _json_get(client, _url(api_url, "/openapi.json"))
-    except Exception as exc:
-        return CheckResult("OpenAPI", False, str(exc))
-
-    if status_code != 200:
-        return CheckResult("OpenAPI", False, f"HTTP {status_code}: {data}")
-    paths = data.get("paths") or {}
-    required = ["/auth/login", "/admin/staff", "/health/ready"]
-    missing = [path for path in required if path not in paths]
-    if missing:
-        return CheckResult("OpenAPI", False, f"missing paths: {', '.join(missing)}")
-    return CheckResult("OpenAPI", True, f"{len(paths)} paths exposed")
+    """Production must not publish its API schema or interactive docs."""
+    exposed = []
+    for path in ("/openapi.json", "/docs", "/redoc"):
+        try:
+            response = client.get(_url(api_url, path))
+        except Exception as exc:
+            return CheckResult("OpenAPI", False, str(exc))
+        if response.status_code != 404:
+            exposed.append(f"{path} -> HTTP {response.status_code}")
+    if exposed:
+        return CheckResult("OpenAPI", False, f"API docs exposed: {', '.join(exposed)}")
+    return CheckResult("OpenAPI", True, "API docs hidden")
 
 
 def check_cors(client: httpx.Client, api_url: str, web_url: str) -> CheckResult:

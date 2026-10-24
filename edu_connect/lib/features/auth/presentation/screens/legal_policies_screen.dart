@@ -7,9 +7,9 @@ import '../../../../core/theme/app_theme.dart';
 class LegalPoliciesScreen extends StatelessWidget {
   const LegalPoliciesScreen({super.key});
 
-  static const _contactEmail = 'privacy@educonnect.dz';
+  static const _contactEmail = 'privacy@waseledu.dz';
   static const _policyUrl = 'https://app.educonnect.dz/policies';
-  static final _updatedAt = DateTime(2026, 5, 13);
+  static final _updatedAt = DateTime(2026, 10, 24);
 
   @override
   Widget build(BuildContext context) {
@@ -282,10 +282,10 @@ class _LegalText {
           ? 'Icône de confidentialité'
           : 'Privacy icon';
   String get notice => _ar
-      ? 'هذا النص نموذج تشغيلي لـ Wasel Edu. قبل النشر الرسمي، استبدلوا جهات الاتصال والعنوان والمضيف ومدد الاحتفاظ بمعلوماتكم النهائية، ثم اعرضوا الوثيقة على مستشار قانوني.'
+      ? 'تنطبق هذه السياسة على منصة Wasel Edu بأكملها. يمكن لكل مؤسسة أن تكملها بنظامها الداخلي وقواعد الاحتفاظ الخاصة بها، مع احترام القانون الجزائري المعمول به.'
       : _fr
-          ? 'Ce texte est un modèle opérationnel pour Wasel Edu. Avant publication officielle, remplacez les contacts, l’adresse, l’hébergeur et les durées de conservation par vos informations finales, puis faites relire le document par un conseil juridique.'
-          : 'This text is an operational template for Wasel Edu. Before official publication, replace contacts, address, host, and retention periods with your final information, then have the document reviewed by legal counsel.';
+          ? 'Cette politique s’applique à l’ensemble de la plateforme Wasel Edu. Chaque établissement peut la compléter par son règlement intérieur et ses propres règles de conservation, dans le respect du droit algérien applicable.'
+          : 'This policy applies to the whole Wasel Edu platform. Each school may supplement it with its own internal rules and retention practices, in line with applicable Algerian law.';
   String get contactTitle => _ar
       ? 'التواصل والنسخة الويب'
       : _fr
@@ -302,10 +302,10 @@ class _LegalText {
                 : 'Algerian legal framework';
       case 'schoolData':
         return _ar
-            ? 'البيانات المدرسية المعالجة'
+            ? 'البيانات المدرسية المعالجة المصاريف المدرسية: عناوين ومبالغ المستحقات لكل تلميذ، الدفعات المستلمة (المبلغ، الطريقة، رقم الوصل)، الآجال والتذكيرات المرسلة للأولياء. يطلع عليها فقط الإدارة والأمانة وأولياء التلميذ؛ وتُسجَّل كل دفعة وإلغاء وتذكير في السجل.'
             : _fr
-                ? 'Données scolaires traitées'
-                : 'Processed school data';
+                ? 'Données scolaires traitées Frais scolaires : intitulés et montants dus par élève, paiements reçus (montant, mode, n° de reçu), échéances et rappels envoyés aux parents. Visibles par la direction, le secrétariat et les parents de l\'élève uniquement ; chaque paiement, annulation et rappel est enregistré dans le journal.'
+                : 'Processed school data School fees: fee labels and amounts owed per student, payments received (amount, method, receipt number), due dates and reminders sent to parents. Visible only to the school administration and the student\'s parents; every payment, cancellation and reminder is recorded in the activity log.';
       case 'minors':
         return _ar
             ? 'بيانات القاصرين'
@@ -357,10 +357,10 @@ class _LegalText {
                 : 'The platform may process identities, roles, emails, classes, parent-student links, attendance, grades, homework, remarks, messages, notifications, subscriptions, security logs, and technical identifiers strictly needed for school service.';
       case 'minors':
         return _ar
-            ? 'تقتصر بيانات الطلاب القاصرين على الأغراض المدرسية. لا تُباع هذه البيانات ولا تُستخدم للإعلانات السلوكية أو التنميط التجاري.'
+            ? 'تقتصر بيانات الطلاب القاصرين على الأغراض المدرسية. لا تُباع هذه البيانات ولا تُستخدم للإعلانات السلوكية أو التنميط التجاري. الصحة والطوارئ (معطيات حساسة واختيارية): جهات الاتصال في الطوارئ، الحساسية، الأمراض، العلاج، فصيلة الدم، الطبيب والتعليمات، فقط بموافقة صريحة من الولي. الاطلاع مقتصر على الإدارة والأمانة وتمريض المدرسة وأولياء التلميذ؛ لا يرى أساتذة القسم سوى تنبيه قصير. يُسجَّل كل اطلاع من الموظفين. يمكن للولي سحب موافقته في أي وقت، فتُمحى البطاقة.'
             : _fr
-                ? 'Les données des élèves mineurs sont limitées aux finalités scolaires. Elles ne sont pas revendues, ni utilisées pour de la publicité comportementale ou du profilage commercial.'
-                : 'Data about minor students is limited to school purposes. It is not resold and is not used for behavioral advertising or commercial profiling.';
+                ? 'Les données des élèves mineurs sont limitées aux finalités scolaires. Elles ne sont pas revendues, ni utilisées pour de la publicité comportementale ou du profilage commercial. Santé et urgence (donnée sensible, facultative) : contacts d\'urgence, allergies, maladies, traitement, groupe sanguin, médecin et consignes, uniquement avec le consentement explicite du parent. Accès réservé à la direction, au secrétariat, à l\'infirmerie de l\'école et aux parents de l\'élève ; les enseignants de la classe ne voient qu\'une alerte courte. Chaque consultation par le personnel est enregistrée. Le parent peut retirer son consentement à tout moment : la fiche est alors effacée.'
+                : 'Data about minor students is limited to school purposes. It is not resold and is not used for behavioral advertising or commercial profiling. Health and emergency (sensitive, optional): emergency contacts, allergies, conditions, treatment, blood group, doctor and instructions, only with the parent\'s explicit consent. Access is limited to the school administration, the school nurse and the student\'s parents; the class\'s teachers only see a short alert. Every staff view is logged. The parent can withdraw consent at any time, which erases the record.';
       case 'security':
         return _ar
             ? 'يستخدم Wasel Edu تشفير TLS وكلمات مرور مجزأة ورموز جلسة وعزلا حسب المؤسسة وضوابط أدوار وسجلات تدقيق. يجب استضافة بيانات الإنتاج في بيئة مضبوطة داخل الجزائر، إلا إذا وُجد أساس قانوني أو ترخيص قابل للتطبيق.'
@@ -375,10 +375,10 @@ class _LegalText {
                 : 'Data subjects may request information, access, correction, objection on legitimate grounds, and, where compatible with school or legal obligations, deletion or restriction of certain data.';
       case 'deletion':
         return _ar
-            ? 'لطلب حذف حساب أو بيانات شخصية، تواصلوا مع privacy@educonnect.dz أو إدارة مؤسستكم. قد يُطلب التحقق من الهوية قبل أي إجراء.'
+            ? 'لطلب حذف حساب أو بيانات شخصية، تواصلوا مع privacy@waseledu.dz أو إدارة مؤسستكم. قد يُطلب التحقق من الهوية قبل أي إجراء.'
             : _fr
-                ? 'Pour demander la suppression d’un compte ou de données personnelles, contactez privacy@educonnect.dz ou l’administration de votre établissement. Une vérification d’identité peut être demandée avant toute action.'
-                : 'To request deletion of an account or personal data, contact privacy@educonnect.dz or your school administration. Identity verification may be required before any action.';
+                ? 'Pour demander la suppression d’un compte ou de données personnelles, contactez privacy@waseledu.dz ou l’administration de votre établissement. Une vérification d’identité peut être demandée avant toute action.'
+                : 'To request deletion of an account or personal data, contact privacy@waseledu.dz or your school administration. Identity verification may be required before any action.';
       case 'terms':
         return _ar
             ? 'يقتصر الوصول على المستخدمين المصرح لهم من طرف مؤسسة أو مدير المنصة. يجب استخدام الخدمة فقط لأغراض تعليمية مشروعة. قد يؤدي أي محتوى غير قانوني أو مسيء أو تمييزي أو غير مرتبط بالدراسة إلى التعليق.'

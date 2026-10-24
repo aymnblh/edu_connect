@@ -22,6 +22,7 @@ class _SchoolRegistrationScreenState
   final _adminNameController = TextEditingController();
   final _adminEmailController = TextEditingController();
   final _adminPasswordController = TextEditingController();
+  final _referralController = TextEditingController();
 
   bool _isLoading = false;
   bool _isSuccess = false;
@@ -33,6 +34,7 @@ class _SchoolRegistrationScreenState
     _adminNameController.dispose();
     _adminEmailController.dispose();
     _adminPasswordController.dispose();
+    _referralController.dispose();
     super.dispose();
   }
 
@@ -60,6 +62,7 @@ class _SchoolRegistrationScreenState
                 adminEmail: _adminEmailController.text.trim(),
                 adminPassword: _adminPasswordController.text.trim(),
                 termsAccepted: _acceptedTerms,
+                referralCode: _referralController.text.trim().toUpperCase(),
               );
 
       if (success && mounted) {
@@ -225,7 +228,17 @@ class _SchoolRegistrationScreenState
                 ),
                 validator: Validators.password,
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _referralController,
+                textCapitalization: TextCapitalization.characters,
+                maxLength: 12,
+                decoration: InputDecoration(
+                  labelText: text.referralLabel,
+                  prefixIcon: const Icon(Icons.card_giftcard_outlined),
+                ),
+              ),
+              const SizedBox(height: 24),
               CheckboxListTile(
                 value: _acceptedTerms,
                 onChanged: (value) =>
@@ -300,6 +313,12 @@ class _SchoolRegistrationText {
 
   bool get _ar => languageCode == 'ar';
   bool get _fr => languageCode == 'fr';
+
+  String get referralLabel => _ar
+      ? 'رمز الترشيح (اختياري)'
+      : _fr
+          ? 'Code de parrainage (facultatif)'
+          : 'Referral code (optional)';
 
   String get appBarTitle => _ar
       ? 'تسجيل مؤسسة'

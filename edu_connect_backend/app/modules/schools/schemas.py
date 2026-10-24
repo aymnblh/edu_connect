@@ -58,6 +58,8 @@ class SchoolRegistration(BaseModel):
     admin_full_name: str = Field(min_length=2, max_length=255)
     admin_password: str = Field(min_length=8, max_length=128)
     terms_accepted: bool = False
+    # Code of the school that recommended Wasel Edu (optional).
+    referral_code: str | None = Field(default=None, max_length=12)
 
 class SchoolCreate(BaseModel):
     name: str

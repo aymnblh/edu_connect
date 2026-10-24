@@ -4,10 +4,18 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status, Body, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, func, select, update
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr, Field
 
 from app.core.audit import record_audit_event
-from app.core.rate_limit import check_rate_limit
+from app.core.rate_limit import (
+    CODE_LOOKUP_IP_LIMIT,
+    CODE_LOOKUP_WINDOW_SECONDS,
+    STUDENT_PIN_ATTEMPT_LIMIT,
+    check_rate_limit,
+    rate_key_part,
+)
 from app.core.rls import (
     set_auth_invite_code,
     set_auth_lookup_email,
@@ -18,6 +26,7 @@ from app.core.rls import (
     set_student_pin_lookup,
 )
 from app.db.database import get_db
+from app.modules.demo.access import DEMO_ROLE_ACCOUNTS, is_read_only_demo_user
 from app.models import User, RefreshToken, UserRole
 from app.core.security import (
     verify_password, 
@@ -27,10 +36,13 @@ from app.core.security import (
     get_current_user,
     rotate_refresh_token
 )
+
+# Roles that can redeem an admin-issued activation / access-reset code.
+ACCESS_CODE_ROLES = [UserRole.teacher, UserRole.secretary, UserRole.nurse, UserRole.parent]
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-TERMS_VERSION = "privacy-terms-2026-05-13"
+TERMS_VERSION = "privacy-terms-2026-10-24"
 
 def require_terms_accepted(accepted: bool):
     if not accepted:
@@ -179,6 +191,23 @@ async def login(
         is_system_admin=user.role == UserRole.system_admin,
     )
 
+    if user.deactivated_at is not None:
+        await _audit_auth(
+            db,
+            request,
+            action="auth.login_deactivated",
+            user=user,
+            status_code=403,
+        )
+        await db.commit()
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "account_deactivated",
+                "message": "Ce compte a ete desactive. Contactez l'administration de votre etablissement.",
+            },
+        )
+
     # Migration Check: password_hash IS NULL
     if user.password_hash is None:
         await _audit_auth(
@@ -260,6 +289,57 @@ async def login(
         _clear_refresh_cookie(response)
 
     return {"access_token": access_token, "refresh_token": refresh_token}
+
+class DemoLoginRequest(BaseModel):
+    role: Literal["principal", "teacher", "parent"]
+
+
+@router.get("/demo")
+async def demo_availability():
+    """Lets the login page know whether to offer the public demo."""
+    return {"enabled": settings.public_demo_enabled, "roles": list(DEMO_ROLE_ACCOUNTS)}
+
+
+@router.post("/demo-login", response_model=TokenResponse)
+async def demo_login(
+    req: DemoLoginRequest,
+    request: Request,
+    response: Response = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """Open a read-only session on the demo school, without an account."""
+    if not settings.public_demo_enabled:
+        raise HTTPException(status_code=404, detail="La démo n'est pas disponible.")
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    await check_rate_limit(f"demo_login:{ip_address}", limit=30, window_seconds=3600)
+
+    email = DEMO_ROLE_ACCOUNTS[req.role]
+    await set_auth_lookup_email(db, email)
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    if user is None or user.deactivated_at is not None or user.password_hash is None:
+        raise HTTPException(status_code=503, detail="La démo est en cours de préparation. Réessayez dans une minute.")
+    await set_request_rls_context(db, school_id=user.school_id)
+
+    # Every visitor shares this account: no session cap (it would sign other visitors
+    # out), no new-device alert, and nothing that identifies the visitor's device.
+    family_id = str(uuid.uuid4())
+    access_token = create_access_token_for_user(user)
+    refresh_token = create_refresh_token(user.id, family_id)
+    db.add(
+        RefreshToken(
+            school_id=user.school_id,
+            user_id=user.id,
+            token_hash=hashlib.sha256(refresh_token.encode()).hexdigest(),
+            family_id=family_id,
+            device_platform=getattr(request.state, "device_platform", None),
+            last_used_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        )
+    )
+    await db.commit()
+    _clear_refresh_cookie(response)
+    return {"access_token": access_token, "refresh_token": refresh_token}
+
 
 @router.post("/set-password")
 async def set_password(
@@ -389,6 +469,9 @@ async def list_sessions(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if is_read_only_demo_user(current_user):
+        # These would be other visitors' sessions.
+        return []
     result = await db.execute(
         select(RefreshToken)
         .where(
@@ -448,6 +531,26 @@ class VerifyCodeResponse(BaseModel):
     label: str | None = None
     role: str | None = None
 
+async def limit_code_lookup(scope: str, ip_address: str, *, code: str | None, student_id: str | None) -> None:
+    """Throttle invite/QR/PIN lookups so codes cannot be enumerated.
+
+    Counters are keyed on the caller's IP and on the *target* (the student ID
+    for PIN lookups), never on the guessed secret itself; keying on the guess
+    would give every new guess a fresh budget.
+    """
+    await check_rate_limit(
+        f"{scope}:ip:{ip_address}",
+        limit=CODE_LOOKUP_IP_LIMIT,
+        window_seconds=CODE_LOOKUP_WINDOW_SECONDS,
+    )
+    if not code and student_id:
+        await check_rate_limit(
+            f"{scope}:student:{rate_key_part(student_id)}",
+            limit=STUDENT_PIN_ATTEMPT_LIMIT,
+            window_seconds=CODE_LOOKUP_WINDOW_SECONDS,
+        )
+
+
 @router.post("/verify-code", response_model=VerifyCodeResponse)
 async def verify_code(
     req: VerifyCodeRequest,
@@ -457,12 +560,7 @@ async def verify_code(
     from app.models import PendingLink, Student
 
     ip_address = getattr(request.state, "ip_address", "unknown")
-    lookup_value = req.code or f"{req.student_id}:{req.pin}"
-    await check_rate_limit(
-        f"verify_code:{ip_address}:{hashlib.sha256(lookup_value.encode()).hexdigest()}",
-        limit=8,
-        window_seconds=900,
-    )
+    await limit_code_lookup("verify_code", ip_address, code=req.code, student_id=req.student_id)
     
     # 1. Is it a QR Token or Invite Code?
     if req.code:
@@ -471,14 +569,19 @@ async def verify_code(
         user_res = await db.execute(
             select(User).where(
                 User.invite_code == req.code,
-                User.role.in_([UserRole.teacher, UserRole.secretary]),
+                User.role.in_(ACCESS_CODE_ROLES),
             )
         )
         user = user_res.scalar_one_or_none()
         if user:
             if user.invite_expires_at and user.invite_expires_at < datetime.now(timezone.utc):
                 raise HTTPException(status_code=400, detail="Code d'invitation expire.")
-            invite_type = "teacher_invite" if user.role == UserRole.teacher else "staff_invite"
+            invite_type = {
+                UserRole.teacher: "teacher_invite",
+                UserRole.secretary: "staff_invite",
+                UserRole.nurse: "staff_invite",
+                UserRole.parent: "account_reset",
+            }[user.role]
             return VerifyCodeResponse(
                 type=invite_type,
                 email=user.email,
@@ -549,12 +652,7 @@ async def register_parent_code(
     require_terms_accepted(req.terms_accepted)
 
     ip_address = getattr(request.state, "ip_address", "unknown")
-    lookup_value = req.code or f"{req.student_id}:{req.pin}"
-    await check_rate_limit(
-        f"register_parent_code:{ip_address}:{hashlib.sha256(lookup_value.encode()).hexdigest()}",
-        limit=5,
-        window_seconds=900,
-    )
+    await limit_code_lookup("register_parent_code", ip_address, code=req.code, student_id=req.student_id)
     
     # Verify Email is not taken
     await set_auth_lookup_email(db, str(req.email).lower())
@@ -611,6 +709,9 @@ async def register_parent_code(
         raise HTTPException(status_code=400, detail="Méthode d'identification manquante.")
 
     school = await db.get(School, school_id)
+    if school and (school.tenant_config or {}).get("demo_data"):
+        # Demo PINs are on screen for every visitor; nobody may join the demo school with them.
+        raise HTTPException(status_code=403, detail="Les codes de la démo ne permettent pas de créer un compte.")
     max_parents = int((school.tenant_config or {}).get("max_parents_per_student", 2)) if school else 2
     parent_count = await db.execute(
         select(func.count(StudentParent.parent_id)).where(
@@ -702,7 +803,7 @@ async def _complete_staff_invite_code(
     user_res = await db.execute(
         select(User).where(
             User.invite_code == req.invite_code,
-            User.role.in_([UserRole.teacher, UserRole.secretary]),
+            User.role.in_(ACCESS_CODE_ROLES),
         )
         .with_for_update()
     )
@@ -738,7 +839,12 @@ async def _complete_staff_invite_code(
         expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
     )
     db.add(db_token)
-    action = "auth.teacher_completed" if user.role == UserRole.teacher else "auth.secretary_completed"
+    action = {
+        UserRole.teacher: "auth.teacher_completed",
+        UserRole.secretary: "auth.secretary_completed",
+        UserRole.nurse: "auth.nurse_completed",
+        UserRole.parent: "auth.parent_access_restored",
+    }[user.role]
     await _audit_auth(db, request, action=action, user=user)
     await db.commit()
 
@@ -766,3 +872,86 @@ async def complete_staff_code(
     db: AsyncSession = Depends(get_db),
 ):
     return await _complete_staff_invite_code(req, request, response, db)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+    remember_device: bool = False
+
+
+@router.post("/change-password", response_model=TokenResponse)
+async def change_password(
+    req: ChangePasswordRequest,
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Change the signed-in user's password and sign out every other session."""
+    await check_rate_limit(f"change_password:{current_user.id}", limit=5, window_seconds=900)
+    if not verify_password(req.current_password, current_user.password_hash):
+        await _audit_auth(db, request, action="auth.password_change_failed", user=current_user, status_code=400)
+        await db.commit()
+        raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect.")
+    if verify_password(req.new_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Le nouveau mot de passe doit etre different de l'actuel.")
+
+    current_user.password_hash = get_password_hash(req.new_password)
+    tokens = await _restart_sessions(db, request, response, current_user, remember_device=req.remember_device)
+    await _audit_auth(db, request, action="auth.password_changed", user=current_user)
+    await db.commit()
+    return tokens
+
+
+async def _restart_sessions(
+    db: AsyncSession,
+    request: Request,
+    response: Response | None,
+    user: User,
+    *,
+    remember_device: bool,
+) -> dict[str, str]:
+    """End every session of ``user`` and open a fresh one for this device.
+
+    Bumping token_version also rejects access tokens already issued elsewhere.
+    """
+    user.token_version = (user.token_version or 0) + 1
+    await db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))
+
+    family_id = str(uuid.uuid4())
+    access_token = create_access_token_for_user(user)
+    refresh_token = create_refresh_token(user.id, family_id)
+    db.add(RefreshToken(
+        school_id=user.school_id,
+        user_id=user.id,
+        token_hash=hashlib.sha256(refresh_token.encode()).hexdigest(),
+        family_id=family_id,
+        **_session_metadata(request),
+        last_used_at=datetime.now(timezone.utc),
+        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days),
+    ))
+    if remember_device:
+        _set_refresh_cookie(response, refresh_token, persistent=True)
+    else:
+        _clear_refresh_cookie(response)
+    return {"access_token": access_token, "refresh_token": refresh_token}
+
+
+class RevokeOthersRequest(BaseModel):
+    remember_device: bool = False
+
+
+@router.post("/sessions/revoke-others", response_model=TokenResponse)
+async def revoke_other_sessions(
+    request: Request,
+    response: Response,
+    req: RevokeOthersRequest = Body(default_factory=RevokeOthersRequest),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Sign out every other device; this device continues with new tokens."""
+    tokens = await _restart_sessions(db, request, response, current_user, remember_device=req.remember_device)
+    await _audit_auth(db, request, action="auth.sessions_revoked_all", user=current_user)
+    await db.commit()
+    return tokens

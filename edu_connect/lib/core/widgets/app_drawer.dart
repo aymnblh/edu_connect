@@ -83,6 +83,38 @@ class AppDrawer extends ConsumerWidget {
                     label: l10n.notifications,
                     onTap: () => _go(context, '/notifications', replace: false),
                   ),
+                  if (user.isParent || user.isTeacher)
+                    _DrawerItem(
+                      icon: Icons.event_available_outlined,
+                      label: text.meetings,
+                      onTap: () => _go(context, '/meetings', replace: false),
+                    ),
+                  if (user.isParent)
+                    _DrawerItem(
+                      icon: Icons.favorite_outline,
+                      label: text.health,
+                      onTap: () => _go(context, '/health', replace: false),
+                    ),
+                  if (user.isParent)
+                    _DrawerItem(
+                      icon: Icons.account_balance_wallet_outlined,
+                      label: text.fees,
+                      onTap: () => _go(context, '/fees', replace: false),
+                    ),
+                  if (user.isParent)
+                    _DrawerItem(
+                      icon: Icons.description_outlined,
+                      label: text.reportCards,
+                      onTap: () =>
+                          _go(context, '/report-cards', replace: false),
+                    ),
+                  if (!user.isSystemAdmin)
+                    _DrawerItem(
+                      icon: Icons.campaign_outlined,
+                      label: text.announcements,
+                      onTap: () =>
+                          _go(context, '/announcements', replace: false),
+                    ),
                   if (user.isAdmin && !user.isSystemAdmin)
                     _DrawerDivider(text.management),
                   if (user.isAdmin && !user.isSystemAdmin) ...[
@@ -438,6 +470,12 @@ class _DrawerText {
         'Direction',
         'Direction',
       );
+  String get health => pick('البطاقة الصحية', 'Fiche sante', 'Health sheet');
+  String get fees => pick('المصاريف المدرسية', 'Frais scolaires', 'School fees');
+  String get meetings => pick('المواعيد', 'Rendez-vous', 'Meetings');
+  String get reportCards => pick('كشوف النقاط', 'Bulletins', 'Report cards');
+  String get announcements =>
+      pick('الإعلانات والتقويم', 'Annonces et calendrier', 'Announcements');
   String get administration => pick(
         '\u0627\u0644\u0625\u0634\u0631\u0627\u0641',
         'Administration',

@@ -129,6 +129,7 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(dest="command")
 
     # generate-keys command
+    subparsers.add_parser("generate-health-key", help="Print a new HEALTH_DATA_KEY (health records encryption)")
     key_parser = subparsers.add_parser("generate-keys", help="Generate RSA keys for RS256")
     key_parser.add_argument("--output", default="secrets/", help="Output directory for keys")
 
@@ -145,7 +146,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.command == "generate-keys":
+    if args.command == "generate-health-key":
+        from cryptography.fernet import Fernet
+
+        print(Fernet.generate_key().decode())
+        print("Put it in HEALTH_DATA_KEY and keep a copy in your password manager: without it, health records cannot be read.", file=sys.stderr)
+    elif args.command == "generate-keys":
         generate_keys(args.output)
     elif args.command == "create-superadmin":
         if args.password_env:

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../providers/auth_provider.dart';
+import 'devices_screen.dart';
 import '../../data/models/user_model.dart';
 import 'package:edu_connect/l10n/app_localizations.dart';
 import '../../../../core/providers/locale_provider.dart';
@@ -93,6 +95,25 @@ class ProfileScreen extends ConsumerWidget {
                                   user.isAdmin ? '/dashboard' : '/classes',
                                 ),
                               ),
+                              const Divider(height: 1),
+                              _ActionRow(
+                                icon: Icons.devices_outlined,
+                                label: text.devices,
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => const DevicesScreen(),
+                                  ),
+                                ),
+                              ),
+                              const Divider(height: 1),
+                              _ActionRow(
+                                icon: Icons.key_outlined,
+                                label: text.changePassword,
+                                onTap: () => showDialog<void>(
+                                  context: context,
+                                  builder: (_) => const _ChangePasswordDialog(),
+                                ),
+                              ),
                             ],
                           ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.2),
                           const SizedBox(height: 16),
@@ -135,6 +156,26 @@ class ProfileScreen extends ConsumerWidget {
                                 textStyle: const TextStyle(fontSize: 12),
                               ),
                               onPressed: () async {
+                                if (!user.isParent) {
+                                  await showDialog<void>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: Text(text.deleteAccount),
+                                      content: Text(text.staffDeletionInfo),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(),
+                                          child: Text(
+                                            MaterialLocalizations.of(ctx)
+                                                .okButtonLabel,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  return;
+                                }
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (ctx) => AlertDialog(
@@ -160,10 +201,25 @@ class ProfileScreen extends ConsumerWidget {
                                   ),
                                 );
 
-                                if (confirm == true) {
+                                if (confirm != true) return;
+                                try {
                                   await ref
                                       .read(authNotifierProvider.notifier)
                                       .deleteAccount();
+                                } catch (e) {
+                                  if (!context.mounted) return;
+                                  final data = e is DioException
+                                      ? e.response?.data
+                                      : null;
+                                  final detail =
+                                      data is Map ? data['detail'] : null;
+                                  final message = detail is Map &&
+                                          detail['message'] is String
+                                      ? detail['message'] as String
+                                      : text.deleteAccountFailed;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(message)),
+                                  );
                                 }
                               },
                               child: Text(text.deleteAccount),
@@ -361,6 +417,131 @@ String _roleLabel(UserModel user, _ProfileText text) {
   return text.parent;
 }
 
+class _ChangePasswordDialog extends ConsumerStatefulWidget {
+  const _ChangePasswordDialog();
+
+  @override
+  ConsumerState<_ChangePasswordDialog> createState() =>
+      _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _currentCtrl = TextEditingController();
+  final _newCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _currentCtrl.dispose();
+    _newCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    final text = _ProfileText.of(context);
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await ref.read(authRepositoryProvider).changePassword(
+            currentPassword: _currentCtrl.text,
+            newPassword: _newCtrl.text,
+          );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(text.passwordChanged)),
+      );
+    } catch (e) {
+      final detail = e is DioException && e.response?.data is Map
+          ? (e.response!.data as Map)['detail']
+          : null;
+      setState(
+          () => _error = detail is String ? detail : text.passwordChangeFailed);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = _ProfileText.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(text.changePassword),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _currentCtrl,
+                obscureText: true,
+                autofillHints: const [AutofillHints.password],
+                decoration: InputDecoration(labelText: text.currentPassword),
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? text.currentPassword : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _newCtrl,
+                obscureText: true,
+                autofillHints: const [AutofillHints.newPassword],
+                decoration: InputDecoration(labelText: text.newPassword),
+                validator: (v) =>
+                    (v == null || v.length < 8) ? text.passwordTooShort : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _confirmCtrl,
+                obscureText: true,
+                decoration: InputDecoration(labelText: text.confirmPassword),
+                validator: (v) =>
+                    v != _newCtrl.text ? text.passwordMismatch : null,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                text.otherSessionsNote,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: _saving ? null : _submit,
+          child: _saving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(text.save),
+        ),
+      ],
+    );
+  }
+}
+
 class _ProfileText {
   final String languageCode;
 
@@ -437,16 +618,81 @@ class _ProfileText {
       : _fr
           ? 'Arabe'
           : 'Arabic';
+  String get devices => _ar
+      ? 'الأجهزة المتصلة'
+      : _fr
+          ? 'Appareils connectes'
+          : 'Connected devices';
+  String get changePassword => _ar
+      ? 'تغيير كلمة المرور'
+      : _fr
+          ? 'Changer le mot de passe'
+          : 'Change password';
+  String get currentPassword => _ar
+      ? 'كلمة المرور الحالية'
+      : _fr
+          ? 'Mot de passe actuel'
+          : 'Current password';
+  String get newPassword => _ar
+      ? 'كلمة المرور الجديدة'
+      : _fr
+          ? 'Nouveau mot de passe'
+          : 'New password';
+  String get confirmPassword => _ar
+      ? 'تأكيد كلمة المرور الجديدة'
+      : _fr
+          ? 'Confirmer le nouveau mot de passe'
+          : 'Confirm new password';
+  String get passwordTooShort => _ar
+      ? '8 أحرف على الأقل.'
+      : _fr
+          ? '8 caracteres minimum.'
+          : 'At least 8 characters.';
+  String get passwordMismatch => _ar
+      ? 'كلمتا المرور غير متطابقتين.'
+      : _fr
+          ? 'Les mots de passe ne correspondent pas.'
+          : 'The passwords do not match.';
+  String get otherSessionsNote => _ar
+      ? 'سيتم تسجيل خروج أجهزتك الأخرى.'
+      : _fr
+          ? 'Vos autres appareils seront deconnectes.'
+          : 'Your other devices will be signed out.';
+  String get passwordChanged => _ar
+      ? 'تم تغيير كلمة المرور.'
+      : _fr
+          ? 'Mot de passe modifie.'
+          : 'Password changed.';
+  String get passwordChangeFailed => _ar
+      ? 'تعذر تغيير كلمة المرور.'
+      : _fr
+          ? 'Impossible de changer le mot de passe.'
+          : 'Could not change the password.';
+  String get save => _ar
+      ? 'حفظ'
+      : _fr
+          ? 'Enregistrer'
+          : 'Save';
   String get deleteAccount => _ar
       ? 'حذف الحساب'
       : _fr
           ? 'Supprimer le compte'
           : 'Delete account';
   String get deleteAccountConfirm => _ar
-      ? 'هل أنت متأكد من حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.'
+      ? 'هل أنت متأكد من حذف حسابك؟ سيتم حذف معلوماتك الشخصية وفك الارتباط بأطفالك. لا يمكن التراجع عن هذا الإجراء.'
       : _fr
-          ? 'Voulez-vous vraiment supprimer votre compte ? Cette action est irreversible.'
-          : 'Are you sure you want to delete your account? This action cannot be undone.';
+          ? 'Voulez-vous vraiment supprimer votre compte ? Vos informations personnelles seront effacees et le lien avec vos enfants supprime. Cette action est irreversible.'
+          : 'Are you sure you want to delete your account? Your personal information will be erased and the link to your children removed. This action cannot be undone.';
+  String get staffDeletionInfo => _ar
+      ? 'حسابات الطاقم تديرها المؤسسة. لإغلاق حسابك، تواصل مع إدارة مؤسستك.'
+      : _fr
+          ? "Les comptes du personnel sont geres par l'etablissement. Pour fermer votre compte, contactez la direction de votre etablissement."
+          : 'Staff accounts are managed by the school. To close your account, contact your school administration.';
+  String get deleteAccountFailed => _ar
+      ? 'تعذر حذف الحساب. حاول مرة أخرى.'
+      : _fr
+          ? 'Impossible de supprimer le compte. Reessayez.'
+          : 'Could not delete the account. Please try again.';
   String avatarLabel(String name) => _ar
       ? 'الصورة الرمزية لـ $name'
       : _fr

@@ -8,6 +8,7 @@ import {
   setRememberDevicePreference,
   storeWorkspaceSessionItem,
 } from './workspace';
+import { DEMO_READ_ONLY_EVENT } from './demo';
 
 const apiBaseURL = import.meta.env.VITE_API_BASE_URL?.trim();
 const fallbackApiBaseURL = import.meta.env.DEV ? 'http://localhost:8000' : undefined;
@@ -111,6 +112,10 @@ api.interceptors.response.use(
   async (error: unknown) => {
     if (!axios.isAxiosError(error)) {
       return Promise.reject(error);
+    }
+
+    if (error.response?.status === 403 && error.response.headers?.['x-demo-read-only']) {
+      window.dispatchEvent(new Event(DEMO_READ_ONLY_EVENT));
     }
 
     const originalRequest = error.config as SessionRequestConfig | undefined;

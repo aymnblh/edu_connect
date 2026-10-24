@@ -1,4 +1,5 @@
 import uuid
+from app.modules.schools.calendar import algerian_trimesters
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,13 +7,14 @@ from sqlalchemy import select
 from app.core.rls import set_auth_lookup_email, set_request_rls_context
 from app.db.database import get_db
 from app.models import School, User, UserRole, Course, Semester
+from app.modules.schools.referral import new_referral_code
 from app.schemas import SchoolRegistration, UserOut
 from app.core.security import get_password_hash
 from app.core.rate_limit import check_rate_limit
 import hashlib
 
 router = APIRouter(prefix="/onboarding", tags=["Onboarding"])
-TERMS_VERSION = "privacy-terms-2026-05-13"
+TERMS_VERSION = "privacy-terms-2026-10-24"
 
 ALGERIAN_CORE_SUBJECTS = [
     "اللغة العربية (Arabic)", "الرياضيات (Mathematics)", "اللغة الفرنسية (French)",
@@ -23,11 +25,6 @@ ALGERIAN_CORE_SUBJECTS = [
     "التربية المدنية (Civic Education)", "الفلسفة (Philosophy)"
 ]
 
-ALGERIAN_TRIMESTERS = [
-    ("Trimester 1", 9, 15, 12, 15),
-    ("Trimester 2", 1, 5, 3, 25),
-    ("Trimester 3", 4, 5, 7, 5),
-]
 
 @router.post("/register-school", status_code=status.HTTP_201_CREATED)
 async def register_school(
@@ -62,6 +59,13 @@ async def register_school(
     if res.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Cet email est déjà utilisé.")
 
+    sponsor_id = None
+    if payload.referral_code and payload.referral_code.strip():
+        code = payload.referral_code.strip().upper()
+        sponsor_id = (await db.execute(select(School.id).where(School.referral_code == code))).scalar_one_or_none()
+        if sponsor_id is None:
+            raise HTTPException(status_code=400, detail="Code de parrainage inconnu. Verifiez-le ou laissez le champ vide.")
+
     # 2. Create School
     # Use first 3 letters of school name as ID prefix (e.g. "College El Amel" -> "COL")
     prefix = payload.school_name[:3].upper()
@@ -69,6 +73,8 @@ async def register_school(
         name=payload.school_name,
         student_id_prefix=prefix,
         is_active=False,
+        referral_code=new_referral_code(),
+        referred_by=sponsor_id,
         tenant_config={
             "active": False,
             "activated_at": None, 
@@ -100,13 +106,10 @@ async def register_school(
     for subject in ALGERIAN_CORE_SUBJECTS:
         db.add(Course(name=subject, school_id=school.id))
 
-    current_year = datetime.now().year
-    for name, sm, sd, em, ed in ALGERIAN_TRIMESTERS:
-        start_dt = datetime(current_year if sm > 8 else current_year + 1, sm, sd, tzinfo=timezone.utc)
-        end_dt = datetime(current_year if em > 8 else current_year + 1, em, ed, tzinfo=timezone.utc)
+    for name, start_dt, end_dt, is_active in algerian_trimesters():
         db.add(Semester(
             name=name, start_date=start_dt, end_date=end_dt,
-            school_id=school.id, is_active=(name == "Trimester 1")
+            school_id=school.id, is_active=is_active,
         ))
 
     await db.commit()

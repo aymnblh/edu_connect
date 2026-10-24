@@ -39,6 +39,22 @@ class AuthRepository {
     return _fetchAndSaveProfile();
   }
 
+  /// Whether the server offers the public, read-only demo school.
+  Future<bool> demoAvailable() async {
+    final response = await _api.get('/auth/demo');
+    return response is Map && response['enabled'] == true;
+  }
+
+  /// Opens a read-only session on the demo school as [role]
+  /// ('teacher' or 'parent'), without an account.
+  Future<UserModel> demoLogin(String role) async {
+    _signedOut = false;
+    final response = await _api.post('/auth/demo-login', data: {'role': role});
+    final data = response as Map<String, dynamic>;
+    await _saveTokens(data['access_token'], data['refresh_token']);
+    return _fetchAndSaveProfile();
+  }
+
   Future<UserModel> register({
     required String email,
     required String password,
@@ -64,6 +80,7 @@ class AuthRepository {
     required String adminEmail,
     required String adminPassword,
     required bool termsAccepted,
+    String? referralCode,
   }) async {
     await _api.post('/onboarding/register-school', data: {
       'school_name': schoolName,
@@ -71,6 +88,8 @@ class AuthRepository {
       'admin_email': adminEmail,
       'admin_password': adminPassword,
       'terms_accepted': termsAccepted,
+      if (referralCode != null && referralCode.isNotEmpty)
+        'referral_code': referralCode,
     });
     return true;
   }
@@ -186,6 +205,46 @@ class AuthRepository {
     await _storage.write(key: _userKey, value: jsonEncode(data));
     await NtfyService.instance.initialize();
     return user;
+  }
+
+  /// Change the password; the server signs out every other session and
+  /// returns a fresh token pair for this device.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final response = await _api.post('/auth/change-password', data: {
+      'current_password': currentPassword,
+      'new_password': newPassword,
+    });
+    final data = response as Map<String, dynamic>;
+    await _saveTokens(
+      data['access_token'] as String,
+      data['refresh_token'] as String,
+    );
+  }
+
+  /// Permanently delete (anonymize) the signed-in parent account.
+  Future<void> deleteAccount() async {
+    await _api.delete('/users/me');
+  }
+
+  Future<List<dynamic>> listSessions() async {
+    return await _api.get('/auth/sessions') as List<dynamic>;
+  }
+
+  Future<void> revokeSession(String familyId) async {
+    await _api.delete('/auth/sessions/$familyId');
+  }
+
+  /// Signs out every other device; this one continues with fresh tokens.
+  Future<void> revokeOtherSessions() async {
+    final data =
+        await _api.post('/auth/sessions/revoke-others') as Map<String, dynamic>;
+    await _saveTokens(
+      data['access_token'] as String,
+      data['refresh_token'] as String,
+    );
   }
 
   Future<void> _saveTokens(String access, String refresh) async {

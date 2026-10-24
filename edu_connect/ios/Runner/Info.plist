@@ -55,5 +55,7 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Wasel Edu uses the camera to scan student QR codes for account linking.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Wasel Edu accesses your photo library only when you choose a file or image to attach.</string>
 </dict>
 </plist>

@@ -12,3 +12,7 @@ from app.modules.notifications.models import *
 from app.modules.core.models import *
 from app.modules.schedule.models import *
 from app.modules.finance.models import *
+from app.modules.announcements.models import *
+from app.modules.reports.models import *
+from app.modules.meetings.models import *
+from app.modules.health.models import *

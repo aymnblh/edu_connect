@@ -322,9 +322,11 @@ export default function SuperAdminDashboard() {
     mutationFn: async (id: string) => {
       return api.post(`/system/schools/${id}/activate`);
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['schools'] });
-      addToast(t('superadmin.toastActivated'), 'success');
+      // The server says what came with activation (free trimester, referral months).
+      const detail = typeof res.data?.message === 'string' ? res.data.message : '';
+      addToast(detail || t('superadmin.toastActivated'), 'success');
     },
     onError: (err: unknown) => {
       const message = isAxiosError(err)

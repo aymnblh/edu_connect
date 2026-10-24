@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,8 @@ import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../class/data/repositories/admin_repository.dart';
+import '../../../class/presentation/providers/class_provider.dart';
 import '../../data/models/homework_model.dart';
 import '../providers/homework_provider.dart';
 
@@ -104,6 +107,8 @@ class HomeworkListScreen extends ConsumerWidget {
                               homework: entry.value,
                               index: entry.key,
                               isPast: false,
+                              canManage: user.isTeacher &&
+                                  entry.value.createdBy == user.id,
                             ),
                           ),
                       const SizedBox(height: 18),
@@ -115,6 +120,8 @@ class HomeworkListScreen extends ConsumerWidget {
                               homework: entry.value,
                               index: entry.key,
                               isPast: true,
+                              canManage: user.isTeacher &&
+                                  entry.value.createdBy == user.id,
                             ),
                           ),
                     ],
@@ -136,11 +143,13 @@ class HomeworkListScreen extends ConsumerWidget {
       backgroundColor:
           Theme.of(context).colorScheme.surface.withValues(alpha: 0),
       builder: (ctx) => _AddHomeworkSheet(
-        onSubmit: (subject, lessonContent, homeworkContent, dueDate) async {
+        classId: classId,
+        onSubmit: (course, lessonContent, homeworkContent, dueDate) async {
           final newHomework = HomeworkModel(
             id: '',
             classId: classId,
-            subject: subject,
+            courseId: course.courseId,
+            subject: course.courseName ?? '',
             lessonContent: lessonContent,
             homeworkContent: homeworkContent,
             dueDate: dueDate,
@@ -155,18 +164,20 @@ class HomeworkListScreen extends ConsumerWidget {
   }
 }
 
-class _AddHomeworkSheet extends StatefulWidget {
-  final Future<void> Function(String, String?, String, DateTime) onSubmit;
+class _AddHomeworkSheet extends ConsumerStatefulWidget {
+  final String classId;
+  final Future<void> Function(ClassCourseModel, String?, String, DateTime)
+      onSubmit;
 
-  const _AddHomeworkSheet({required this.onSubmit});
+  const _AddHomeworkSheet({required this.classId, required this.onSubmit});
 
   @override
-  State<_AddHomeworkSheet> createState() => _AddHomeworkSheetState();
+  ConsumerState<_AddHomeworkSheet> createState() => _AddHomeworkSheetState();
 }
 
-class _AddHomeworkSheetState extends State<_AddHomeworkSheet> {
+class _AddHomeworkSheetState extends ConsumerState<_AddHomeworkSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _subjectCtrl = TextEditingController();
+  String? _courseId;
   final _lessonCtrl = TextEditingController();
   final _homeworkCtrl = TextEditingController();
   DateTime? _dueDate;
@@ -174,7 +185,6 @@ class _AddHomeworkSheetState extends State<_AddHomeworkSheet> {
 
   @override
   void dispose() {
-    _subjectCtrl.dispose();
     _lessonCtrl.dispose();
     _homeworkCtrl.dispose();
     super.dispose();
@@ -195,6 +205,10 @@ class _AddHomeworkSheetState extends State<_AddHomeworkSheet> {
     final text = _HomeworkText.of(context);
     final colors = context.appColors;
     final colorScheme = Theme.of(context).colorScheme;
+    final coursesAsync = ref.watch(teacherCoursesProvider(widget.classId));
+    final courses = coursesAsync.valueOrNull ?? const <ClassCourseModel>[];
+    final selectedCourseId =
+        _courseId ?? (courses.length == 1 ? courses.first.courseId : null);
     return Container(
       decoration: BoxDecoration(
         color: colors.cardBg,
@@ -230,14 +244,38 @@ class _AddHomeworkSheetState extends State<_AddHomeworkSheet> {
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _subjectCtrl,
-                validator: (v) => Validators.required(v, text.subject),
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: text.subject,
-                  prefixIcon: const Icon(Icons.menu_book_outlined),
+              coursesAsync.when(
+                loading: () => const LinearProgressIndicator(),
+                error: (e, _) => Text(
+                  text.actionFailed(e),
+                  style: TextStyle(color: colorScheme.error),
                 ),
+                data: (_) => courses.isEmpty
+                    ? Text(
+                        text.noSubjectsAssigned,
+                        style: TextStyle(color: colorScheme.error),
+                      )
+                    : DropdownButtonFormField<String>(
+                        initialValue: selectedCourseId,
+                        isExpanded: true,
+                        validator: (v) =>
+                            Validators.required(v ?? '', text.subject),
+                        decoration: InputDecoration(
+                          labelText: text.subject,
+                          prefixIcon: const Icon(Icons.menu_book_outlined),
+                        ),
+                        items: [
+                          for (final course in courses)
+                            DropdownMenuItem(
+                              value: course.courseId,
+                              child: Text(
+                                course.courseName ?? course.courseId,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                        onChanged: (value) => setState(() => _courseId = value),
+                      ),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -300,14 +338,16 @@ class _AddHomeworkSheetState extends State<_AddHomeworkSheet> {
               ),
               const SizedBox(height: 18),
               ElevatedButton.icon(
-                onPressed: (_loading || _dueDate == null)
+                onPressed: (_loading || _dueDate == null || courses.isEmpty)
                     ? null
                     : () async {
                         if (!_formKey.currentState!.validate()) return;
+                        final course = courses.firstWhere(
+                            (item) => item.courseId == selectedCourseId);
                         setState(() => _loading = true);
                         try {
                           await widget.onSubmit(
-                            _subjectCtrl.text.trim(),
+                            course,
                             _lessonCtrl.text.trim().isEmpty
                                 ? null
                                 : _lessonCtrl.text.trim(),
@@ -385,19 +425,118 @@ class _HomeworkSummary extends StatelessWidget {
   }
 }
 
-class _HomeworkCard extends StatelessWidget {
+class _HomeworkCard extends ConsumerWidget {
   final HomeworkModel homework;
   final int index;
   final bool isPast;
+  final bool canManage;
 
   const _HomeworkCard({
     required this.homework,
     required this.index,
     required this.isPast,
+    this.canManage = false,
   });
 
+  String _serverMessage(Object error) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      final detail = data is Map ? data['detail'] : null;
+      if (detail is String) return detail;
+    }
+    return '$error';
+  }
+
+  Future<void> _run(BuildContext context, WidgetRef ref,
+      Future<void> Function() action, String done) async {
+    final text = _HomeworkText.of(context);
+    try {
+      await action();
+      ref.invalidate(homeworkProvider(homework.classId));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(done)));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(text.actionFailed(_serverMessage(e)))));
+      }
+    }
+  }
+
+  Future<void> _edit(BuildContext context, WidgetRef ref) async {
+    final text = _HomeworkText.of(context);
+    final ctrl = TextEditingController(text: homework.homeworkContent);
+    final value = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(text.editHomework),
+        content: TextField(
+          controller: ctrl,
+          minLines: 2,
+          maxLines: 6,
+          decoration: InputDecoration(labelText: text.homeworkToDo),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(text.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
+            child: Text(text.save),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    if (value == null || value.isEmpty || !context.mounted) return;
+    await _run(
+      context,
+      ref,
+      () => ref.read(homeworkRepositoryProvider).updateHomework(
+            classId: homework.classId,
+            homeworkId: homework.id,
+            homeworkContent: value,
+          ),
+      text.updated,
+    );
+  }
+
+  Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final text = _HomeworkText.of(context);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(text.delete),
+        content: Text(text.confirmDelete),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(text.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(text.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !context.mounted) return;
+    await _run(
+      context,
+      ref,
+      () => ref.read(homeworkRepositoryProvider).deleteHomework(
+            classId: homework.classId,
+            homeworkId: homework.id,
+          ),
+      text.deleted,
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = _HomeworkText.of(context);
     final colors = context.appColors;
     final colorScheme = Theme.of(context).colorScheme;
@@ -473,6 +612,28 @@ class _HomeworkCard extends StatelessWidget {
               ],
             ),
           ),
+          if (canManage)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _edit(context, ref),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: Text(text.edit),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _delete(context, ref),
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                    ),
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: Text(text.delete),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     )
@@ -751,6 +912,27 @@ class _HomeworkText {
     if (_fr) return fr;
     return en;
   }
+
+  String get edit => pick('تعديل', 'Modifier', 'Edit');
+  String get delete => pick('حذف', 'Supprimer', 'Delete');
+  String get cancel => pick('إلغاء', 'Annuler', 'Cancel');
+  String get save => pick('حفظ', 'Enregistrer', 'Save');
+  String get editHomework =>
+      pick('تعديل الواجب', 'Modifier le devoir', 'Edit homework');
+  String get confirmDelete => pick(
+      'حذف هذا الواجب نهائيا؟',
+      'Supprimer definitivement ce devoir ?',
+      'Delete this homework permanently?');
+  String get updated =>
+      pick('تم تعديل الواجب.', 'Devoir modifie.', 'Homework updated.');
+  String get deleted =>
+      pick('تم حذف الواجب.', 'Devoir supprime.', 'Homework deleted.');
+  String get noSubjectsAssigned => pick(
+      'لا توجد مادة مسندة إليك في هذا القسم.',
+      'Aucune matiere ne vous est attribuee dans cette classe.',
+      'No subject is assigned to you in this class.');
+  String actionFailed(Object error) => pick('تعذر تنفيذ العملية: $error',
+      'Operation impossible : $error', 'Action failed: $error');
 
   String get title => pick('الواجبات', 'Devoirs', 'Homework');
   String get refresh => pick('تحديث', 'Actualiser', 'Refresh');

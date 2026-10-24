@@ -1,8 +1,9 @@
 import enum
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
-from sqlalchemy import DateTime, Enum as SAEnum, Float, ForeignKey, String, Text
+from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -25,11 +26,15 @@ class TuitionInvoice(Base):
     school_id: Mapped[str] = mapped_column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=False, index=True)
     student_id: Mapped[str] = mapped_column(String(36), ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
     label: Mapped[str] = mapped_column(String(255), nullable=False)
-    amount_due: Mapped[float] = mapped_column(Float, nullable=False)
-    amount_paid: Mapped[float] = mapped_column(Float, default=0.0)
+    # Exact amounts in dinars, two decimals (never binary floating point).
+    amount_due: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    amount_paid: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=Decimal("0"))
     status: Mapped[TuitionInvoiceStatus] = mapped_column(SAEnum(TuitionInvoiceStatus), default=TuitionInvoiceStatus.unpaid)
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    # Payment reminders sent to the parents (manual or automatic).
+    last_reminded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reminder_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
     student: Mapped["Student"] = relationship("Student")
     payments: Mapped[list["TuitionPayment"]] = relationship("TuitionPayment", back_populates="invoice", cascade="all, delete-orphan")
@@ -42,7 +47,7 @@ class TuitionPayment(Base):
     school_id: Mapped[str] = mapped_column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=False, index=True)
     invoice_id: Mapped[str] = mapped_column(String(36), ForeignKey("tuition_invoices.id", ondelete="CASCADE"), nullable=False, index=True)
     student_id: Mapped[str] = mapped_column(String(36), ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
-    amount: Mapped[float] = mapped_column(Float, nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     payment_method: Mapped[str] = mapped_column(String(50), default="cash")
     receipt_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)

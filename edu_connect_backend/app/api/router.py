@@ -11,6 +11,12 @@ from app.modules.notifications.routers import notifications
 from app.modules.schedule.routers import schedule
 from app.modules.finance.routers import finance
 from app.modules.core.routers import media, security
+from app.modules.announcements.routers import announcements
+from app.modules.reports.routers import report_cards
+from app.modules.meetings.routers import meetings
+from app.modules.health.routers import health
+from app.modules.schools.routers import branding, director_views, setup
+from app.modules.reports.routers import monthly
 
 api_router = APIRouter()
 
@@ -26,10 +32,17 @@ api_router.include_router(users.router)
 api_router.include_router(admin.router)
 api_router.include_router(platform.router)
 api_router.include_router(system.router)
+api_router.include_router(director_views.router)
+api_router.include_router(setup.router)
+api_router.include_router(branding.router)
+api_router.include_router(monthly.router)
+api_router.include_router(health.router)
 
 # Academics
 api_router.include_router(classes.router)
 api_router.include_router(grades.router)
+api_router.include_router(report_cards.router)
+api_router.include_router(report_cards.public_router)
 api_router.include_router(homework.router)
 api_router.include_router(lessons.router)
 
@@ -41,8 +54,10 @@ api_router.include_router(remarks.router)
 api_router.include_router(chat.router)
 api_router.include_router(dm.router)
 
-# Notifications
+# Notifications & announcements
 api_router.include_router(notifications.router)
+api_router.include_router(announcements.router)
+api_router.include_router(meetings.router)
 
 # Schedule
 api_router.include_router(schedule.router)
