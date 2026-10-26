@@ -56,7 +56,7 @@ export default function ActivateAccount() {
     try {
       const res = await api.post<VerifiedInvite>('/auth/verify-code', { code: normalizedCode });
       const data = res.data;
-      if (!['teacher_invite', 'staff_invite'].includes(data.type)) {
+      if (!['teacher_invite', 'staff_invite', 'account_reset'].includes(data.type)) {
         setError(t('activate.unsupportedCode'));
         return;
       }

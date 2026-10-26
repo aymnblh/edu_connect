@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { BriefcaseBusiness, GraduationCap, ShieldCheck, Users } from 'lucide-react';
+import { BriefcaseBusiness, GraduationCap, HeartPulse, ShieldCheck, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { useLocale } from '../lib/i18n';
@@ -10,6 +10,7 @@ const roleIcons: Record<WorkspaceRole, typeof GraduationCap> = {
   principal: BriefcaseBusiness,
   secretary: BriefcaseBusiness,
   teacher: GraduationCap,
+  nurse: HeartPulse,
   parent: Users,
 };
 

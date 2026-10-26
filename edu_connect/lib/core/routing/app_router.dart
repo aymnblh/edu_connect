@@ -22,6 +22,14 @@ import '../../features/homework/presentation/screens/homework_list_screen.dart';
 import '../../features/lessons/presentation/screens/lesson_diary_screen.dart';
 import '../../features/grades/presentation/screens/grade_bulletin_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/announcements/presentation/announcements_screen.dart';
+import '../../features/report_cards/presentation/report_cards_screen.dart';
+import '../../features/meetings/presentation/meetings_screen.dart';
+import '../../features/fees/fees_screen.dart';
+import '../../features/health/health_screen.dart';
+import '../../features/infirmary/infirmary_screen.dart';
+import '../../features/director/fees_admin_screen.dart';
+import '../../features/director/monthly_report_screen.dart';
 import '../../features/class/presentation/screens/admin_tools_screen.dart';
 import '../../features/class/presentation/screens/course_library_screen.dart';
 import '../../features/class/presentation/screens/linking_hub_screen.dart';
@@ -77,6 +85,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         if (isLoggedIn) {
           final user = authState.valueOrNull;
           if (user?.isSystemAdmin ?? false) return '/superadmin';
+          if (user?.isNurse ?? false) return '/infirmary';
           if (user?.isAdmin ?? false) return '/dashboard';
           return '/classes';
         }
@@ -94,13 +103,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               location == '/create-school')) {
         final user = authState.valueOrNull;
         if (user?.isSystemAdmin ?? false) return '/superadmin';
+        if (user?.isNurse ?? false) return '/infirmary';
         if (user?.isAdmin ?? false) return '/dashboard';
         return '/classes';
       }
 
+      // The nurse account only reaches health sheets (the API refuses the rest).
+      if (!isLoading &&
+          (authState.valueOrNull?.isNurse ?? false) &&
+          !isAuthRoute &&
+          !const {'/infirmary', '/notifications', '/profile'}
+              .contains(location)) {
+        return '/infirmary';
+      }
+
       if (!isLoading &&
           isLoggedIn &&
-          location.startsWith('/admin-tools') &&
+          (location.startsWith('/admin-tools') ||
+              location.startsWith('/director/')) &&
           !(authState.valueOrNull?.isAdmin ?? false)) {
         return '/classes';
       }
@@ -197,6 +217,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/join-class',
         name: 'join-class',
+        redirect: (ctx, state) {
+          final user = ref.read(authNotifierProvider).valueOrNull;
+          if (user != null && !user.isParent) return '/classes';
+          return null;
+        },
         builder: (ctx, state) => const JoinClassScreen(),
       ),
       GoRoute(
@@ -298,6 +323,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/notifications',
         name: 'notifications',
         builder: (ctx, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/health',
+        name: 'health',
+        builder: (ctx, state) => const HealthScreen(),
+      ),
+      GoRoute(
+        path: '/director/monthly',
+        builder: (ctx, state) => const MonthlyReportScreen(),
+      ),
+      GoRoute(
+        path: '/director/fees',
+        builder: (ctx, state) => const FeesAdminScreen(),
+      ),
+      GoRoute(
+        path: '/infirmary',
+        name: 'infirmary',
+        builder: (ctx, state) => const InfirmaryScreen(),
+      ),
+      GoRoute(
+        path: '/fees',
+        name: 'fees',
+        builder: (ctx, state) => const FeesScreen(),
+      ),
+      GoRoute(
+        path: '/meetings',
+        name: 'meetings',
+        builder: (ctx, state) => const MeetingsScreen(),
+      ),
+      GoRoute(
+        path: '/report-cards',
+        name: 'report-cards',
+        builder: (ctx, state) => const ReportCardsScreen(),
+      ),
+      GoRoute(
+        path: '/announcements',
+        name: 'announcements',
+        builder: (ctx, state) => const AnnouncementsScreen(),
       ),
       GoRoute(
         path: '/profile',

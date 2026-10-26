@@ -30,6 +30,7 @@ class GradesNotifier extends StateNotifier<AsyncValue<void>> {
     required String studentName,
     required String subject,
     required double value,
+    String? courseId,
     String? comment,
   }) async {
     state = const AsyncValue.loading();
@@ -39,6 +40,7 @@ class GradesNotifier extends StateNotifier<AsyncValue<void>> {
         studentId: studentId,
         studentName: studentName,
         subject: subject,
+        courseId: courseId,
         score: value,
         comment: comment,
       );

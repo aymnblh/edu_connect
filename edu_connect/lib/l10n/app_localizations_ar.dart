@@ -353,4 +353,55 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get retry => 'إعادة المحاولة';
+
+  @override
+  String get superadminCreateSchool => 'إنشاء مؤسسة';
+
+  @override
+  String get superadminSchoolName => 'اسم المؤسسة';
+
+  @override
+  String get superadminCreate => 'إنشاء';
+
+  @override
+  String get superadminCreating => 'جارٍ الإنشاء...';
+
+  @override
+  String get superadminSchoolCreated => 'تم إنشاء المؤسسة بنجاح';
+
+  @override
+  String get superadminActivate => 'تفعيل';
+
+  @override
+  String get superadminSuspend => 'تعليق';
+
+  @override
+  String get superadminActivated => 'تم تفعيل المؤسسة';
+
+  @override
+  String get superadminSuspended => 'تم تعليق المؤسسة';
+
+  @override
+  String get superadminConfirmSuspend => 'هل تريد حقاً تعليق هذه المؤسسة؟';
+
+  @override
+  String get createStaffTitle => 'إنشاء حساب';
+
+  @override
+  String get createStaffHelp =>
+      'قم بدعوة أحد أعضاء الطاقم. سيقوم بتعيين كلمة المرور الخاصة به عند أول تسجيل دخول.';
+
+  @override
+  String get staffRole => 'الدور';
+
+  @override
+  String get roleTeacher => 'معلم';
+
+  @override
+  String get roleSecretary => 'أمين';
+
+  @override
+  String staffCreated(String name) {
+    return 'تم إنشاء حساب $name بنجاح';
+  }
 }

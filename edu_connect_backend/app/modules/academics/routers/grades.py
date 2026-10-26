@@ -3,21 +3,39 @@ import io
 from collections import defaultdict
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, select
+from sqlalchemy import and_, false, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.access import (
+    assert_scope_allows_course,
+    resolve_class_course,
+    teacher_course_scope as _teacher_course_scope,
     assert_class_read_access,
     assert_class_write_access,
     assert_parent_linked_to_student,
     assert_student_enrolled_in_class,
 )
+from app.core.audit import record_audit_event
 from app.core.security import get_current_user
 from app.db.database import get_db
-from app.models import Class, ClassCourse, ClassMember, Course, Grade, School, Semester, Student, StudentParent, User
+from app.models import (
+    Class,
+    ClassCourse,
+    ClassMember,
+    ClassTemporaryAccess,
+    Course,
+    Grade,
+    School,
+    Semester,
+    Student,
+    StudentParent,
+    User,
+    UserRole,
+)
 from app.schemas import GradeApprovalOut, GradeCreate, GradeOut
 from app.modules.academics.averages import (
     grade_response,
@@ -190,34 +208,6 @@ def _grade_value_for_column(grade: Grade, target_max: float) -> str:
     return _format_decimal(value)
 
 
-async def _resolve_grade_course(
-    cls: Class,
-    payload: GradeCreate,
-    db: AsyncSession,
-) -> Course | None:
-    base_stmt = (
-        select(Course)
-        .join(ClassCourse, ClassCourse.course_id == Course.id)
-        .where(
-            Course.school_id == cls.school_id,
-            ClassCourse.school_id == cls.school_id,
-            ClassCourse.class_id == cls.id,
-        )
-    )
-    if payload.course_id:
-        result = await db.execute(base_stmt.where(Course.id == payload.course_id))
-        course = result.scalar_one_or_none()
-        if not course:
-            raise HTTPException(status_code=404, detail="Matiere introuvable dans cette classe")
-        return course
-
-    subject = payload.subject.strip()
-    if not subject:
-        return None
-    result = await db.execute(base_stmt.where(func.lower(Course.name) == subject.lower()).limit(1))
-    return result.scalar_one_or_none()
-
-
 @router.post("/", response_model=GradeOut, status_code=201)
 async def add_grade(
     class_id: str,
@@ -232,7 +222,8 @@ async def add_grade(
         db,
         school_id=cls.school_id,
     )
-    course = await _resolve_grade_course(cls, payload, db)
+    course = await resolve_class_course(cls, course_id=payload.course_id, subject=payload.subject, db=db)
+    assert_scope_allows_course(await _teacher_course_scope(cls, current_user, db), course)
     grade_data = payload.model_dump(exclude={"student_name"})
     if course:
         grade_data["course_id"] = course.id
@@ -243,6 +234,7 @@ async def add_grade(
         class_id=class_id,
         school_id=cls.school_id,
         is_approved=False,
+        created_by=current_user.id,
     )
     db.add(grade)
     await db.commit()
@@ -266,6 +258,9 @@ async def list_grades(
         stmt = select(Grade).where(Grade.school_id == cls.school_id, Grade.class_id == class_id)
     elif current_user.role.value == "teacher":
         stmt = select(Grade).where(Grade.school_id == cls.school_id, Grade.class_id == class_id)
+        scope = await _teacher_course_scope(cls, current_user, db)
+        if scope is not None:
+            stmt = stmt.where(scope.grade_filter())
     else:
         stmt = (
             select(Grade)
@@ -311,6 +306,9 @@ async def student_grades(
             Grade.class_id == class_id,
             Grade.student_id == student_id,
         )
+        scope = await _teacher_course_scope(cls, current_user, db)
+        if scope is not None:
+            stmt = stmt.where(scope.grade_filter())
     else:
         stmt = select(Grade).join(StudentParent, StudentParent.student_id == Grade.student_id).where(
             Grade.school_id == cls.school_id,
@@ -325,6 +323,107 @@ async def student_grades(
     grades = result.scalars().all()
     coefficients = await load_grade_coefficients(db, grades)
     return [grade_response(grade, coefficients.get(grade.id, 1.0)) for grade in grades]
+
+
+class GradeUpdate(BaseModel):
+    score: float | None = Field(default=None, ge=0)
+    max_score: float | None = Field(default=None, gt=0)
+    comment: str | None = Field(default=None, max_length=2000)
+
+
+def _grade_snapshot(grade: Grade) -> dict:
+    return {"score": grade.score, "max_score": grade.max_score, "comment": grade.comment}
+
+
+async def _grade_for_change(class_id: str, grade_id: str, current_user: User, db: AsyncSession) -> tuple[Class, Grade]:
+    """Load a grade the caller may correct.
+
+    Teachers may only change unapproved grades of the subjects they teach in
+    the class; school administration may change any grade of its school.
+    """
+    cls = await _assert_grade_writer(class_id, current_user, db)
+    grade = await db.get(Grade, grade_id)
+    if not grade or grade.class_id != class_id or grade.school_id != cls.school_id:
+        raise HTTPException(status_code=404, detail="Note introuvable.")
+    if current_user.role == UserRole.teacher:
+        if grade.is_approved:
+            raise HTTPException(
+                status_code=409,
+                detail="Cette note est deja validee : seule l'administration peut la modifier.",
+            )
+        scope = await _teacher_course_scope(cls, current_user, db)
+        if scope is not None and not scope.allows(grade.course_id, grade.subject):
+            raise HTTPException(status_code=403, detail="Vous n'enseignez pas cette matiere dans cette classe.")
+    return cls, grade
+
+
+@router.patch("/{grade_id}", response_model=GradeOut)
+async def update_grade(
+    class_id: str,
+    grade_id: str,
+    payload: GradeUpdate,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    cls, grade = await _grade_for_change(class_id, grade_id, current_user, db)
+    before = _grade_snapshot(grade)
+    changes = payload.model_dump(exclude_unset=True)
+    score = changes.get("score", grade.score)
+    max_score = changes.get("max_score", grade.max_score)
+    if score is None or max_score is None or score > max_score:
+        raise HTTPException(status_code=400, detail="La note doit etre comprise entre 0 et la note maximale.")
+    for field, value in changes.items():
+        if field in ("score", "max_score") and value is None:
+            continue
+        setattr(grade, field, value)
+    await record_audit_event(
+        db,
+        action="grade.updated",
+        actor=current_user,
+        school_id=cls.school_id,
+        resource_type="grade",
+        resource_id=grade.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"student_id": grade.student_id, "before": before, "after": _grade_snapshot(grade)},
+    )
+    await db.commit()
+
+    result = await db.execute(select(Grade).where(Grade.id == grade.id).options(selectinload(Grade.student)))
+    saved_grade = result.scalar_one()
+    coefficients = await load_grade_coefficients(db, [saved_grade])
+    return grade_response(saved_grade, coefficients.get(saved_grade.id, 1.0))
+
+
+@router.delete("/{grade_id}")
+async def delete_grade(
+    class_id: str,
+    grade_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    cls, grade = await _grade_for_change(class_id, grade_id, current_user, db)
+    await record_audit_event(
+        db,
+        action="grade.deleted",
+        actor=current_user,
+        school_id=cls.school_id,
+        resource_type="grade",
+        resource_id=grade.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={
+            "student_id": grade.student_id,
+            "subject": grade.subject,
+            "was_approved": grade.is_approved,
+            **_grade_snapshot(grade),
+        },
+    )
+    await db.delete(grade)
+    await db.commit()
+    return {"status": "deleted"}
 
 
 @router.post("/{grade_id}/approve", response_model=GradeApprovalOut)
@@ -386,13 +485,15 @@ async def export_grades_raw(
     school = school_res.scalar_one_or_none()
     prefix = school.student_id_prefix if school and school.student_id_prefix else ""
 
-    grades_res = await db.execute(
-        select(Grade).where(
-            Grade.school_id == cls.school_id,
-            Grade.class_id == class_id,
-            Grade.is_approved == True,
-        )
+    scope = await _teacher_course_scope(cls, current_user, db)
+    grades_stmt = select(Grade).where(
+        Grade.school_id == cls.school_id,
+        Grade.class_id == class_id,
+        Grade.is_approved == True,
     )
+    if scope is not None:
+        grades_stmt = grades_stmt.where(scope.grade_filter())
+    grades_res = await db.execute(grades_stmt)
     grades = grades_res.scalars().all()
     coefficients = await load_grade_coefficients(db, grades)
 
@@ -499,8 +600,11 @@ async def export_grades(
     )
     modules: list[dict[str, object]] = []
     seen_courses: set[str] = set()
+    scope = await _teacher_course_scope(cls, current_user, db)
     for class_course, course, teacher_name in courses_res.all():
         if course.id in seen_courses:
+            continue
+        if scope is not None and not scope.allows(course.id, course.name):
             continue
         seen_courses.add(course.id)
         modules.append(
@@ -512,13 +616,14 @@ async def export_grades(
             }
         )
 
-    grades_res = await db.execute(
-        select(Grade).where(
-            Grade.school_id == cls.school_id,
-            Grade.class_id == class_id,
-            Grade.is_approved == True,
-        ).order_by(Grade.student_name, Grade.subject, Grade.date)
+    grades_stmt = select(Grade).where(
+        Grade.school_id == cls.school_id,
+        Grade.class_id == class_id,
+        Grade.is_approved == True,
     )
+    if scope is not None:
+        grades_stmt = grades_stmt.where(scope.grade_filter())
+    grades_res = await db.execute(grades_stmt.order_by(Grade.student_name, Grade.subject, Grade.date))
     grades = grades_res.scalars().all()
     coefficients = await load_grade_coefficients(db, grades)
 

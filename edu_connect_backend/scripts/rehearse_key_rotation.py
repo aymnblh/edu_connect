@@ -8,7 +8,7 @@ from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from jose import jwt
+import jwt
 
 
 ROOT = Path(__file__).resolve().parents[1]

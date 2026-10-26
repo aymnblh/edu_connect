@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
 
     app_env: str = "development"
+    # Logging: LOG_LEVEL (DEBUG/INFO/WARNING/ERROR) and LOG_FORMAT (json/text; json in production).
+    log_level: str = "INFO"
+    log_format: str = ""
     database_url: str
     redis_url: str = "redis://localhost:6379/0"
     private_key_path: str = "secrets/private_key.pem"
@@ -52,6 +55,14 @@ class Settings(BaseSettings):
     clamav_timeout_seconds: float = 15.0
     demo_seed_on_startup: bool = False
     demo_seed_reset_on_startup: bool = False
+    # Opens the demo school to anyone from the login page, read-only, refreshed every night.
+    public_demo_enabled: bool = False
+    # Hourly jobs in the API process (monthly report notifications, demo refresh).
+    background_jobs_enabled: bool = True
+    # Encryption key for health records (Fernet; `python manage.py generate-health-key`).
+    # Required in production. Old keys, comma-separated, keep older rows readable after a change.
+    health_data_key: str = ""
+    health_data_previous_keys: str = ""
 
     # In-memory keys (loaded at startup)
     private_key: str = ""
@@ -64,6 +75,12 @@ class Settings(BaseSettings):
         if value.startswith("postgresql://"):
             return value.replace("postgresql://", "postgresql+asyncpg://", 1)
         return value
+
+    @property
+    def resolved_log_format(self) -> str:
+        if self.log_format.lower() in {"json", "text"}:
+            return self.log_format.lower()
+        return "json" if self.is_production else "text"
 
     @property
     def is_production(self) -> bool:
@@ -164,6 +181,15 @@ class Settings(BaseSettings):
             and (not self.media_malware_scan_enabled or not self.media_malware_scan_required)
         ):
             errors.append("Media malware scanning must be enabled and required")
+        if not self.health_data_key.strip():
+            errors.append("HEALTH_DATA_KEY must be set (python manage.py generate-health-key)")
+        else:
+            try:
+                from cryptography.fernet import Fernet
+
+                Fernet(self.health_data_key.strip().encode())
+            except ValueError:
+                errors.append("HEALTH_DATA_KEY is not a valid key (python manage.py generate-health-key)")
         if self.previous_public_key and self.previous_public_key == self.public_key:
             errors.append("PREVIOUS_PUBLIC_KEY_PATH must not point at the current public key")
 

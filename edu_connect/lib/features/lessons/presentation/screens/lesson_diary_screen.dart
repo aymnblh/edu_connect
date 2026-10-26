@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/lesson_entry_model.dart';
+import '../../data/repositories/lesson_repository.dart';
 import '../providers/lesson_provider.dart';
 
 class LessonDiaryScreen extends ConsumerWidget {
@@ -84,6 +86,11 @@ class LessonDiaryScreen extends ConsumerWidget {
                       (entry) => _LessonCard(
                         lesson: entry.value,
                         index: entry.key,
+                        canManage: user != null &&
+                            (user.role == UserRole.principal ||
+                                user.role == UserRole.secretary ||
+                                (user.isTeacher &&
+                                    entry.value.teacherId == user.id)),
                       ),
                     ),
               ],
@@ -285,14 +292,107 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _LessonCard extends StatelessWidget {
+class _LessonCard extends ConsumerWidget {
   final LessonEntryModel lesson;
   final int index;
+  final bool canManage;
 
-  const _LessonCard({required this.lesson, required this.index});
+  const _LessonCard({
+    required this.lesson,
+    required this.index,
+    this.canManage = false,
+  });
+
+  Future<void> _run(BuildContext context, WidgetRef ref,
+      Future<void> Function() action, String done) async {
+    final text = _LessonText.of(context);
+    try {
+      await action();
+      ref.invalidate(lessonsProvider(lesson.classId));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(done)));
+      }
+    } catch (e) {
+      var message = '$e';
+      if (e is DioException && e.response?.data is Map) {
+        final detail = (e.response!.data as Map)['detail'];
+        if (detail is String) message = detail;
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(text.actionFailed(message))));
+      }
+    }
+  }
+
+  Future<void> _edit(BuildContext context, WidgetRef ref) async {
+    final text = _LessonText.of(context);
+    final ctrl = TextEditingController(text: lesson.content);
+    final value = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(text.editLesson),
+        content: TextField(controller: ctrl, minLines: 2, maxLines: 6),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(text.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
+            child: Text(text.save),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    if (value == null || value.isEmpty || !context.mounted) return;
+    await _run(
+      context,
+      ref,
+      () => ref.read(lessonRepositoryProvider).updateLesson(
+            classId: lesson.classId,
+            lessonId: lesson.id,
+            content: value,
+          ),
+      text.updated,
+    );
+  }
+
+  Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final text = _LessonText.of(context);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(text.delete),
+        content: Text(text.confirmDelete),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(text.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(text.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !context.mounted) return;
+    await _run(
+      context,
+      ref,
+      () => ref
+          .read(lessonRepositoryProvider)
+          .deleteLesson(classId: lesson.classId, lessonId: lesson.id),
+      text.deleted,
+    );
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = _LessonText.of(context);
     final colors = context.appColors;
     final colorScheme = Theme.of(context).colorScheme;
     final hasHomework = lesson.homeworkSummary != null &&
@@ -374,6 +474,28 @@ class _LessonCard extends StatelessWidget {
               ],
             ),
           ),
+          if (canManage)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _edit(context, ref),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: Text(text.edit),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _delete(context, ref),
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                    ),
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: Text(text.delete),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     )
@@ -608,6 +730,23 @@ class _LessonText {
     return en;
   }
 
+  String get edit => pick('تعديل', 'Modifier', 'Edit');
+  String get delete => pick('حذف', 'Supprimer', 'Delete');
+  String get cancel => pick('إلغاء', 'Annuler', 'Cancel');
+  String get save => pick('حفظ', 'Enregistrer', 'Save');
+  String get editLesson =>
+      pick('تعديل الحصة', 'Modifier la seance', 'Edit lesson');
+  String get confirmDelete => pick(
+      'حذف هذه الحصة نهائيا؟',
+      'Supprimer definitivement cette seance ?',
+      'Delete this lesson permanently?');
+  String get updated =>
+      pick('تم تعديل الحصة.', 'Seance modifiee.', 'Lesson updated.');
+  String get deleted =>
+      pick('تم حذف الحصة.', 'Seance supprimee.', 'Lesson deleted.');
+  String actionFailed(Object error) => pick('تعذر تنفيذ العملية: $error',
+      'Operation impossible : $error', 'Action failed: $error');
+
   String get title => pick('دفتر النصوص', 'Cahier de texte', 'Lesson diary');
   String get refresh => pick('تحديث', 'Actualiser', 'Refresh');
   String get courseShort => pick('درس', 'Cours', 'Lesson');
@@ -622,7 +761,6 @@ class _LessonText {
         'Matiere et contenu sont obligatoires.',
         'Subject and content are required.',
       );
-  String get save => pick('حفظ', 'Enregistrer', 'Save');
   String get headerTitle =>
       pick('السجل البيداغوجي', 'Journal pedagogique', 'Teaching journal');
   String get headerStaffSubtitle => pick(

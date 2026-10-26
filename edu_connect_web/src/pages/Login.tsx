@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldAlert, Sparkles, BookOpen, HeartHandshake, ShieldCheck } from 'lucide-react';
+import { ShieldAlert, GraduationCap, BookOpen, HeartHandshake, ShieldCheck, Eye, Building2, Presentation, Users } from 'lucide-react';
 import LocaleSwitcher from '../components/LocaleSwitcher';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { api, storeSessionTokens } from '../lib/api';
+import type { DemoRole } from '../lib/demo';
 import { useLocale } from '../lib/i18n';
 import {
   clearWorkspaceStorage,
@@ -22,6 +24,7 @@ export default function Login() {
   const [rememberDevice, setRememberDevice] = useState(readRememberDevicePreference);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState<DemoRole | null>(null);
   const navigate = useNavigate();
   const { activeRole, hasMultipleRoles, isAuthenticated, refreshWorkspace, routeForActiveRole } = useWorkspace();
   const { t } = useLocale();
@@ -30,6 +33,44 @@ export default function Login() {
     if (!isAuthenticated) return;
     navigate(hasMultipleRoles && !activeRole ? '/workspace/select' : routeForActiveRole(), { replace: true });
   }, [activeRole, hasMultipleRoles, isAuthenticated, navigate, routeForActiveRole]);
+
+  const demoQuery = useQuery<{ enabled: boolean }>({
+    queryKey: ['public-demo'],
+    queryFn: async () => (await api.get('/auth/demo')).data,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const showError = (err: unknown) => {
+    const detail = isAxiosError(err) ? err.response?.data?.detail : null;
+    setError(typeof detail === 'string' ? detail : detail?.message || t('auth.connectionError'));
+  };
+
+  const completeSignIn = async (tokens: { access_token: string; refresh_token: string }, remember: boolean) => {
+    clearWorkspaceStorage();
+    storeSessionTokens(tokens.access_token, tokens.refresh_token, remember);
+
+    const profileRes = await api.get('/users/me');
+    const user = profileRes.data;
+    storeWorkspaceSessionItem('user', JSON.stringify(user), remember);
+
+    const roles = workspaceRolesFromSession(user, tokens.access_token);
+    const activeRole = getInitialActiveRole(roles, null);
+    if (activeRole) {
+      storeWorkspaceSessionItem('active_workspace_role', activeRole, remember);
+    } else {
+      removeWorkspaceSessionItem('active_workspace_role');
+    }
+    refreshWorkspace();
+
+    if (roles.length > 1) {
+      navigate('/workspace/select');
+    } else if (roles.length === 1) {
+      navigate(routeForRole(roles[0]));
+    } else {
+      setError(t('auth.unauthorized'));
+    }
+  };
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -42,43 +83,40 @@ export default function Login() {
         password,
         remember_device: rememberDevice,
       });
-      clearWorkspaceStorage();
-      storeSessionTokens(res.data.access_token, res.data.refresh_token, rememberDevice);
-
-      const profileRes = await api.get('/users/me');
-      const user = profileRes.data;
-      storeWorkspaceSessionItem('user', JSON.stringify(user), rememberDevice);
-
-      const roles = workspaceRolesFromSession(user, res.data.access_token);
-      const activeRole = getInitialActiveRole(roles, null);
-      if (activeRole) {
-        storeWorkspaceSessionItem('active_workspace_role', activeRole, rememberDevice);
-      } else {
-        removeWorkspaceSessionItem('active_workspace_role');
-      }
-      refreshWorkspace();
-
-      if (roles.length > 1) {
-        navigate('/workspace/select');
-      } else if (roles.length === 1) {
-        navigate(routeForRole(roles[0]));
-      } else {
-        setError(t('auth.unauthorized'));
-      }
+      await completeSignIn(res.data, rememberDevice);
     } catch (err: unknown) {
-      const detail = isAxiosError(err) ? err.response?.data?.detail : null;
-      setError(typeof detail === 'string' ? detail : detail?.message || t('auth.connectionError'));
+      showError(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const openDemo = async (role: DemoRole) => {
+    setError('');
+    setDemoLoading(role);
+    try {
+      const res = await api.post('/auth/demo-login', { role });
+      // A demo visit never outlives the browser tab.
+      await completeSignIn(res.data, false);
+    } catch (err: unknown) {
+      showError(err);
+    } finally {
+      setDemoLoading(null);
+    }
+  };
+
+  const demoRoles: Array<{ role: DemoRole; icon: typeof Eye; labelKey: string }> = [
+    { role: 'principal', icon: Building2, labelKey: 'demo.asDirector' },
+    { role: 'teacher', icon: Presentation, labelKey: 'demo.asTeacher' },
+    { role: 'parent', icon: Users, labelKey: 'demo.asParent' },
+  ];
 
   return (
     <div className="login-splitscreen">
       <div className="login-brand-side">
         <div className="login-brand-content">
           <div className="login-kicker animate-fade-in">
-            <Sparkles size={14} /> {t('login.kicker')}
+            <GraduationCap size={14} /> {t('login.kicker')}
           </div>
           <h1 className="login-hero-title animate-fade-in delay-1">
             {t('login.heroTitleLine')} <br />
@@ -200,7 +238,33 @@ export default function Login() {
             <Link to="/register-school" className="link-hover-primary">
               {t('login.registerSchool')}
             </Link>
+            <Link to="/pricing" className="link-hover-primary">
+              {t('login.pricing')}
+            </Link>
           </div>
+
+          {demoQuery.data?.enabled && (
+            <section className="login-demo" aria-labelledby="login-demo-title">
+              <h3 id="login-demo-title" className="login-demo-title">
+                <Eye size={16} /> {t('demo.title')}
+              </h3>
+              <p className="login-demo-copy">{t('demo.copy')}</p>
+              <div className="login-demo-roles">
+                {demoRoles.map(({ role, icon: Icon, labelKey }) => (
+                  <button
+                    key={role}
+                    type="button"
+                    className="btn btn-secondary login-demo-role"
+                    disabled={demoLoading !== null || loading}
+                    aria-busy={demoLoading === role}
+                    onClick={() => void openDemo(role)}
+                  >
+                    <Icon size={16} /> {t(labelKey)}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>

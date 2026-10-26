@@ -1,0 +1,70 @@
+{
+ "month": "2026-10",
+ "previous_month": "2026-09",
+ "is_partial": true,
+ "current": {
+  "attendance_records": 192,
+  "attendance_rate": 92.2,
+  "absences": 15,
+  "unjustified_absences": 9,
+  "lates": 11,
+  "parent_notifications": 23,
+  "active_parents": 6,
+  "active_teachers": 4,
+  "grades_entered": 96,
+  "homework_posted": 12,
+  "lessons_logged": 12,
+  "messages": 6,
+  "announcements": 2,
+  "report_cards": 0,
+  "meetings_booked": 1,
+  "fees_collected": 50000.0
+ },
+ "previous": {
+  "attendance_records": 144,
+  "attendance_rate": 97.9,
+  "absences": 3,
+  "unjustified_absences": 2,
+  "lates": 7,
+  "parent_notifications": 4,
+  "active_parents": 6,
+  "active_teachers": 4,
+  "grades_entered": 48,
+  "homework_posted": 6,
+  "lessons_logged": 6,
+  "messages": 0,
+  "announcements": 0,
+  "report_cards": 0,
+  "meetings_booked": 0,
+  "fees_collected": 0.0
+ },
+ "snapshot": {
+  "students": 12,
+  "students_with_parent": 12,
+  "linked_parents": 6,
+  "teachers": 4
+ },
+ "parent_coverage": 100.0,
+ "active_parent_rate": 100.0,
+ "class_attendance": [
+  {
+   "class_id": "d6f2e30b-ee78-4217-9439-9742a4dbbf9c",
+   "class_name": "1AM-A",
+   "attendance_rate": 93.8
+  },
+  {
+   "class_id": "bd318efc-c6cd-4487-ad48-ca6562ba5dcc",
+   "class_name": "2AM-B",
+   "attendance_rate": 93.8
+  },
+  {
+   "class_id": "8a16d830-7ac9-47e2-bcd2-caec92768200",
+   "class_name": "3AP-A",
+   "attendance_rate": 89.1
+  }
+ ],
+ "available_months": [
+  "2026-10"
+ ],
+ "school_name": "EduConnect Demo Academy"
+}

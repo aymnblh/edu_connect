@@ -19,6 +19,1536 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'جار التحميل...',
     en: 'Loading...',
   },
+  'common.close': {
+    fr: 'Fermer',
+    ar: 'إغلاق',
+    en: 'Close',
+  },
+  'common.cancel': {
+    fr: 'Annuler',
+    ar: 'إلغاء',
+    en: 'Cancel',
+  },
+  'password.changeTitle': {
+    fr: 'Changer le mot de passe',
+    ar: 'تغيير كلمة المرور',
+    en: 'Change password',
+  },
+  'password.current': {
+    fr: 'Mot de passe actuel',
+    ar: 'كلمة المرور الحالية',
+    en: 'Current password',
+  },
+  'password.new': {
+    fr: 'Nouveau mot de passe (8 caractères minimum)',
+    ar: 'كلمة المرور الجديدة (8 أحرف على الأقل)',
+    en: 'New password (at least 8 characters)',
+  },
+  'password.confirm': {
+    fr: 'Confirmer le nouveau mot de passe',
+    ar: 'تأكيد كلمة المرور الجديدة',
+    en: 'Confirm new password',
+  },
+  'password.submit': {
+    fr: 'Enregistrer',
+    ar: 'حفظ',
+    en: 'Save',
+  },
+  'password.otherSessionsNote': {
+    fr: 'Vos autres appareils seront déconnectés.',
+    ar: 'سيتم تسجيل خروج أجهزتك الأخرى.',
+    en: 'Your other devices will be signed out.',
+  },
+  'password.tooShort': {
+    fr: 'Le nouveau mot de passe doit contenir au moins 8 caractères.',
+    ar: 'يجب أن تحتوي كلمة المرور الجديدة على 8 أحرف على الأقل.',
+    en: 'The new password must be at least 8 characters.',
+  },
+  'password.mismatch': {
+    fr: 'Les deux mots de passe ne correspondent pas.',
+    ar: 'كلمتا المرور غير متطابقتين.',
+    en: 'The two passwords do not match.',
+  },
+  'password.changeFailed': {
+    fr: 'Impossible de changer le mot de passe.',
+    ar: 'تعذر تغيير كلمة المرور.',
+    en: 'Could not change the password.',
+  },
+  'password.changed': {
+    fr: 'Mot de passe modifié. Vos autres appareils ont été déconnectés.',
+    ar: 'تم تغيير كلمة المرور. تم تسجيل خروج أجهزتك الأخرى.',
+    en: 'Password changed. Your other devices have been signed out.',
+  },
+  'common.save': {
+    fr: 'Enregistrer',
+    ar: 'حفظ',
+    en: 'Save',
+  },
+  'common.edit': {
+    fr: 'Modifier',
+    ar: 'تعديل',
+    en: 'Edit',
+  },
+  'common.delete': {
+    fr: 'Supprimer',
+    ar: 'حذف',
+    en: 'Delete',
+  },
+  'teacher.confirmDelete': {
+    fr: 'Supprimer définitivement cet élément ?',
+    ar: 'حذف هذا العنصر نهائيا؟',
+    en: 'Delete this entry permanently?',
+  },
+  'teacher.entryDeleted': {
+    fr: 'Élément supprimé.',
+    ar: 'تم الحذف.',
+    en: 'Entry deleted.',
+  },
+  'teacher.gradeScoreOutOf': {
+    fr: 'Note sur {max}',
+    ar: 'النقطة من {max}',
+    en: 'Score out of {max}',
+  },
+  'teacher.homeworkContentLabel': {
+    fr: 'Contenu du devoir',
+    ar: 'محتوى الواجب',
+    en: 'Homework content',
+  },
+  'teacher.homeworkDueLabel': {
+    fr: 'Date limite',
+    ar: 'آخر أجل',
+    en: 'Due date',
+  },
+  'nav.announcements': {
+    fr: 'Annonces et calendrier',
+    ar: 'الإعلانات والتقويم',
+    en: 'Announcements & calendar',
+  },
+  'director.tab.announcements': {
+    fr: 'Annonces',
+    ar: 'الإعلانات',
+    en: 'Announcements',
+  },
+  'announcements.tab': {
+    fr: 'Annonces',
+    ar: 'الإعلانات',
+    en: 'Announcements',
+  },
+  'announcements.newTitle': {
+    fr: 'Nouvelle annonce',
+    ar: 'إعلان جديد',
+    en: 'New announcement',
+  },
+  'announcements.title': {
+    fr: 'Titre',
+    ar: 'العنوان',
+    en: 'Title',
+  },
+  'announcements.body': {
+    fr: 'Message',
+    ar: 'الرسالة',
+    en: 'Message',
+  },
+  'announcements.category': {
+    fr: 'Type',
+    ar: 'النوع',
+    en: 'Type',
+  },
+  'announcements.category.announcement': {
+    fr: 'Annonce',
+    ar: 'إعلان',
+    en: 'Announcement',
+  },
+  'announcements.category.holiday': {
+    fr: 'Vacances',
+    ar: 'عطلة',
+    en: 'Holiday',
+  },
+  'announcements.category.exam_period': {
+    fr: 'Examens',
+    ar: 'امتحانات',
+    en: 'Exams',
+  },
+  'announcements.category.meeting': {
+    fr: 'Réunion',
+    ar: 'اجتماع',
+    en: 'Meeting',
+  },
+  'announcements.category.event': {
+    fr: 'Événement',
+    ar: 'حدث',
+    en: 'Event',
+  },
+  'announcements.startsOn': {
+    fr: 'Date',
+    ar: 'التاريخ',
+    en: 'Date',
+  },
+  'announcements.startsOnOptional': {
+    fr: 'Date (optionnelle)',
+    ar: 'التاريخ (اختياري)',
+    en: 'Date (optional)',
+  },
+  'announcements.endsOn': {
+    fr: 'Jusqu\'au (optionnel)',
+    ar: 'إلى غاية (اختياري)',
+    en: 'Until (optional)',
+  },
+  'announcements.audience': {
+    fr: 'Destinataires',
+    ar: 'المستلمون',
+    en: 'Recipients',
+  },
+  'announcements.wholeSchool': {
+    fr: 'Toute l\'école',
+    ar: 'كل المؤسسة',
+    en: 'Whole school',
+  },
+  'announcements.otherClass': {
+    fr: 'Classe',
+    ar: 'قسم',
+    en: 'Class',
+  },
+  'announcements.noClasses': {
+    fr: 'Aucune classe disponible.',
+    ar: 'لا يوجد قسم متاح.',
+    en: 'No class available.',
+  },
+  'announcements.publish': {
+    fr: 'Publier et notifier',
+    ar: 'نشر وإشعار',
+    en: 'Publish and notify',
+  },
+  'announcements.publishFailed': {
+    fr: 'Impossible de publier l\'annonce.',
+    ar: 'تعذر نشر الإعلان.',
+    en: 'Could not publish the announcement.',
+  },
+  'announcements.dateRequired': {
+    fr: 'Choisissez une date pour un événement du calendrier.',
+    ar: 'اختر تاريخا لحدث التقويم.',
+    en: 'Choose a date for a calendar event.',
+  },
+  'announcements.audienceRequired': {
+    fr: 'Choisissez au moins une classe ou toute l\'école.',
+    ar: 'اختر قسما واحدا على الأقل أو كل المؤسسة.',
+    en: 'Choose at least one class or the whole school.',
+  },
+  'announcements.calendarTitle': {
+    fr: 'À venir',
+    ar: 'القادم',
+    en: 'Coming up',
+  },
+  'announcements.calendarEmpty': {
+    fr: 'Aucun événement à venir.',
+    ar: 'لا توجد أحداث قادمة.',
+    en: 'No upcoming events.',
+  },
+  'announcements.listTitle': {
+    fr: 'Annonces',
+    ar: 'الإعلانات',
+    en: 'Announcements',
+  },
+  'announcements.empty': {
+    fr: 'Aucune annonce pour le moment.',
+    ar: 'لا توجد إعلانات حاليا.',
+    en: 'No announcements yet.',
+  },
+  'announcements.new': {
+    fr: 'Nouveau',
+    ar: 'جديد',
+    en: 'New',
+  },
+  'announcements.by': {
+    fr: 'Par {name}',
+    ar: 'بواسطة {name}',
+    en: 'By {name}',
+  },
+  'announcements.readBy': {
+    fr: 'Lu par {read}/{total}',
+    ar: 'قرأه {read}/{total}',
+    en: 'Read by {read}/{total}',
+  },
+  'announcements.dateRange': {
+    fr: 'Du {start} au {end}',
+    ar: 'من {start} إلى {end}',
+    en: 'From {start} to {end}',
+  },
+  'announcements.deleteConfirm': {
+    fr: 'Supprimer cette annonce pour tous les destinataires ?',
+    ar: 'حذف هذا الإعلان لجميع المستلمين؟',
+    en: 'Delete this announcement for all recipients?',
+  },
+  'nav.reportCards': {
+    fr: 'Bulletins',
+    ar: 'كشوف النقاط',
+    en: 'Report cards',
+  },
+  'director.tab.reports': {
+    fr: 'Bulletins',
+    ar: 'كشوف النقاط',
+    en: 'Report cards',
+  },
+  'reportCards.tab': {
+    fr: 'Bulletins',
+    ar: 'كشوف النقاط',
+    en: 'Report cards',
+  },
+  'reportCards.adminTitle': {
+    fr: 'Bulletins trimestriels',
+    ar: 'كشوف النقاط الفصلية',
+    en: 'Term report cards',
+  },
+  'reportCards.adminCopy': {
+    fr: 'Vérifiez les moyennes et les rangs, puis publiez : les parents sont notifiés. Seules les notes validées du trimestre comptent.',
+    ar: 'راجعوا المعدلات والرتب ثم انشروا: يتم إشعار الأولياء. تحتسب النقاط المصادق عليها خلال الفصل فقط.',
+    en: 'Check averages and ranks, then publish: parents are notified. Only approved grades of the term count.',
+  },
+  'reportCards.class': {
+    fr: 'Classe',
+    ar: 'القسم',
+    en: 'Class',
+  },
+  'reportCards.term': {
+    fr: 'Trimestre',
+    ar: 'الفصل',
+    en: 'Term',
+  },
+  'reportCards.statusDraft': {
+    fr: 'Non publié',
+    ar: 'غير منشور',
+    en: 'Not published',
+  },
+  'reportCards.statusPublished': {
+    fr: 'Publié le {date}',
+    ar: 'نشر في {date}',
+    en: 'Published on {date}',
+  },
+  'reportCards.publish': {
+    fr: 'Publier les bulletins',
+    ar: 'نشر الكشوف',
+    en: 'Publish report cards',
+  },
+  'reportCards.republish': {
+    fr: 'Republier (mise à jour)',
+    ar: 'إعادة النشر (تحديث)',
+    en: 'Re-publish (update)',
+  },
+  'reportCards.unpublish': {
+    fr: 'Retirer la publication',
+    ar: 'سحب النشر',
+    en: 'Unpublish',
+  },
+  'reportCards.publishConfirm': {
+    fr: 'Publier {count} bulletins et notifier les parents ?',
+    ar: 'نشر {count} كشفا وإشعار الأولياء؟',
+    en: 'Publish {count} report cards and notify parents?',
+  },
+  'reportCards.republishConfirm': {
+    fr: 'Remplacer les bulletins publiés par la version actuelle ({count}) et prévenir les parents ?',
+    ar: 'استبدال الكشوف المنشورة بالنسخة الحالية ({count}) وإشعار الأولياء؟',
+    en: 'Replace the published report cards with the current version ({count}) and notify parents?',
+  },
+  'reportCards.unpublishConfirm': {
+    fr: 'Retirer ces bulletins ? Les parents ne pourront plus les consulter.',
+    ar: 'سحب هذه الكشوف؟ لن يتمكن الأولياء من الاطلاع عليها.',
+    en: 'Unpublish these report cards? Parents will no longer see them.',
+  },
+  'reportCards.publishedNotice': {
+    fr: '{count} bulletins publiés, {parents} notifications envoyées.',
+    ar: 'تم نشر {count} كشفا وإرسال {parents} إشعارا.',
+    en: '{count} report cards published, {parents} notifications sent.',
+  },
+  'reportCards.unpublishedNotice': {
+    fr: 'Publication retirée.',
+    ar: 'تم سحب النشر.',
+    en: 'Report cards unpublished.',
+  },
+  'reportCards.noStudents': {
+    fr: 'Aucun élève dans cette classe.',
+    ar: 'لا يوجد تلاميذ في هذا القسم.',
+    en: 'No students in this class.',
+  },
+  'reportCards.student': {
+    fr: 'Élève',
+    ar: 'التلميذ',
+    en: 'Student',
+  },
+  'reportCards.absencesShort': {
+    fr: 'Absences',
+    ar: 'الغيابات',
+    en: 'Absences',
+  },
+  'reportCards.draft': {
+    fr: 'Aperçu (non publié)',
+    ar: 'معاينة (غير منشورة)',
+    en: 'Preview (not published)',
+  },
+  'reportCards.print': {
+    fr: 'Imprimer / PDF',
+    ar: 'طباعة / PDF',
+    en: 'Print / PDF',
+  },
+  'reportCards.sheetTitle': {
+    fr: 'Bulletin de notes — {term}',
+    ar: 'كشف النقاط — {term}',
+    en: 'Report card — {term}',
+  },
+  'reportCards.period': {
+    fr: 'Période du {start} au {end}',
+    ar: 'الفترة من {start} إلى {end}',
+    en: 'Period {start} to {end}',
+  },
+  'reportCards.studentNumber': {
+    fr: 'Matricule : {number}',
+    ar: 'رقم التسجيل: {number}',
+    en: 'Student no. {number}',
+  },
+  'reportCards.className': {
+    fr: 'Classe : {name}',
+    ar: 'القسم: {name}',
+    en: 'Class: {name}',
+  },
+  'reportCards.subject': {
+    fr: 'Matière',
+    ar: 'المادة',
+    en: 'Subject',
+  },
+  'reportCards.coefficient': {
+    fr: 'Coef.',
+    ar: 'المعامل',
+    en: 'Coef.',
+  },
+  'reportCards.average': {
+    fr: 'Moyenne',
+    ar: 'المعدل',
+    en: 'Average',
+  },
+  'reportCards.classAverage': {
+    fr: 'Moy. classe',
+    ar: 'معدل القسم',
+    en: 'Class avg.',
+  },
+  'reportCards.overall': {
+    fr: 'Moyenne générale',
+    ar: 'المعدل العام',
+    en: 'Overall average',
+  },
+  'reportCards.rank': {
+    fr: 'Rang',
+    ar: 'الرتبة',
+    en: 'Rank',
+  },
+  'reportCards.rankOf': {
+    fr: '{rank} / {size}',
+    ar: '{rank} / {size}',
+    en: '{rank} / {size}',
+  },
+  'reportCards.classOverall': {
+    fr: 'Moyenne de la classe',
+    ar: 'معدل القسم العام',
+    en: 'Class average',
+  },
+  'reportCards.attendance': {
+    fr: 'Assiduité',
+    ar: 'المواظبة',
+    en: 'Attendance',
+  },
+  'reportCards.attendanceCounts': {
+    fr: '{absences} absence(s) dont {justified} justifiée(s), {lates} retard(s)',
+    ar: '{absences} غياب منها {justified} مبرر، {lates} تأخر',
+    en: '{absences} absence(s), {justified} justified, {lates} late',
+  },
+  'reportCards.publishedOn': {
+    fr: 'Publié le {date}',
+    ar: 'نشر في {date}',
+    en: 'Published on {date}',
+  },
+  'reportCards.parentEmpty': {
+    fr: 'Aucun bulletin publié pour le moment.',
+    ar: 'لا يوجد كشف نقاط منشور حاليا.',
+    en: 'No report card published yet.',
+  },
+  'meetings.tab': {
+    fr: 'Rendez-vous',
+    ar: 'المواعيد',
+    en: 'Meetings',
+  },
+  'meetings.openTitle': {
+    fr: 'Proposer des rendez-vous',
+    ar: 'اقتراح مواعيد',
+    en: 'Offer meetings',
+  },
+  'meetings.openCopy': {
+    fr: 'La plage est découpée en créneaux que les parents de vos élèves peuvent réserver.',
+    ar: 'تقسم الفترة إلى مواعيد يمكن لأولياء تلاميذك حجزها.',
+    en: 'The time range is split into slots your students\' parents can book.',
+  },
+  'meetings.date': {
+    fr: 'Jour',
+    ar: 'اليوم',
+    en: 'Day',
+  },
+  'meetings.from': {
+    fr: 'De',
+    ar: 'من',
+    en: 'From',
+  },
+  'meetings.to': {
+    fr: 'À',
+    ar: 'إلى',
+    en: 'To',
+  },
+  'meetings.duration': {
+    fr: 'Durée d\'un rendez-vous',
+    ar: 'مدة الموعد',
+    en: 'Meeting length',
+  },
+  'meetings.minutes': {
+    fr: '{count} min',
+    ar: '{count} د',
+    en: '{count} min',
+  },
+  'meetings.location': {
+    fr: 'Lieu (optionnel)',
+    ar: 'المكان (اختياري)',
+    en: 'Place (optional)',
+  },
+  'meetings.forClass': {
+    fr: 'Parents concernés',
+    ar: 'الأولياء المعنيون',
+    en: 'Which parents',
+  },
+  'meetings.allMyClasses': {
+    fr: 'Toutes mes classes',
+    ar: 'كل أقسامي',
+    en: 'All my classes',
+  },
+  'meetings.open': {
+    fr: 'Ouvrir les créneaux',
+    ar: 'فتح المواعيد',
+    en: 'Open slots',
+  },
+  'meetings.created': {
+    fr: '{count} créneaux ouverts.',
+    ar: 'تم فتح {count} موعدا.',
+    en: '{count} slots opened.',
+  },
+  'meetings.mySlots': {
+    fr: 'Mes créneaux',
+    ar: 'مواعيدي',
+    en: 'My slots',
+  },
+  'meetings.noSlots': {
+    fr: 'Aucun créneau à venir.',
+    ar: 'لا توجد مواعيد قادمة.',
+    en: 'No upcoming slots.',
+  },
+  'meetings.free': {
+    fr: 'Libre',
+    ar: 'متاح',
+    en: 'Free',
+  },
+  'meetings.bookedBy': {
+    fr: 'Réservé par {parent} ({student})',
+    ar: 'محجوز من طرف {parent} ({student})',
+    en: 'Booked by {parent} ({student})',
+  },
+  'meetings.freeSlot': {
+    fr: 'Libérer',
+    ar: 'تحرير',
+    en: 'Free up',
+  },
+  'meetings.freeConfirm': {
+    fr: 'Annuler cette réservation ? Le parent sera prévenu et le créneau redeviendra libre.',
+    ar: 'إلغاء هذا الحجز؟ سيتم إعلام الولي وسيصبح الموعد متاحا.',
+    en: 'Cancel this booking? The parent is told and the slot becomes free again.',
+  },
+  'meetings.deleteConfirm': {
+    fr: 'Supprimer ce créneau ? Si un parent l\'a réservé, il sera prévenu.',
+    ar: 'حذف هذا الموعد؟ إذا كان محجوزا سيتم إعلام الولي.',
+    en: 'Delete this slot? If a parent booked it, they are told.',
+  },
+  'meetings.myMeetings': {
+    fr: 'Mes rendez-vous',
+    ar: 'مواعيدي',
+    en: 'My meetings',
+  },
+  'meetings.noBooking': {
+    fr: 'Aucun rendez-vous réservé pour cet enfant.',
+    ar: 'لا يوجد موعد محجوز لهذا الطفل.',
+    en: 'No meeting booked for this child.',
+  },
+  'meetings.cancel': {
+    fr: 'Annuler',
+    ar: 'إلغاء',
+    en: 'Cancel',
+  },
+  'meetings.cancelConfirm': {
+    fr: 'Annuler ce rendez-vous ? L\'enseignant sera prévenu.',
+    ar: 'إلغاء هذا الموعد؟ سيتم إعلام الأستاذ.',
+    en: 'Cancel this meeting? The teacher is told.',
+  },
+  'meetings.available': {
+    fr: 'Créneaux disponibles',
+    ar: 'المواعيد المتاحة',
+    en: 'Available slots',
+  },
+  'meetings.noneAvailable': {
+    fr: 'Aucun créneau proposé par les enseignants pour le moment.',
+    ar: 'لم يقترح الأساتذة أي موعد حاليا.',
+    en: 'No slots offered by teachers yet.',
+  },
+  'meetings.notePlaceholder': {
+    fr: 'Sujet (optionnel)',
+    ar: 'الموضوع (اختياري)',
+    en: 'Topic (optional)',
+  },
+  'meetings.book': {
+    fr: 'Réserver ce créneau',
+    ar: 'حجز هذا الموعد',
+    en: 'Book this slot',
+  },
+  'meetings.bookedNotice': {
+    fr: 'Rendez-vous réservé. L\'enseignant a été prévenu.',
+    ar: 'تم حجز الموعد وإعلام الأستاذ.',
+    en: 'Meeting booked. The teacher has been told.',
+  },
+  'insights.title': {
+    fr: 'Vigilance du trimestre',
+    ar: 'متابعة الفصل',
+    en: 'Term early warning',
+  },
+  'insights.copy': {
+    fr: 'Élèves à suivre, assiduité et tâches en attente.',
+    ar: 'التلاميذ الواجب متابعتهم، المواظبة والمهام المعلقة.',
+    en: 'Students to follow up, attendance and pending tasks.',
+  },
+  'insights.copyCompare': {
+    fr: 'Élèves à suivre (comparaison avec {previous}), assiduité et tâches en attente.',
+    ar: 'التلاميذ الواجب متابعتهم (مقارنة مع {previous})، المواظبة والمهام المعلقة.',
+    en: 'Students to follow up (compared with {previous}), attendance and pending tasks.',
+  },
+  'insights.atRiskCount': {
+    fr: 'élèves à suivre',
+    ar: 'تلميذ للمتابعة',
+    en: 'students to follow up',
+  },
+  'insights.pendingApprovals': {
+    fr: 'notes à valider',
+    ar: 'نقطة للمصادقة',
+    en: 'grades to approve',
+  },
+  'insights.unjustified30d': {
+    fr: 'absences non justifiées (30 j)',
+    ar: 'غياب غير مبرر (30 يوما)',
+    en: 'unexcused absences (30 days)',
+  },
+  'insights.trendTitle': {
+    fr: 'Assiduité par semaine (12 dernières semaines)',
+    ar: 'المواظبة أسبوعيا (آخر 12 أسبوعا)',
+    en: 'Weekly attendance (last 12 weeks)',
+  },
+  'insights.trendAria': {
+    fr: 'Courbes du taux d\'absence et du taux de retard par semaine scolaire.',
+    ar: 'منحنى نسبة الغياب ونسبة التأخر لكل أسبوع دراسي.',
+    en: 'Lines of the absence rate and late rate per school week.',
+  },
+  'insights.absenceRate': {
+    fr: 'Taux d\'absence',
+    ar: 'نسبة الغياب',
+    en: 'Absence rate',
+  },
+  'insights.lateRate': {
+    fr: 'Taux de retard',
+    ar: 'نسبة التأخر',
+    en: 'Late rate',
+  },
+  'insights.absencesShort': {
+    fr: 'Absences',
+    ar: 'الغياب',
+    en: 'Absences',
+  },
+  'insights.latesShort': {
+    fr: 'Retards',
+    ar: 'التأخر',
+    en: 'Lates',
+  },
+  'insights.weekOf': {
+    fr: 'Semaine du {date}',
+    ar: 'أسبوع {date}',
+    en: 'Week of {date}',
+  },
+  'insights.records': {
+    fr: '{count} pointages',
+    ar: '{count} تسجيل',
+    en: '{count} records',
+  },
+  'insights.noRecords': {
+    fr: 'Aucun pointage cette semaine',
+    ar: 'لا توجد تسجيلات هذا الأسبوع',
+    en: 'No attendance recorded this week',
+  },
+  'insights.recordsShort': {
+    fr: 'Pointages',
+    ar: 'التسجيلات',
+    en: 'Records',
+  },
+  'insights.week': {
+    fr: 'Semaine',
+    ar: 'الأسبوع',
+    en: 'Week',
+  },
+  'insights.showTable': {
+    fr: 'Voir les chiffres',
+    ar: 'عرض الأرقام',
+    en: 'Show the numbers',
+  },
+  'insights.hideTable': {
+    fr: 'Masquer les chiffres',
+    ar: 'إخفاء الأرقام',
+    en: 'Hide the numbers',
+  },
+  'insights.atRiskTitle': {
+    fr: 'Élèves à suivre',
+    ar: 'تلاميذ للمتابعة',
+    en: 'Students to follow up',
+  },
+  'insights.rulesHelp': {
+    fr: 'Moyenne < 10, baisse de 2 points ou plus depuis le trimestre précédent, 3 absences non justifiées ou 5 retards sur 30 jours.',
+    ar: 'معدل أقل من 10، تراجع بنقطتين أو أكثر عن الفصل السابق، 3 غيابات غير مبررة أو 5 تأخرات خلال 30 يوما.',
+    en: 'Average below 10, a drop of 2+ points since last term, 3 unexcused absences or 5 late arrivals in 30 days.',
+  },
+  'insights.atRiskEmpty': {
+    fr: 'Aucun élève ne correspond aux critères.',
+    ar: 'لا يوجد تلميذ معني بهذه المعايير.',
+    en: 'No student matches the criteria.',
+  },
+  'insights.average': {
+    fr: 'Moyenne',
+    ar: 'المعدل',
+    en: 'Average',
+  },
+  'insights.before': {
+    fr: 'avant : {value}',
+    ar: 'سابقا: {value}',
+    en: 'before: {value}',
+  },
+  'insights.last30d': {
+    fr: '30 derniers jours',
+    ar: 'آخر 30 يوما',
+    en: 'Last 30 days',
+  },
+  'insights.recentCounts': {
+    fr: '{absences} abs. non just., {lates} retards',
+    ar: '{absences} غياب غير مبرر، {lates} تأخر',
+    en: '{absences} unexcused abs., {lates} late',
+  },
+  'insights.reasons': {
+    fr: 'Motifs',
+    ar: 'الأسباب',
+    en: 'Reasons',
+  },
+  'insights.reason.low_average': {
+    fr: 'Moyenne < 10',
+    ar: 'معدل أقل من 10',
+    en: 'Average < 10',
+  },
+  'insights.reason.dropping': {
+    fr: 'En baisse',
+    ar: 'في تراجع',
+    en: 'Dropping',
+  },
+  'insights.reason.absences': {
+    fr: 'Absences',
+    ar: 'غيابات',
+    en: 'Absences',
+  },
+  'insights.reason.lateness': {
+    fr: 'Retards',
+    ar: 'تأخرات',
+    en: 'Lateness',
+  },
+  'insights.classTitle': {
+    fr: 'Assiduité par classe (trimestre)',
+    ar: 'المواظبة حسب القسم (الفصل)',
+    en: 'Attendance by class (term)',
+  },
+  'insights.classEmpty': {
+    fr: 'Aucun pointage ce trimestre.',
+    ar: 'لا توجد تسجيلات حضور هذا الفصل.',
+    en: 'No attendance recorded this term.',
+  },
+  'nav.auditLog': {
+    fr: 'Journal d\'activité',
+    ar: 'سجل النشاط',
+    en: 'Activity log',
+  },
+  'director.tab.journal': {
+    fr: 'Journal',
+    ar: 'السجل',
+    en: 'Log',
+  },
+  'director.signOut': {
+    fr: 'Déconnecter',
+    ar: 'تسجيل الخروج',
+    en: 'Sign out',
+  },
+  'director.signOutConfirm': {
+    fr: 'Déconnecter {name} de tous ses appareils ? Son mot de passe reste valable.',
+    ar: 'تسجيل خروج {name} من كل أجهزته؟ تبقى كلمة المرور صالحة.',
+    en: 'Sign {name} out of every device? Their password still works.',
+  },
+  'director.toast.signedOut': {
+    fr: 'Déconnecté de tous les appareils.',
+    ar: 'تم تسجيل الخروج من كل الأجهزة.',
+    en: 'Signed out of every device.',
+  },
+  'audit.title': {
+    fr: 'Journal d\'activité',
+    ar: 'سجل النشاط',
+    en: 'Activity log',
+  },
+  'audit.copy': {
+    fr: 'Qui a fait quoi et quand : connexions, échecs de connexion, modifications de notes, réinitialisations, publications…',
+    ar: 'من فعل ماذا ومتى: تسجيلات الدخول، المحاولات الفاشلة، تعديل النقاط، إعادة التعيين، النشر…',
+    en: 'Who did what and when: sign-ins, failed sign-ins, grade changes, resets, publications…',
+  },
+  'audit.export': {
+    fr: 'Exporter (CSV)',
+    ar: 'تصدير (CSV)',
+    en: 'Export (CSV)',
+  },
+  'audit.exportFailed': {
+    fr: 'Export impossible.',
+    ar: 'تعذر التصدير.',
+    en: 'Export failed.',
+  },
+  'audit.category': {
+    fr: 'Catégorie',
+    ar: 'الفئة',
+    en: 'Category',
+  },
+  'audit.allCategories': {
+    fr: 'Toutes',
+    ar: 'الكل',
+    en: 'All',
+  },
+  'audit.person': {
+    fr: 'Personne',
+    ar: 'الشخص',
+    en: 'Person',
+  },
+  'audit.everyone': {
+    fr: 'Tout le monde',
+    ar: 'الجميع',
+    en: 'Everyone',
+  },
+  'audit.from': {
+    fr: 'Du',
+    ar: 'من',
+    en: 'From',
+  },
+  'audit.to': {
+    fr: 'Au',
+    ar: 'إلى',
+    en: 'To',
+  },
+  'audit.technical': {
+    fr: 'Afficher aussi les requêtes techniques (http.*)',
+    ar: 'عرض الطلبات التقنية أيضا (http.*)',
+    en: 'Also show technical requests (http.*)',
+  },
+  'audit.empty': {
+    fr: 'Aucune entrée pour ces filtres.',
+    ar: 'لا توجد عناصر لهذه المعايير.',
+    en: 'No entries for these filters.',
+  },
+  'audit.when': {
+    fr: 'Date',
+    ar: 'التاريخ',
+    en: 'When',
+  },
+  'audit.action': {
+    fr: 'Action',
+    ar: 'الإجراء',
+    en: 'Action',
+  },
+  'audit.details': {
+    fr: 'Détails',
+    ar: 'التفاصيل',
+    en: 'Details',
+  },
+  'audit.origin': {
+    fr: 'Origine',
+    ar: 'المصدر',
+    en: 'Origin',
+  },
+  'audit.unknownPerson': {
+    fr: '—',
+    ar: '—',
+    en: '—',
+  },
+  'audit.more': {
+    fr: 'Afficher plus',
+    ar: 'عرض المزيد',
+    en: 'Load more',
+  },
+  'audit.category.auth': {
+    fr: 'Connexions',
+    ar: 'تسجيلات الدخول',
+    en: 'Sign-ins',
+  },
+  'audit.category.user': {
+    fr: 'Comptes (déconnexions)',
+    ar: 'الحسابات (الخروج)',
+    en: 'Accounts (sign-outs)',
+  },
+  'audit.category.staff': {
+    fr: 'Personnel',
+    ar: 'الطاقم',
+    en: 'Staff',
+  },
+  'audit.category.parent': {
+    fr: 'Parents',
+    ar: 'الأولياء',
+    en: 'Parents',
+  },
+  'audit.category.account': {
+    fr: 'Suppressions de compte',
+    ar: 'حذف الحسابات',
+    en: 'Account deletions',
+  },
+  'audit.category.grade': {
+    fr: 'Notes',
+    ar: 'النقاط',
+    en: 'Grades',
+  },
+  'audit.category.attendance': {
+    fr: 'Présences',
+    ar: 'الحضور',
+    en: 'Attendance',
+  },
+  'audit.category.homework': {
+    fr: 'Devoirs',
+    ar: 'الواجبات',
+    en: 'Homework',
+  },
+  'audit.category.lesson': {
+    fr: 'Cahier de textes',
+    ar: 'دفتر النصوص',
+    en: 'Lesson diary',
+  },
+  'audit.category.student': {
+    fr: 'Élèves et liens parents',
+    ar: 'التلاميذ وربط الأولياء',
+    en: 'Students and parent links',
+  },
+  'audit.category.report_cards': {
+    fr: 'Bulletins',
+    ar: 'كشوف النقاط',
+    en: 'Report cards',
+  },
+  'audit.category.announcement': {
+    fr: 'Annonces',
+    ar: 'الإعلانات',
+    en: 'Announcements',
+  },
+  'audit.category.dm': {
+    fr: 'Messagerie',
+    ar: 'المراسلة',
+    en: 'Messaging',
+  },
+  'audit.category.data_export': {
+    fr: 'Exports de données',
+    ar: 'تصدير البيانات',
+    en: 'Data exports',
+  },
+  'audit.category.audit': {
+    fr: 'Exports du journal',
+    ar: 'تصدير السجل',
+    en: 'Log exports',
+  },
+  'audit.category.security': {
+    fr: 'Alertes de sécurité',
+    ar: 'تنبيهات أمنية',
+    en: 'Security alerts',
+  },
+  'audit.action.auth.login_success': {
+    fr: 'Connexion',
+    ar: 'تسجيل الدخول',
+    en: 'Signed in',
+  },
+  'audit.action.auth.login_failed': {
+    fr: 'Échec de connexion',
+    ar: 'فشل تسجيل الدخول',
+    en: 'Failed sign-in',
+  },
+  'audit.action.auth.login_deactivated': {
+    fr: 'Connexion refusée (compte désactivé)',
+    ar: 'دخول مرفوض (حساب معطل)',
+    en: 'Sign-in refused (deactivated)',
+  },
+  'audit.action.auth.logout': {
+    fr: 'Déconnexion',
+    ar: 'تسجيل الخروج',
+    en: 'Signed out',
+  },
+  'audit.action.auth.password_changed': {
+    fr: 'Mot de passe modifié',
+    ar: 'تغيير كلمة المرور',
+    en: 'Password changed',
+  },
+  'audit.action.auth.password_change_failed': {
+    fr: 'Échec de changement de mot de passe',
+    ar: 'فشل تغيير كلمة المرور',
+    en: 'Password change failed',
+  },
+  'audit.action.auth.password_setup_required': {
+    fr: 'Connexion sans mot de passe défini',
+    ar: 'دخول بدون كلمة مرور',
+    en: 'Sign-in without a password set',
+  },
+  'audit.action.auth.session_revoked': {
+    fr: 'Appareil déconnecté',
+    ar: 'فصل جهاز',
+    en: 'Device signed out',
+  },
+  'audit.action.auth.sessions_revoked_all': {
+    fr: 'Autres appareils déconnectés',
+    ar: 'فصل الأجهزة الأخرى',
+    en: 'Other devices signed out',
+  },
+  'audit.action.auth.refresh_failed': {
+    fr: 'Session expirée ou réutilisée',
+    ar: 'جلسة منتهية أو معاد استعمالها',
+    en: 'Expired or reused session',
+  },
+  'audit.action.auth.teacher_completed': {
+    fr: 'Compte enseignant activé',
+    ar: 'تفعيل حساب أستاذ',
+    en: 'Teacher account activated',
+  },
+  'audit.action.auth.secretary_completed': {
+    fr: 'Compte secrétariat activé',
+    ar: 'تفعيل حساب أمانة',
+    en: 'Secretary account activated',
+  },
+  'audit.action.auth.parent_registered': {
+    fr: 'Compte parent créé',
+    ar: 'إنشاء حساب ولي',
+    en: 'Parent account created',
+  },
+  'audit.action.auth.parent_access_restored': {
+    fr: 'Accès parent rétabli',
+    ar: 'استعادة دخول ولي',
+    en: 'Parent access restored',
+  },
+  'audit.action.user.signed_out': {
+    fr: 'Déconnecté par l\'administration',
+    ar: 'تسجيل خروج من الإدارة',
+    en: 'Signed out by administration',
+  },
+  'audit.action.staff.access_reset': {
+    fr: 'Accès du personnel réinitialisé',
+    ar: 'إعادة تعيين دخول موظف',
+    en: 'Staff access reset',
+  },
+  'audit.action.staff.deactivated': {
+    fr: 'Personnel désactivé',
+    ar: 'تعطيل موظف',
+    en: 'Staff deactivated',
+  },
+  'audit.action.parent.access_reset': {
+    fr: 'Accès parent réinitialisé',
+    ar: 'إعادة تعيين دخول ولي',
+    en: 'Parent access reset',
+  },
+  'audit.action.account.deleted': {
+    fr: 'Compte supprimé',
+    ar: 'حذف حساب',
+    en: 'Account deleted',
+  },
+  'audit.action.grade.updated': {
+    fr: 'Note modifiée',
+    ar: 'تعديل نقطة',
+    en: 'Grade changed',
+  },
+  'audit.action.grade.deleted': {
+    fr: 'Note supprimée',
+    ar: 'حذف نقطة',
+    en: 'Grade deleted',
+  },
+  'audit.action.homework.updated': {
+    fr: 'Devoir modifié',
+    ar: 'تعديل واجب',
+    en: 'Homework changed',
+  },
+  'audit.action.homework.deleted': {
+    fr: 'Devoir supprimé',
+    ar: 'حذف واجب',
+    en: 'Homework deleted',
+  },
+  'audit.action.lesson.updated': {
+    fr: 'Séance modifiée',
+    ar: 'تعديل حصة',
+    en: 'Lesson changed',
+  },
+  'audit.action.lesson.deleted': {
+    fr: 'Séance supprimée',
+    ar: 'حذف حصة',
+    en: 'Lesson deleted',
+  },
+  'audit.action.attendance.corrected': {
+    fr: 'Présence corrigée',
+    ar: 'تصحيح الحضور',
+    en: 'Attendance corrected',
+  },
+  'audit.action.student.archived': {
+    fr: 'Élève archivé',
+    ar: 'أرشفة تلميذ',
+    en: 'Student archived',
+  },
+  'audit.action.student.archive_restored': {
+    fr: 'Élève désarchivé',
+    ar: 'استرجاع تلميذ',
+    en: 'Student restored',
+  },
+  'audit.action.student.parent_unlinked': {
+    fr: 'Parent délié',
+    ar: 'فك ربط ولي',
+    en: 'Parent unlinked',
+  },
+  'audit.action.student.link_revoked': {
+    fr: 'Lien parent révoqué',
+    ar: 'إلغاء رابط ولي',
+    en: 'Parent link revoked',
+  },
+  'audit.action.student.link_tokens_generated': {
+    fr: 'QR de liaison généré',
+    ar: 'إنشاء رمز ربط',
+    en: 'Link QR generated',
+  },
+  'audit.action.report_cards.published': {
+    fr: 'Bulletins publiés',
+    ar: 'نشر كشوف النقاط',
+    en: 'Report cards published',
+  },
+  'audit.action.report_cards.unpublished': {
+    fr: 'Bulletins retirés',
+    ar: 'سحب كشوف النقاط',
+    en: 'Report cards unpublished',
+  },
+  'audit.action.announcement.created': {
+    fr: 'Annonce publiée',
+    ar: 'نشر إعلان',
+    en: 'Announcement published',
+  },
+  'audit.action.announcement.deleted': {
+    fr: 'Annonce supprimée',
+    ar: 'حذف إعلان',
+    en: 'Announcement deleted',
+  },
+  'audit.action.data_export.student': {
+    fr: 'Export du dossier élève',
+    ar: 'تصدير ملف تلميذ',
+    en: 'Student record exported',
+  },
+  'audit.action.audit.exported': {
+    fr: 'Journal exporté',
+    ar: 'تصدير السجل',
+    en: 'Log exported',
+  },
+  'audit.action.security.response_spike': {
+    fr: 'Alerte : pic d\'erreurs d\'accès',
+    ar: 'تنبيه: ارتفاع أخطاء الدخول',
+    en: 'Alert: spike of access errors',
+  },
+  'audit.action.dm.user_blocked': {
+    fr: 'Utilisateur bloqué',
+    ar: 'حظر مستخدم',
+    en: 'User blocked',
+  },
+  'audit.action.dm.user_unblocked': {
+    fr: 'Utilisateur débloqué',
+    ar: 'رفع الحظر',
+    en: 'User unblocked',
+  },
+  'audit.action.dm.report_created': {
+    fr: 'Signalement envoyé',
+    ar: 'إرسال بلاغ',
+    en: 'Report sent',
+  },
+  'audit.action.dm.report_reviewed': {
+    fr: 'Signalement traité',
+    ar: 'معالجة بلاغ',
+    en: 'Report reviewed',
+  },
+  'audit.action.dm.bulk_send': {
+    fr: 'Message groupé',
+    ar: 'رسالة جماعية',
+    en: 'Bulk message',
+  },
+  'devices.title': {
+    fr: 'Mes appareils',
+    ar: 'أجهزتي',
+    en: 'My devices',
+  },
+  'devices.copy': {
+    fr: 'Appareils où votre compte est connecté. Déconnectez ceux que vous ne reconnaissez pas, puis changez votre mot de passe.',
+    ar: 'الأجهزة المتصل بها حسابك. افصل ما لا تعرفه ثم غيّر كلمة المرور.',
+    en: 'Devices where your account is signed in. Sign out any you don\'t recognise, then change your password.',
+  },
+  'devices.lastUsed': {
+    fr: 'Dernière activité : {date}',
+    ar: 'آخر نشاط: {date}',
+    en: 'Last active: {date}',
+  },
+  'devices.since': {
+    fr: 'Connecté depuis le {date}',
+    ar: 'متصل منذ {date}',
+    en: 'Signed in since {date}',
+  },
+  'devices.revoke': {
+    fr: 'Déconnecter',
+    ar: 'فصل',
+    en: 'Sign out',
+  },
+  'devices.revokeConfirm': {
+    fr: 'Déconnecter cet appareil ? (S\'il s\'agit de celui-ci, vous devrez vous reconnecter.)',
+    ar: 'فصل هذا الجهاز؟ (إذا كان هذا الجهاز، ستحتاج لإعادة الدخول.)',
+    en: 'Sign out this device? (If it\'s this one, you\'ll need to sign in again.)',
+  },
+  'devices.note': {
+    fr: 'Un appareil déconnecté peut garder l\'accès jusqu\'à 30 minutes ; « déconnecter mes autres appareils » est immédiat.',
+    ar: 'قد يبقى الجهاز المفصول متصلا حتى 30 دقيقة؛ أما «فصل أجهزتي الأخرى» ففوري.',
+    en: 'A signed-out device can keep access for up to 30 minutes; "sign out my other devices" is immediate.',
+  },
+  'devices.revokeOthers': {
+    fr: 'Déconnecter mes autres appareils',
+    ar: 'فصل أجهزتي الأخرى',
+    en: 'Sign out my other devices',
+  },
+  'devices.revokeOthersConfirm': {
+    fr: 'Déconnecter tous vos autres appareils maintenant ? Cet appareil reste connecté.',
+    ar: 'فصل كل أجهزتك الأخرى الآن؟ يبقى هذا الجهاز متصلا.',
+    en: 'Sign out all your other devices now? This device stays signed in.',
+  },
+  'devices.revokedOthers': {
+    fr: 'Vos autres appareils ont été déconnectés.',
+    ar: 'تم فصل أجهزتك الأخرى.',
+    en: 'Your other devices have been signed out.',
+  },
+  'records.openFile': {
+    fr: 'Dossier complet de l\'élève',
+    ar: 'الملف الكامل للتلميذ',
+    en: 'Full student file',
+  },
+  'records.studentFile': {
+    fr: 'Dossier de l\'élève',
+    ar: 'ملف التلميذ',
+    en: 'Student file',
+  },
+  'records.identity': {
+    fr: 'Identité et famille',
+    ar: 'الهوية والعائلة',
+    en: 'Identity and family',
+  },
+  'records.studentNumber': {
+    fr: 'Matricule',
+    ar: 'رقم التسجيل',
+    en: 'Student no.',
+  },
+  'records.classes': {
+    fr: 'Classes',
+    ar: 'الأقسام',
+    en: 'Classes',
+  },
+  'records.archived': {
+    fr: 'Archivé',
+    ar: 'مؤرشف',
+    en: 'Archived',
+  },
+  'records.parents': {
+    fr: 'Parents et responsables',
+    ar: 'الأولياء',
+    en: 'Parents',
+  },
+  'records.results': {
+    fr: 'Résultats — {term}',
+    ar: 'النتائج — {term}',
+    en: 'Results — {term}',
+  },
+  'records.allTime': {
+    fr: 'depuis l\'inscription',
+    ar: 'منذ التسجيل',
+    en: 'since enrolment',
+  },
+  'records.averageIn': {
+    fr: 'moyenne en {name}',
+    ar: 'المعدل في {name}',
+    en: 'average in {name}',
+  },
+  'records.absences': {
+    fr: 'absences ({justified} justifiées, {lates} retards)',
+    ar: 'غياب ({justified} مبرر، {lates} تأخر)',
+    en: 'absences ({justified} justified, {lates} late)',
+  },
+  'records.remarks': {
+    fr: 'Remarques récentes',
+    ar: 'الملاحظات الأخيرة',
+    en: 'Recent remarks',
+  },
+  'records.none': {
+    fr: 'Rien pour le moment.',
+    ar: 'لا شيء حاليا.',
+    en: 'Nothing yet.',
+  },
+  'records.history': {
+    fr: 'Historique',
+    ar: 'السجل',
+    en: 'History',
+  },
+  'records.teacherHistory': {
+    fr: 'Historique de l\'enseignant',
+    ar: 'سجل الأستاذ',
+    en: 'Teacher history',
+  },
+  'records.lastSignIn': {
+    fr: 'Dernière connexion : {date}',
+    ar: 'آخر دخول: {date}',
+    en: 'Last sign-in: {date}',
+  },
+  'records.assignments': {
+    fr: 'Classes et matières',
+    ar: 'الأقسام والمواد',
+    en: 'Classes and subjects',
+  },
+  'records.lastDays': {
+    fr: '{days} derniers jours',
+    ar: 'آخر {days} يوما',
+    en: 'Last {days} days',
+  },
+  'records.stat.grades_entered': {
+    fr: 'notes saisies',
+    ar: 'نقطة مدخلة',
+    en: 'grades entered',
+  },
+  'records.stat.grades_pending_approval': {
+    fr: 'notes en attente de validation',
+    ar: 'نقطة بانتظار المصادقة',
+    en: 'grades awaiting approval',
+  },
+  'records.stat.attendance_records': {
+    fr: 'pointages de présence',
+    ar: 'تسجيل حضور',
+    en: 'attendance records',
+  },
+  'records.stat.homework_posted': {
+    fr: 'devoirs publiés',
+    ar: 'واجب منشور',
+    en: 'homework posted',
+  },
+  'records.stat.lessons_logged': {
+    fr: 'séances au cahier de textes',
+    ar: 'حصة في دفتر النصوص',
+    en: 'lessons logged',
+  },
+  'records.stat.corrections': {
+    fr: 'corrections (notes, présences…)',
+    ar: 'تصحيح (نقاط، حضور…)',
+    en: 'corrections (grades, attendance…)',
+  },
+  'records.stat.failed_sign_ins': {
+    fr: 'échecs de connexion',
+    ar: 'محاولة دخول فاشلة',
+    en: 'failed sign-ins',
+  },
+  'records.historyNote': {
+    fr: 'Les notes et présences saisies avant cette mise à jour ne sont pas attribuées.',
+    ar: 'النقاط والحضور المسجلة قبل هذا التحديث غير منسوبة.',
+    en: 'Grades and attendance entered before this update are not attributed.',
+  },
+  'records.recentActivity': {
+    fr: 'Activité récente',
+    ar: 'النشاط الأخير',
+    en: 'Recent activity',
+  },
+  'health.tab': {
+    fr: 'Santé',
+    ar: 'الصحة',
+    en: 'Health',
+  },
+  'health.title': {
+    fr: 'Fiche santé et urgence',
+    ar: 'البطاقة الصحية والطوارئ',
+    en: 'Health and emergency sheet',
+  },
+  'health.parentIntro': {
+    fr: 'Ces informations aident l\'école à réagir en cas d\'urgence. Elles ne sont visibles que par la direction et vous ; les enseignants voient seulement l\'alerte courte. Ne renseignez que le nécessaire.',
+    ar: 'تساعد هذه المعلومات المؤسسة على التصرف في حالة الطوارئ. لا يراها إلا الإدارة وأنتم؛ يرى الأساتذة التنبيه القصير فقط. أدخلوا الضروري فقط.',
+    en: 'This helps the school act in an emergency. Only the administration and you can see it; teachers only see the short alert. Enter only what is needed.',
+  },
+  'health.schoolIntro': {
+    fr: 'Visible par la direction, le secrétariat et les parents. Chaque consultation est enregistrée dans le journal.',
+    ar: 'مرئية للإدارة والأمانة والأولياء. يتم تسجيل كل اطلاع في السجل.',
+    en: 'Visible to the administration and the parents. Every view is recorded in the log.',
+  },
+  'health.consentApp': {
+    fr: 'Consentement donné par le parent dans l\'application le {date}.',
+    ar: 'موافقة الولي عبر التطبيق في {date}.',
+    en: 'Parent consent given in the app on {date}.',
+  },
+  'health.consentPaper': {
+    fr: 'Consentement écrit du parent attesté par l\'école le {date}.',
+    ar: 'موافقة كتابية للولي أكدتها المؤسسة في {date}.',
+    en: 'Parent\'s written consent attested by the school on {date}.',
+  },
+  'health.contacts': {
+    fr: 'Contacts d\'urgence (dans l\'ordre d\'appel)',
+    ar: 'جهات الاتصال في الطوارئ (حسب ترتيب الاتصال)',
+    en: 'Emergency contacts (in calling order)',
+  },
+  'health.contactName': {
+    fr: 'Nom',
+    ar: 'الاسم',
+    en: 'Name',
+  },
+  'health.relationship': {
+    fr: 'Lien (mère, oncle…)',
+    ar: 'القرابة (أم، عم…)',
+    en: 'Relationship (mother, uncle…)',
+  },
+  'health.phone': {
+    fr: 'Téléphone',
+    ar: 'الهاتف',
+    en: 'Phone',
+  },
+  'health.addContact': {
+    fr: 'Ajouter un contact',
+    ar: 'إضافة جهة اتصال',
+    en: 'Add a contact',
+  },
+  'health.allergies': {
+    fr: 'Allergies',
+    ar: 'الحساسية',
+    en: 'Allergies',
+  },
+  'health.allergiesHint': {
+    fr: 'ex. arachides, pénicilline, piqûres d\'abeille',
+    ar: 'مثال: الفول السوداني، البنسلين، لسعات النحل',
+    en: 'e.g. peanuts, penicillin, bee stings',
+  },
+  'health.conditions': {
+    fr: 'Maladies ou conditions',
+    ar: 'الأمراض أو الحالات',
+    en: 'Conditions',
+  },
+  'health.conditionsHint': {
+    fr: 'ex. asthme, diabète, épilepsie',
+    ar: 'مثال: الربو، السكري، الصرع',
+    en: 'e.g. asthma, diabetes, epilepsy',
+  },
+  'health.medications': {
+    fr: 'Traitement / médicaments',
+    ar: 'العلاج / الأدوية',
+    en: 'Treatment / medication',
+  },
+  'health.bloodGroup': {
+    fr: 'Groupe sanguin',
+    ar: 'فصيلة الدم',
+    en: 'Blood group',
+  },
+  'health.doctor': {
+    fr: 'Médecin traitant',
+    ar: 'الطبيب المعالج',
+    en: 'Doctor',
+  },
+  'health.doctorPhone': {
+    fr: 'Téléphone du médecin',
+    ar: 'هاتف الطبيب',
+    en: 'Doctor\'s phone',
+  },
+  'health.instructions': {
+    fr: 'Que faire en cas d\'urgence',
+    ar: 'ما العمل في حالة الطوارئ',
+    en: 'What to do in an emergency',
+  },
+  'health.instructionsHint': {
+    fr: 'ex. inhalateur dans le cartable ; appeler la mère d\'abord',
+    ar: 'مثال: البخاخ في المحفظة؛ الاتصال بالأم أولا',
+    en: 'e.g. inhaler in the schoolbag; call the mother first',
+  },
+  'health.teacherAlert': {
+    fr: 'Alerte courte pour les enseignants',
+    ar: 'تنبيه قصير للأساتذة',
+    en: 'Short alert for teachers',
+  },
+  'health.teacherAlertHint': {
+    fr: 'ex. Allergie arachides — EpiPen dans le cartable',
+    ar: 'مثال: حساسية الفول السوداني — حقنة في المحفظة',
+    en: 'e.g. Peanut allergy — EpiPen in schoolbag',
+  },
+  'health.teacherAlertNote': {
+    fr: 'Seule cette ligne est visible par les enseignants de la classe. Laissez vide si rien n\'est nécessaire.',
+    ar: 'هذا السطر فقط مرئي لأساتذة القسم. اتركوه فارغا إذا لم يكن ضروريا.',
+    en: 'Only this line is visible to the class\'s teachers. Leave empty if nothing is needed.',
+  },
+  'health.consentParent': {
+    fr: 'J\'accepte que l\'école conserve ces informations de santé pour protéger mon enfant. Je peux les retirer à tout moment.',
+    ar: 'أوافق على احتفاظ المؤسسة بهذه المعلومات الصحية لحماية طفلي. يمكنني سحبها في أي وقت.',
+    en: 'I agree that the school keeps this health information to protect my child. I can withdraw it at any time.',
+  },
+  'health.consentSchool': {
+    fr: 'Le consentement écrit et signé du parent est conservé dans le dossier de l\'élève.',
+    ar: 'الموافقة الكتابية الموقعة من الولي محفوظة في ملف التلميذ.',
+    en: 'The parent\'s signed written consent is kept in the student\'s file.',
+  },
+  'health.consentRequired': {
+    fr: 'Le consentement est requis.',
+    ar: 'الموافقة مطلوبة.',
+    en: 'Consent is required.',
+  },
+  'health.save': {
+    fr: 'Enregistrer la fiche',
+    ar: 'حفظ البطاقة',
+    en: 'Save the sheet',
+  },
+  'health.saved': {
+    fr: 'Fiche santé enregistrée.',
+    ar: 'تم حفظ البطاقة الصحية.',
+    en: 'Health sheet saved.',
+  },
+  'health.withdraw': {
+    fr: 'Retirer mon consentement',
+    ar: 'سحب موافقتي',
+    en: 'Withdraw my consent',
+  },
+  'health.withdrawConfirm': {
+    fr: 'Retirer votre consentement efface définitivement la fiche santé de votre enfant. Continuer ?',
+    ar: 'سحب الموافقة يمحو البطاقة الصحية لطفلكم نهائيا. متابعة؟',
+    en: 'Withdrawing consent permanently erases your child\'s health sheet. Continue?',
+  },
+  'health.delete': {
+    fr: 'Effacer la fiche',
+    ar: 'محو البطاقة',
+    en: 'Erase the sheet',
+  },
+  'health.deleteConfirm': {
+    fr: 'Effacer définitivement cette fiche santé ?',
+    ar: 'محو هذه البطاقة الصحية نهائيا؟',
+    en: 'Permanently erase this health sheet?',
+  },
+  'health.deleted': {
+    fr: 'Fiche santé effacée.',
+    ar: 'تم محو البطاقة الصحية.',
+    en: 'Health sheet erased.',
+  },
+  'health.classAlerts': {
+    fr: 'Alertes santé de la classe',
+    ar: 'تنبيهات صحية للقسم',
+    en: 'Class health alerts',
+  },
   'common.reload': {
     fr: 'Recharger',
     ar: 'إعادة التحميل',
@@ -1659,6 +3189,76 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'الحالة',
     en: 'Status',
   },
+  'director.team.actions': {
+    fr: 'Actions',
+    ar: 'إجراءات',
+    en: 'Actions',
+  },
+  'director.team.resetAccess': {
+    fr: "Réinitialiser l'accès",
+    ar: 'إعادة تعيين الدخول',
+    en: 'Reset access',
+  },
+  'director.team.resetAccessConfirm': {
+    fr: "Générer un nouveau code pour {name} ? Son mot de passe actuel cessera de fonctionner et toutes ses sessions seront fermées.",
+    ar: 'إنشاء رمز جديد لـ {name}؟ ستتوقف كلمة المرور الحالية وسيتم إغلاق جميع الجلسات.',
+    en: 'Generate a new code for {name}? Their current password will stop working and all their sessions will be signed out.',
+  },
+  'director.toast.staffAccessReset': {
+    fr: "Nouveau code d'activation généré.",
+    ar: 'تم إنشاء رمز تفعيل جديد.',
+    en: 'New activation code generated.',
+  },
+  'director.team.deactivate': {
+    fr: 'Désactiver',
+    ar: 'تعطيل',
+    en: 'Deactivate',
+  },
+  'director.team.deactivateConfirm': {
+    fr: "Désactiver le compte de {name} ? La connexion sera bloquée immédiatement et toutes ses sessions fermées. Vous pourrez le réactiver avec un nouveau code.",
+    ar: 'تعطيل حساب {name}؟ سيتم منع الدخول فورا وإغلاق جميع الجلسات. يمكنكم إعادة تفعيله برمز جديد.',
+    en: 'Deactivate {name}? Login is blocked immediately and all sessions are signed out. You can reactivate them later with a new code.',
+  },
+  'director.team.deactivated': {
+    fr: 'Désactivé',
+    ar: 'معطل',
+    en: 'Deactivated',
+  },
+  'director.team.reactivate': {
+    fr: 'Réactiver',
+    ar: 'إعادة التفعيل',
+    en: 'Reactivate',
+  },
+  'director.toast.staffDeactivated': {
+    fr: 'Compte désactivé.',
+    ar: 'تم تعطيل الحساب.',
+    en: 'Account deactivated.',
+  },
+  'director.toast.parentAccessReset': {
+    fr: "Nouveau code d'accès généré pour le parent.",
+    ar: 'تم إنشاء رمز دخول جديد لولي الأمر.',
+    en: 'New access code generated for the parent.',
+  },
+  'director.parents.title': {
+    fr: 'Parents liés',
+    ar: 'أولياء الأمور المرتبطون',
+    en: 'Linked parents',
+  },
+  'director.parents.empty': {
+    fr: "Aucun parent n'est encore lié à cet élève.",
+    ar: 'لا يوجد ولي أمر مرتبط بهذا التلميذ بعد.',
+    en: 'No parent is linked to this student yet.',
+  },
+  'director.parents.resetConfirm': {
+    fr: "Générer un nouveau code d'accès pour {name} ? Son mot de passe actuel cessera de fonctionner et toutes ses sessions seront fermées.",
+    ar: 'إنشاء رمز دخول جديد لـ {name}؟ ستتوقف كلمة المرور الحالية وسيتم إغلاق جميع الجلسات.',
+    en: 'Generate a new access code for {name}? Their current password will stop working and all their sessions will be signed out.',
+  },
+  'director.parents.shareCode': {
+    fr: "Remettez ce code à {name}. Il le saisit sur la page d'activation pour choisir un nouveau mot de passe (valable 72 h).",
+    ar: 'سلّموا هذا الرمز إلى {name}. يدخله في صفحة التفعيل لاختيار كلمة مرور جديدة (صالح 72 ساعة).',
+    en: 'Give this code to {name}. They enter it on the activation page to choose a new password (valid 72 h).',
+  },
   'director.team.activeAccount': {
     fr: 'Actif',
     ar: 'نشط',
@@ -2695,14 +4295,64 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: 'No homework or exam has been published yet.',
   },
   'parent.scheduleTitle': {
-    fr: 'Planning des examens',
-    ar: 'جدول الاختبارات',
-    en: 'Exam schedule',
+    fr: 'Emploi du temps & Examens',
+    ar: 'التوقيت الأسبوعي والاختبارات',
+    en: 'Weekly Timetable & Exams',
   },
   'parent.scheduleCopy': {
-    fr: 'Examens planifiés pour {className}.',
-    ar: 'الاختبارات المبرمجة لقسم {className}.',
-    en: 'Scheduled exams for {className}.',
+    fr: 'Emploi du temps hebdomadaire et examens pour {className}.',
+    ar: 'التوقيت الأسبوعي والاختبارات المبرمجة لقسم {className}.',
+    en: 'Weekly timetable and scheduled exams for {className}.',
+  },
+  'parent.scheduleWeeklyTab': {
+    fr: 'Emploi du temps',
+    ar: 'التوقيت الأسبوعي',
+    en: 'Weekly Timetable',
+  },
+  'parent.scheduleExamsTab': {
+    fr: 'Examens programmés',
+    ar: 'الاختبارات المبرمجة',
+    en: 'Scheduled Exams',
+  },
+  'parent.scheduleSlotsCount': {
+    fr: '{count} cours / semaine',
+    ar: '{count} حصص / أسبوعياً',
+    en: '{count} classes / week',
+  },
+  'parent.emptyScheduleWeekly': {
+    fr: "Aucun cours programmé dans l'emploi du temps pour le moment.",
+    ar: 'لا توجد حصص مبرمجة في التوقيت الأسبوعي حاليا.',
+    en: 'No classes scheduled in the timetable yet.',
+  },
+  'parent.scheduleDay': {
+    fr: 'Jour',
+    ar: 'اليوم',
+    en: 'Day',
+  },
+  'parent.scheduleTime': {
+    fr: 'Horaire',
+    ar: 'التوقيت',
+    en: 'Time',
+  },
+  'parent.scheduleCourse': {
+    fr: 'Matière',
+    ar: 'المادة',
+    en: 'Subject',
+  },
+  'parent.scheduleTeacher': {
+    fr: 'Enseignant',
+    ar: 'الأستاذ',
+    en: 'Teacher',
+  },
+  'parent.scheduleRoomCol': {
+    fr: 'Salle',
+    ar: 'القاعة',
+    en: 'Room',
+  },
+  'parent.scheduleCancelled': {
+    fr: 'Séance annulée',
+    ar: 'حصة ملغاة',
+    en: 'Cancelled',
   },
   'parent.scheduleExamCount': {
     fr: '{count} examens à venir',
@@ -2913,6 +4563,1276 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'Notice ANPDP',
     ar: 'إشعار السلطة الوطنية لحماية المعطيات',
     en: 'ANPDP notice',
+  },
+  'demo.title': {
+    fr: 'Découvrir sans compte',
+    ar: 'اكتشف بدون حساب',
+    en: 'Explore without an account',
+  },
+  'demo.copy': {
+    fr: 'Visitez une école de démonstration remplie de données fictives, en consultation seulement.',
+    ar: 'تصفح مدرسة تجريبية ببيانات وهمية، للاطلاع فقط.',
+    en: 'Visit a demo school filled with sample data, view only.',
+  },
+  'demo.asDirector': {
+    fr: 'Directeur',
+    ar: 'مدير',
+    en: 'Director',
+  },
+  'demo.asTeacher': {
+    fr: 'Enseignant',
+    ar: 'أستاذ',
+    en: 'Teacher',
+  },
+  'demo.asParent': {
+    fr: 'Parent',
+    ar: 'ولي',
+    en: 'Parent',
+  },
+  'demo.banner': {
+    fr: 'Démo : vous visitez une école fictive. Tout est consultable, rien n\'est enregistré.',
+    ar: 'عرض تجريبي: أنت تتصفح مدرسة وهمية. يمكنك الاطلاع على كل شيء، ولا يُحفظ أي شيء.',
+    en: 'Demo: you are visiting a sample school. You can look at everything; nothing is saved.',
+  },
+  'demo.blocked': {
+    fr: 'Cette action est désactivée dans la démo. Créez votre école pour l\'essayer avec vos données.',
+    ar: 'هذا الإجراء معطل في العرض التجريبي. أنشئ مدرستك لتجربته ببياناتك.',
+    en: 'This action is disabled in the demo. Create your school to try it with your own data.',
+  },
+  'demo.createSchool': {
+    fr: 'Créer mon école',
+    ar: 'إنشاء مدرستي',
+    en: 'Create my school',
+  },
+  'demo.leave': {
+    fr: 'Quitter la démo',
+    ar: 'مغادرة العرض',
+    en: 'Leave the demo',
+  },
+  'setup.title': {
+    fr: 'Démarrer votre école',
+    ar: 'انطلاق مدرستك',
+    en: 'Get your school started',
+  },
+  'setup.copy': {
+    fr: 'Votre école est prête à {percent} %. Chaque étape débloque une partie de l\'application.',
+    ar: 'مدرستك جاهزة بنسبة {percent}٪. كل خطوة تفتح جزءًا من التطبيق.',
+    en: 'Your school is {percent}% ready. Each step unlocks part of the app.',
+  },
+  'setup.progressLabel': {
+    fr: '{done} étapes sur {total}',
+    ar: '{done} من {total} خطوات',
+    en: '{done} of {total} steps',
+  },
+  'setup.dismiss': {
+    fr: 'Masquer',
+    ar: 'إخفاء',
+    en: 'Hide',
+  },
+  'setup.go': {
+    fr: 'Y aller',
+    ar: 'انتقال',
+    en: 'Go',
+  },
+  'setup.template': {
+    fr: 'Modèle Excel',
+    ar: 'نموذج Excel',
+    en: 'Excel template',
+  },
+  'setup.trimesters.title': {
+    fr: 'Trimestres de l\'année',
+    ar: 'فصول السنة',
+    en: 'School-year trimesters',
+  },
+  'setup.trimesters.hint': {
+    fr: 'Vérifiez les dates des trois trimestres.',
+    ar: 'تحقق من تواريخ الفصول الثلاثة.',
+    en: 'Check the dates of the three trimesters.',
+  },
+  'setup.trimesters.count': {
+    fr: '{count} trimestres configurés',
+    ar: '{count} فصول مهيأة',
+    en: '{count} trimesters set up',
+  },
+  'setup.classes.title': {
+    fr: 'Classes',
+    ar: 'الأقسام',
+    en: 'Classes',
+  },
+  'setup.classes.hint': {
+    fr: 'Créez vos classes (ex. 1AM-A, 3AP-B).',
+    ar: 'أنشئ أقسامك (مثلا 1AM-A).',
+    en: 'Create your classes (e.g. 1AM-A, 3AP-B).',
+  },
+  'setup.classes.count': {
+    fr: '{count} classes',
+    ar: '{count} أقسام',
+    en: '{count} classes',
+  },
+  'setup.subjects.title': {
+    fr: 'Matières',
+    ar: 'المواد',
+    en: 'Subjects',
+  },
+  'setup.subjects.hint': {
+    fr: 'Ajoutez les matières enseignées et leurs coefficients.',
+    ar: 'أضف المواد المدرّسة ومعاملاتها.',
+    en: 'Add the subjects you teach and their coefficients.',
+  },
+  'setup.subjects.count': {
+    fr: '{count} matières',
+    ar: '{count} مواد',
+    en: '{count} subjects',
+  },
+  'setup.students.title': {
+    fr: 'Élèves',
+    ar: 'التلاميذ',
+    en: 'Students',
+  },
+  'setup.students.hint': {
+    fr: 'Importez la liste depuis Excel avec le modèle (prénom, nom, classe).',
+    ar: 'استورد القائمة من Excel باستعمال النموذج (الاسم، اللقب، القسم).',
+    en: 'Import the list from Excel with the template (first name, last name, class).',
+  },
+  'setup.students.count': {
+    fr: '{count} élèves, tous dans une classe',
+    ar: '{count} تلميذ، كلهم في قسم',
+    en: '{count} students, all in a class',
+  },
+  'setup.students.unplaced': {
+    fr: '{count} élève(s) sans classe',
+    ar: '{count} تلميذ بدون قسم',
+    en: '{count} student(s) without a class',
+  },
+  'setup.teachers.title': {
+    fr: 'Enseignants',
+    ar: 'الأساتذة',
+    en: 'Teachers',
+  },
+  'setup.teachers.hint': {
+    fr: 'Invitez vos enseignants : chacun reçoit un code d\'activation.',
+    ar: 'ادعُ أساتذتك: يتلقى كل واحد رمز تفعيل.',
+    en: 'Invite your teachers: each one gets an activation code.',
+  },
+  'setup.teachers.count': {
+    fr: '{count} enseignants',
+    ar: '{count} أساتذة',
+    en: '{count} teachers',
+  },
+  'setup.teachers.pending': {
+    fr: '{count} invités, {pending} n\'ont pas encore activé leur compte',
+    ar: '{count} مدعوون، {pending} لم يفعّلوا حسابهم بعد',
+    en: '{count} invited, {pending} have not activated their account yet',
+  },
+  'setup.assignments.title': {
+    fr: 'Matières attribuées',
+    ar: 'إسناد المواد',
+    en: 'Subjects assigned',
+  },
+  'setup.assignments.hint': {
+    fr: 'Attribuez à chaque classe ses matières et leur enseignant.',
+    ar: 'أسند لكل قسم مواده وأستاذها.',
+    en: 'Give each class its subjects and their teacher.',
+  },
+  'setup.assignments.progress': {
+    fr: '{count} classes sur {total} ont leurs enseignants',
+    ar: '{count} من {total} أقسام لها أساتذة',
+    en: '{count} of {total} classes have their teachers',
+  },
+  'setup.parents.title': {
+    fr: 'Parents connectés',
+    ar: 'الأولياء المتصلون',
+    en: 'Parents connected',
+  },
+  'setup.parents.hint': {
+    fr: 'Imprimez les codes parents et distribuez-les dans les cartables.',
+    ar: 'اطبع رموز الأولياء ووزعها في المحافظ.',
+    en: 'Print the parent codes and hand them out in school bags.',
+  },
+  'setup.parents.progress': {
+    fr: '{count} élèves sur {total} ont un parent connecté',
+    ar: '{count} من {total} تلميذ لهم ولي متصل',
+    en: '{count} of {total} students have a parent connected',
+  },
+  'codes.print': {
+    fr: 'Imprimer les codes parents',
+    ar: 'طباعة رموز الأولياء',
+    en: 'Print parent codes',
+  },
+  'codes.title': {
+    fr: 'Codes parents à distribuer',
+    ar: 'رموز الأولياء للتوزيع',
+    en: 'Parent codes to hand out',
+  },
+  'codes.class': {
+    fr: 'Classe',
+    ar: 'القسم',
+    en: 'Class',
+  },
+  'codes.allClasses': {
+    fr: 'Toutes les classes',
+    ar: 'كل الأقسام',
+    en: 'All classes',
+  },
+  'codes.onlyUnlinked': {
+    fr: 'Seulement les élèves sans parent connecté',
+    ar: 'فقط التلاميذ بدون ولي متصل',
+    en: 'Only students with no parent connected',
+  },
+  'codes.printNow': {
+    fr: 'Imprimer',
+    ar: 'طباعة',
+    en: 'Print',
+  },
+  'codes.privacy': {
+    fr: 'Chaque code donne accès au dossier de l\'élève : remettez-le en main propre ou sous enveloppe. Cette impression est enregistrée dans le journal.',
+    ar: 'كل رمز يتيح الوصول إلى ملف التلميذ: سلّمه يدا بيد أو في ظرف. تُسجَّل هذه الطباعة في السجل.',
+    en: 'Each code opens the student\'s file: hand it over in person or in an envelope. This printout is recorded in the activity log.',
+  },
+  'codes.empty': {
+    fr: 'Aucun élève à afficher.',
+    ar: 'لا يوجد تلاميذ للعرض.',
+    en: 'No students to show.',
+  },
+  'codes.studentId': {
+    fr: 'Identifiant élève',
+    ar: 'معرّف التلميذ',
+    en: 'Student ID',
+  },
+  'codes.pin': {
+    fr: 'Code PIN',
+    ar: 'الرمز السري',
+    en: 'PIN code',
+  },
+  'codes.instructions': {
+    fr: 'Installez l\'application Wasel Edu, choisissez « Code ou QR », saisissez l\'identifiant et le PIN, puis créez votre mot de passe.',
+    ar: 'ثبّت تطبيق Wasel Edu، اختر «رمز أو QR»، أدخل المعرّف والرمز السري، ثم أنشئ كلمة مرورك.',
+    en: 'Install the Wasel Edu app, choose “Code or QR”, enter the ID and PIN, then create your password.',
+  },
+  'monthly.title': {
+    fr: 'Bilan mensuel — {month}',
+    ar: 'الحصيلة الشهرية — {month}',
+    en: 'Monthly report — {month}',
+  },
+  'monthly.copy': {
+    fr: 'Ce que l\'application a fait pour votre école ce mois-ci, comparé au mois précédent.',
+    ar: 'ما قدّمه التطبيق لمدرستك هذا الشهر مقارنة بالشهر السابق.',
+    en: 'What the app did for your school this month, compared with the month before.',
+  },
+  'monthly.partial': {
+    fr: 'Mois en cours : chiffres arrêtés au {date}.',
+    ar: 'الشهر الجاري: الأرقام إلى غاية {date}.',
+    en: 'Month in progress: figures as of {date}.',
+  },
+  'monthly.error': {
+    fr: 'Impossible de charger le bilan.',
+    ar: 'تعذر تحميل الحصيلة.',
+    en: 'Could not load the report.',
+  },
+  'monthly.pickMonth': {
+    fr: 'Choisir le mois',
+    ar: 'اختيار الشهر',
+    en: 'Choose the month',
+  },
+  'monthly.print': {
+    fr: 'Imprimer / PDF',
+    ar: 'طباعة / PDF',
+    en: 'Print / PDF',
+  },
+  'monthly.attendanceRate': {
+    fr: 'Taux de présence',
+    ar: 'نسبة الحضور',
+    en: 'Attendance rate',
+  },
+  'monthly.parentNotifications': {
+    fr: 'Notifications envoyées aux parents',
+    ar: 'إشعارات أُرسلت للأولياء',
+    en: 'Notifications sent to parents',
+  },
+  'monthly.activeParents': {
+    fr: 'Parents actifs',
+    ar: 'أولياء نشطون',
+    en: 'Active parents',
+  },
+  'monthly.ofLinkedParents': {
+    fr: '{rate} des {total} parents connectés',
+    ar: '{rate} من {total} ولي متصل',
+    en: '{rate} of the {total} connected parents',
+  },
+  'monthly.gradesEntered': {
+    fr: 'Notes saisies',
+    ar: 'نقاط مُدخلة',
+    en: 'Grades entered',
+  },
+  'monthly.vsPrevious': {
+    fr: '{diff} par rapport à {month}',
+    ar: '{diff} مقارنة بـ {month}',
+    en: '{diff} vs {month}',
+  },
+  'monthly.noComparison': {
+    fr: 'Pas de comparaison possible',
+    ar: 'لا مقارنة ممكنة',
+    en: 'No comparison available',
+  },
+  'monthly.points': {
+    fr: 'pts',
+    ar: 'نقطة',
+    en: 'pts',
+  },
+  'monthly.schoolLife': {
+    fr: 'Vie de l\'école',
+    ar: 'الحياة المدرسية',
+    en: 'School life',
+  },
+  'monthly.indicator': {
+    fr: 'Indicateur',
+    ar: 'المؤشر',
+    en: 'Indicator',
+  },
+  'monthly.absences': {
+    fr: 'Absences signalées',
+    ar: 'غيابات مسجلة',
+    en: 'Absences recorded',
+  },
+  'monthly.unjustified': {
+    fr: 'dont non justifiées',
+    ar: 'منها غير مبررة',
+    en: 'of which unjustified',
+  },
+  'monthly.lates': {
+    fr: 'Retards',
+    ar: 'تأخرات',
+    en: 'Late arrivals',
+  },
+  'monthly.homework': {
+    fr: 'Devoirs publiés',
+    ar: 'واجبات منشورة',
+    en: 'Homework posted',
+  },
+  'monthly.lessons': {
+    fr: 'Séances au cahier de textes',
+    ar: 'حصص في دفتر النصوص',
+    en: 'Lessons logged',
+  },
+  'monthly.messages': {
+    fr: 'Messages échangés',
+    ar: 'رسائل متبادلة',
+    en: 'Messages exchanged',
+  },
+  'monthly.announcements': {
+    fr: 'Annonces',
+    ar: 'إعلانات',
+    en: 'Announcements',
+  },
+  'monthly.reportCards': {
+    fr: 'Bulletins publiés',
+    ar: 'كشوف نقاط منشورة',
+    en: 'Report cards published',
+  },
+  'monthly.meetings': {
+    fr: 'Rendez-vous parents réservés',
+    ar: 'مواعيد أولياء محجوزة',
+    en: 'Parent meetings booked',
+  },
+  'monthly.activeTeachers': {
+    fr: 'Enseignants actifs',
+    ar: 'أساتذة نشطون',
+    en: 'Active teachers',
+  },
+  'monthly.coverage': {
+    fr: 'Couverture',
+    ar: 'التغطية',
+    en: 'Coverage',
+  },
+  'monthly.parentCoverage': {
+    fr: 'des élèves ont un parent connecté ({linked} sur {total})',
+    ar: 'من التلاميذ لهم ولي متصل ({linked} من {total})',
+    en: 'of students have a parent connected ({linked} of {total})',
+  },
+  'monthly.teachersUsing': {
+    fr: 'enseignants ont utilisé l\'application ce mois-ci',
+    ar: 'أساتذة استعملوا التطبيق هذا الشهر',
+    en: 'teachers used the app this month',
+  },
+  'monthly.classAttendance': {
+    fr: 'Présence par classe',
+    ar: 'الحضور حسب القسم',
+    en: 'Attendance by class',
+  },
+  'monthly.noAttendance': {
+    fr: 'Aucun appel enregistré ce mois-ci.',
+    ar: 'لا توجد مناداة مسجلة هذا الشهر.',
+    en: 'No attendance recorded this month.',
+  },
+  'monthly.method': {
+    fr: 'Chiffres calculés à partir des enregistrements de l\'application (appels, notifications, journal d\'activité), heure d\'Algérie. Les retards comptent comme présents.',
+    ar: 'أرقام محسوبة من سجلات التطبيق (المناداة، الإشعارات، سجل النشاط) بتوقيت الجزائر. التأخر يُحسب حضورًا.',
+    en: 'Figures computed from the app\'s records (attendance, notifications, activity log), Algeria time. Late arrivals count as present.',
+  },
+  'director.tab.monthly': {
+    fr: 'Bilan mensuel',
+    ar: 'الحصيلة الشهرية',
+    en: 'Monthly report',
+  },
+  'nav.monthlyReport': {
+    fr: 'Bilan mensuel',
+    ar: 'الحصيلة الشهرية',
+    en: 'Monthly report',
+  },
+  'director.toast.importedAssigned': {
+    fr: '{count} élève(s) placé(s) dans leur classe.',
+    ar: 'تم وضع {count} تلميذ في أقسامهم.',
+    en: '{count} student(s) placed in their class.',
+  },
+  'director.toast.importedUnknownClasses': {
+    fr: 'Classes introuvables, à créer puis réimporter ou placer à la main : {classes}',
+    ar: 'أقسام غير موجودة، أنشئها ثم أعد الاستيراد أو ضعهم يدويًا: {classes}',
+    en: 'Classes not found — create them and re-import, or place students by hand: {classes}',
+  },
+  'fees.currency': {
+    fr: 'DA',
+    ar: 'دج',
+    en: 'DZD',
+  },
+  'fees.tab': {
+    fr: 'Frais',
+    ar: 'المصاريف',
+    en: 'Fees',
+  },
+  'director.tab.fees': {
+    fr: 'Frais scolaires',
+    ar: 'المصاريف المدرسية',
+    en: 'School fees',
+  },
+  'nav.fees': {
+    fr: 'Frais scolaires',
+    ar: 'المصاريف المدرسية',
+    en: 'School fees',
+  },
+  'monthly.feesCollected': {
+    fr: 'Frais encaissés',
+    ar: 'مصاريف محصّلة',
+    en: 'Fees collected',
+  },
+  'fees.title': {
+    fr: 'Frais scolaires',
+    ar: 'المصاريف المدرسية',
+    en: 'School fees',
+  },
+  'fees.copy': {
+    fr: 'Qui doit quoi, les paiements, les reçus et les rappels aux parents.',
+    ar: 'من عليه ماذا، المدفوعات، الوصولات وتذكير الأولياء.',
+    en: 'Who owes what, payments, receipts and reminders to parents.',
+  },
+  'fees.new': {
+    fr: 'Nouveaux frais',
+    ar: 'مصاريف جديدة',
+    en: 'New fees',
+  },
+  'fees.remindAll': {
+    fr: 'Relancer les retards ({count})',
+    ar: 'تذكير المتأخرين ({count})',
+    en: 'Remind overdue ({count})',
+  },
+  'fees.remindAllConfirm': {
+    fr: 'Envoyer un rappel aux parents de {count} élève(s) en retard ? Les frais déjà rappelés il y a moins de 3 jours sont ignorés.',
+    ar: 'إرسال تذكير لأولياء {count} تلميذ متأخر؟ تُتجاهل المصاريف التي ذُكّر بها منذ أقل من 3 أيام.',
+    en: 'Send a reminder to the parents of {count} overdue student(s)? Fees reminded less than 3 days ago are skipped.',
+  },
+  'fees.billed': {
+    fr: 'Facturé',
+    ar: 'المفوتر',
+    en: 'Billed',
+  },
+  'fees.collected': {
+    fr: 'Encaissé',
+    ar: 'المحصّل',
+    en: 'Collected',
+  },
+  'fees.collectionRate': {
+    fr: '{rate} % recouvré',
+    ar: '{rate}٪ محصّل',
+    en: '{rate}% collected',
+  },
+  'fees.thisMonth': {
+    fr: '{amount} ce mois-ci',
+    ar: '{amount} هذا الشهر',
+    en: '{amount} this month',
+  },
+  'fees.outstanding': {
+    fr: 'Reste à encaisser',
+    ar: 'الباقي للتحصيل',
+    en: 'Outstanding',
+  },
+  'fees.overdue': {
+    fr: 'En retard',
+    ar: 'متأخر',
+    en: 'Overdue',
+  },
+  'fees.overdueStudents': {
+    fr: '{count} élève(s) concerné(s)',
+    ar: '{count} تلميذ معني',
+    en: '{count} student(s)',
+  },
+  'fees.autoReminders': {
+    fr: 'Rappels automatiques',
+    ar: 'تذكير تلقائي',
+    en: 'Automatic reminders',
+  },
+  'fees.autoRemindersCopy': {
+    fr: 'un message aux parents 3 jours avant l\'échéance, puis une fois par semaine en cas de retard (4 au maximum, entre 8 h et 20 h).',
+    ar: 'رسالة للأولياء قبل 3 أيام من الأجل، ثم مرة في الأسبوع عند التأخر (4 كحد أقصى، بين 8 و20 سا).',
+    en: 'a message to parents 3 days before the due date, then once a week when late (at most 4, between 8 am and 8 pm).',
+  },
+  'fees.directorOnly': {
+    fr: '(réglage réservé au directeur)',
+    ar: '(إعداد خاص بالمدير)',
+    en: '(director only)',
+  },
+  'fees.search': {
+    fr: 'Rechercher un élève',
+    ar: 'بحث عن تلميذ',
+    en: 'Search a student',
+  },
+  'fees.statusFilter': {
+    fr: 'Statut',
+    ar: 'الحالة',
+    en: 'Status',
+  },
+  'fees.filter.all': {
+    fr: 'Tous les statuts',
+    ar: 'كل الحالات',
+    en: 'All statuses',
+  },
+  'fees.filter.overdue': {
+    fr: 'En retard',
+    ar: 'متأخر',
+    en: 'Overdue',
+  },
+  'fees.filter.unpaid': {
+    fr: 'Non payés',
+    ar: 'غير مدفوع',
+    en: 'Unpaid',
+  },
+  'fees.filter.partial': {
+    fr: 'Partiellement payés',
+    ar: 'مدفوع جزئيا',
+    en: 'Partly paid',
+  },
+  'fees.filter.paid': {
+    fr: 'Payés',
+    ar: 'مدفوع',
+    en: 'Paid',
+  },
+  'fees.classFilter': {
+    fr: 'Classe',
+    ar: 'القسم',
+    en: 'Class',
+  },
+  'fees.labelFilter': {
+    fr: 'Frais',
+    ar: 'المصاريف',
+    en: 'Fee',
+  },
+  'fees.allFees': {
+    fr: 'Tous les frais',
+    ar: 'كل المصاريف',
+    en: 'All fees',
+  },
+  'fees.empty': {
+    fr: 'Aucun frais pour l\'instant. Commencez par « Nouveaux frais » : par exemple « Frais du 1er trimestre » pour toute l\'école.',
+    ar: 'لا توجد مصاريف بعد. ابدأ بـ «مصاريف جديدة»: مثلا «مصاريف الفصل الأول» لكل المدرسة.',
+    en: 'No fees yet. Start with “New fees”: for example “Term 1 fees” for the whole school.',
+  },
+  'fees.noMatch': {
+    fr: 'Aucun frais ne correspond à ces filtres.',
+    ar: 'لا توجد مصاريف تطابق هذه المرشحات.',
+    en: 'No fees match these filters.',
+  },
+  'fees.student': {
+    fr: 'Élève',
+    ar: 'التلميذ',
+    en: 'Student',
+  },
+  'fees.fee': {
+    fr: 'Frais',
+    ar: 'المصاريف',
+    en: 'Fee',
+  },
+  'fees.totalDue': {
+    fr: 'Montant',
+    ar: 'المبلغ',
+    en: 'Amount',
+  },
+  'fees.paid': {
+    fr: 'Payé',
+    ar: 'المدفوع',
+    en: 'Paid',
+  },
+  'fees.left': {
+    fr: 'Reste',
+    ar: 'الباقي',
+    en: 'Left',
+  },
+  'fees.dueDate': {
+    fr: 'Échéance',
+    ar: 'الأجل',
+    en: 'Due date',
+  },
+  'fees.reminders': {
+    fr: 'Rappels',
+    ar: 'التذكيرات',
+    en: 'Reminders',
+  },
+  'fees.noParent': {
+    fr: 'aucun parent connecté',
+    ar: 'لا ولي متصل',
+    en: 'no parent connected',
+  },
+  'fees.remindedOn': {
+    fr: '{count} rappel(s), dernier le {date}',
+    ar: '{count} تذكير، آخرها {date}',
+    en: '{count} reminder(s), last on {date}',
+  },
+  'fees.collect': {
+    fr: 'Encaisser',
+    ar: 'تحصيل',
+    en: 'Collect',
+  },
+  'fees.remind': {
+    fr: 'Envoyer un rappel aux parents',
+    ar: 'إرسال تذكير للأولياء',
+    en: 'Remind the parents',
+  },
+  'fees.receipts': {
+    fr: 'Paiements et reçus',
+    ar: 'المدفوعات والوصولات',
+    en: 'Payments and receipts',
+  },
+  'fees.deleteConfirm': {
+    fr: 'Supprimer « {label} » pour {name} ?',
+    ar: 'حذف «{label}» لـ {name}؟',
+    en: 'Delete “{label}” for {name}?',
+  },
+  'fees.deleted': {
+    fr: 'Frais supprimés.',
+    ar: 'تم حذف المصاريف.',
+    en: 'Fee deleted.',
+  },
+  'fees.byClass': {
+    fr: 'Par classe',
+    ar: 'حسب القسم',
+    en: 'By class',
+  },
+  'fees.noClass': {
+    fr: 'Sans classe',
+    ar: 'بدون قسم',
+    en: 'No class',
+  },
+  'fees.status.paid': {
+    fr: 'Payé',
+    ar: 'مدفوع',
+    en: 'Paid',
+  },
+  'fees.status.unpaid': {
+    fr: 'Non payé',
+    ar: 'غير مدفوع',
+    en: 'Unpaid',
+  },
+  'fees.status.partial': {
+    fr: 'Partiel',
+    ar: 'جزئي',
+    en: 'Partly paid',
+  },
+  'fees.overdueBy': {
+    fr: 'En retard de {days} j',
+    ar: 'متأخر بـ {days} يوم',
+    en: '{days} days late',
+  },
+  'fees.remindersResult': {
+    fr: 'Rappels envoyés : {sent}. Déjà rappelés récemment : {recent}. Sans parent connecté : {noParent}.',
+    ar: 'تذكيرات مرسلة: {sent}. ذُكّر بها مؤخرا: {recent}. بدون ولي متصل: {noParent}.',
+    en: 'Reminders sent: {sent}. Reminded recently: {recent}. No parent connected: {noParent}.',
+  },
+  'fees.loadError': {
+    fr: 'Impossible de charger les frais.',
+    ar: 'تعذر تحميل المصاريف.',
+    en: 'Could not load the fees.',
+  },
+  'fees.label': {
+    fr: 'Intitulé',
+    ar: 'العنوان',
+    en: 'Label',
+  },
+  'fees.labelHint': {
+    fr: 'Ex. Frais du 1er trimestre, Cantine octobre, Transport',
+    ar: 'مثلا: مصاريف الفصل الأول، المطعم، النقل',
+    en: 'e.g. Term 1 fees, October canteen, Transport',
+  },
+  'fees.amount': {
+    fr: 'Montant (DA)',
+    ar: 'المبلغ (دج)',
+    en: 'Amount (DZD)',
+  },
+  'fees.who': {
+    fr: 'Pour',
+    ar: 'لـ',
+    en: 'For',
+  },
+  'fees.wholeSchool': {
+    fr: 'Toute l\'école (élèves actifs)',
+    ar: 'كل المدرسة (التلاميذ النشطون)',
+    en: 'The whole school (active students)',
+  },
+  'fees.noDuplicates': {
+    fr: 'Les élèves qui ont déjà des frais avec cet intitulé ne sont pas facturés une deuxième fois.',
+    ar: 'التلاميذ الذين لديهم مصاريف بنفس العنوان لا يُفوترون مرة ثانية.',
+    en: 'Students who already have a fee with this label are not billed twice.',
+  },
+  'fees.create': {
+    fr: 'Créer les frais',
+    ar: 'إنشاء المصاريف',
+    en: 'Create the fees',
+  },
+  'fees.created': {
+    fr: '{created} élève(s) facturé(s), {skipped} déjà facturé(s).',
+    ar: 'تمت فوترة {created} تلميذ، {skipped} مفوترون مسبقا.',
+    en: '{created} student(s) billed, {skipped} already billed.',
+  },
+  'fees.amountInvalid': {
+    fr: 'Indiquez un montant supérieur à 0.',
+    ar: 'أدخل مبلغا أكبر من 0.',
+    en: 'Enter an amount above 0.',
+  },
+  'fees.collectTitle': {
+    fr: 'Encaisser — {name}',
+    ar: 'تحصيل — {name}',
+    en: 'Collect — {name}',
+  },
+  'fees.leftToPay': {
+    fr: 'reste à payer {amount}',
+    ar: 'الباقي للدفع {amount}',
+    en: '{amount} left to pay',
+  },
+  'fees.method': {
+    fr: 'Mode de paiement',
+    ar: 'طريقة الدفع',
+    en: 'Payment method',
+  },
+  'fees.method.cash': {
+    fr: 'Espèces',
+    ar: 'نقدا',
+    en: 'Cash',
+  },
+  'fees.method.bank_transfer': {
+    fr: 'Virement bancaire',
+    ar: 'تحويل بنكي',
+    en: 'Bank transfer',
+  },
+  'fees.method.ccp': {
+    fr: 'CCP / BaridiMob',
+    ar: 'CCP / بريدي موب',
+    en: 'CCP / BaridiMob',
+  },
+  'fees.method.cheque': {
+    fr: 'Chèque',
+    ar: 'صك',
+    en: 'Cheque',
+  },
+  'fees.note': {
+    fr: 'Remarque',
+    ar: 'ملاحظة',
+    en: 'Note',
+  },
+  'fees.noteHint': {
+    fr: 'Ex. n° de virement, payé par l\'oncle…',
+    ar: 'مثلا: رقم التحويل…',
+    en: 'e.g. transfer number…',
+  },
+  'fees.saveAndReceipt': {
+    fr: 'Enregistrer et afficher le reçu',
+    ar: 'حفظ وعرض الوصل',
+    en: 'Save and show the receipt',
+  },
+  'fees.amountTooHigh': {
+    fr: 'Le montant doit être entre 1 et {left}.',
+    ar: 'يجب أن يكون المبلغ بين 1 و{left}.',
+    en: 'The amount must be between 1 and {left}.',
+  },
+  'fees.paymentsTitle': {
+    fr: 'Paiements — {label} ({name})',
+    ar: 'المدفوعات — {label} ({name})',
+    en: 'Payments — {label} ({name})',
+  },
+  'fees.receipt': {
+    fr: 'Reçu',
+    ar: 'الوصل',
+    en: 'Receipt',
+  },
+  'fees.cancelPayment': {
+    fr: 'Annuler',
+    ar: 'إلغاء',
+    en: 'Cancel',
+  },
+  'fees.cancelReason': {
+    fr: 'Annuler le paiement {number} ? Indiquez la raison (elle est gardée dans le journal) :',
+    ar: 'إلغاء الدفعة {number}؟ اذكر السبب (يُحفظ في السجل):',
+    en: 'Cancel payment {number}? Give the reason (kept in the activity log):',
+  },
+  'fees.paymentCancelled': {
+    fr: 'Paiement annulé, le reste à payer est mis à jour.',
+    ar: 'أُلغيت الدفعة وحُدّث الباقي.',
+    en: 'Payment cancelled; the balance is updated.',
+  },
+  'fees.receiptTitle': {
+    fr: 'Reçu de paiement — frais scolaires',
+    ar: 'وصل دفع — مصاريف مدرسية',
+    en: 'Payment receipt — school fees',
+  },
+  'fees.receiptNumber': {
+    fr: 'Reçu n°',
+    ar: 'رقم الوصل',
+    en: 'Receipt no.',
+  },
+  'fees.date': {
+    fr: 'Date',
+    ar: 'التاريخ',
+    en: 'Date',
+  },
+  'fees.amountReceived': {
+    fr: 'Montant reçu',
+    ar: 'المبلغ المستلم',
+    en: 'Amount received',
+  },
+  'fees.leftAfter': {
+    fr: 'Reste à payer après ce paiement',
+    ar: 'الباقي بعد هذه الدفعة',
+    en: 'Left to pay after this payment',
+  },
+  'fees.settled': {
+    fr: 'Soldé',
+    ar: 'مسدد بالكامل',
+    en: 'Fully paid',
+  },
+  'fees.receiptFooter': {
+    fr: 'Reçu généré par Wasel Edu. Conservez-le comme justificatif.',
+    ar: 'وصل صادر عن Wasel Edu. احتفظ به كإثبات.',
+    en: 'Receipt generated by Wasel Edu. Keep it as proof of payment.',
+  },
+  'fees.printReceipt': {
+    fr: 'Imprimer / PDF',
+    ar: 'طباعة / PDF',
+    en: 'Print / PDF',
+  },
+  'fees.parentLeft': {
+    fr: 'Reste à payer pour cet enfant : {amount}',
+    ar: 'الباقي للدفع لهذا الطفل: {amount}',
+    en: 'Left to pay for this child: {amount}',
+  },
+  'fees.parentNothingDue': {
+    fr: 'Rien à payer pour cet enfant. Merci !',
+    ar: 'لا شيء للدفع لهذا الطفل. شكرا!',
+    en: 'Nothing to pay for this child. Thank you!',
+  },
+  'fees.parentEmpty': {
+    fr: 'L\'école n\'a pas encore enregistré de frais.',
+    ar: 'لم تسجل المدرسة أي مصاريف بعد.',
+    en: 'The school has not recorded any fees yet.',
+  },
+  'fees.parentHow': {
+    fr: 'Les paiements se font auprès du secrétariat de l\'école ; chaque paiement enregistré apparaît ici avec son reçu.',
+    ar: 'يتم الدفع لدى أمانة المدرسة؛ كل دفعة مسجلة تظهر هنا مع وصلها.',
+    en: 'Payments are made at the school office; every recorded payment appears here with its receipt.',
+  },
+  'teacherImport.copy': {
+    fr: 'Plusieurs enseignants ? Importez un fichier CSV (prénom, nom, email) : chacun reçoit un code d\'activation valable 72 h.',
+    ar: 'عدة أساتذة؟ استورد ملف CSV (الاسم، اللقب، البريد): يتلقى كل واحد رمز تفعيل صالح 72 ساعة.',
+    en: 'Several teachers? Import a CSV file (first name, last name, email): each one gets an activation code valid for 72 hours.',
+  },
+  'teacherImport.button': {
+    fr: 'Importer des enseignants (CSV)',
+    ar: 'استيراد أساتذة (CSV)',
+    en: 'Import teachers (CSV)',
+  },
+  'teacherImport.resultTitle': {
+    fr: '{count} enseignant(s) invité(s)',
+    ar: 'تمت دعوة {count} أستاذ',
+    en: '{count} teacher(s) invited',
+  },
+  'teacherImport.codesOnce': {
+    fr: 'Les codes ne s\'affichent qu\'une fois : imprimez cette page ou remettez chaque code à son enseignant maintenant. Un code perdu se renouvelle avec « Réinitialiser l\'accès ».',
+    ar: 'تظهر الرموز مرة واحدة فقط: اطبع هذه الصفحة أو سلّم كل رمز لصاحبه الآن. الرمز الضائع يُجدَّد بـ «إعادة تعيين الوصول».',
+    en: 'The codes are shown only once: print this page or hand each code to its teacher now. A lost code is renewed with “Reset access”.',
+  },
+  'teacherImport.instructions': {
+    fr: 'Ouvrez Wasel Edu, choisissez « Activer un compte », saisissez votre email et ce code, puis choisissez votre mot de passe.',
+    ar: 'افتح Wasel Edu، اختر «تفعيل حساب»، أدخل بريدك وهذا الرمز، ثم اختر كلمة مرورك.',
+    en: 'Open Wasel Edu, choose “Activate an account”, enter your email and this code, then choose your password.',
+  },
+  'teacherImport.skipped': {
+    fr: '{count} ligne(s) non importée(s)',
+    ar: '{count} سطر لم يُستورد',
+    en: '{count} row(s) not imported',
+  },
+  'teacherImport.line': {
+    fr: 'Ligne {line}',
+    ar: 'السطر {line}',
+    en: 'Row {line}',
+  },
+  'teacherImport.reason.missing': {
+    fr: 'nom ou email manquant',
+    ar: 'الاسم أو البريد ناقص',
+    en: 'name or email missing',
+  },
+  'teacherImport.reason.invalid_email': {
+    fr: 'email invalide',
+    ar: 'بريد غير صالح',
+    en: 'invalid email',
+  },
+  'teacherImport.reason.duplicate': {
+    fr: 'email déjà présent plus haut dans le fichier',
+    ar: 'البريد مكرر في الملف',
+    en: 'email repeated in the file',
+  },
+  'teacherImport.reason.exists': {
+    fr: 'un compte existe déjà avec cet email',
+    ar: 'يوجد حساب بهذا البريد',
+    en: 'an account already uses this email',
+  },
+  'branding.title': {
+    fr: 'Établissement',
+    ar: 'المؤسسة',
+    en: 'School',
+  },
+  'branding.copy': {
+    fr: 'Le logo apparaît sur les reçus, les bulletins, le bilan mensuel et les codes parents imprimés.',
+    ar: 'يظهر الشعار على الوصولات وكشوف النقاط والحصيلة الشهرية ورموز الأولياء المطبوعة.',
+    en: 'The logo appears on receipts, report cards, the monthly report and printed parent codes.',
+  },
+  'branding.logoAlt': {
+    fr: 'Logo de {name}',
+    ar: 'شعار {name}',
+    en: '{name} logo',
+  },
+  'branding.upload': {
+    fr: 'Ajouter le logo',
+    ar: 'إضافة الشعار',
+    en: 'Add the logo',
+  },
+  'branding.replace': {
+    fr: 'Changer le logo',
+    ar: 'تغيير الشعار',
+    en: 'Change the logo',
+  },
+  'branding.remove': {
+    fr: 'Retirer',
+    ar: 'إزالة',
+    en: 'Remove',
+  },
+  'branding.directorOnly': {
+    fr: 'Seul le directeur peut changer le logo.',
+    ar: 'المدير وحده يمكنه تغيير الشعار.',
+    en: 'Only the director can change the logo.',
+  },
+  'setup.logo.title': {
+    fr: 'Logo de l\'école',
+    ar: 'شعار المدرسة',
+    en: 'School logo',
+  },
+  'setup.logo.hint': {
+    fr: 'Ajoutez votre logo (PNG ou JPEG, 200 Ko max) : il sera imprimé sur les reçus et bulletins.',
+    ar: 'أضف شعارك (PNG أو JPEG، 200 كيلوبايت كحد أقصى): سيُطبع على الوصولات والكشوف.',
+    en: 'Add your logo (PNG or JPEG, 200 KB max): it is printed on receipts and report cards.',
+  },
+  'setup.logo.count': {
+    fr: 'Logo ajouté',
+    ar: 'تمت إضافة الشعار',
+    en: 'Logo added',
+  },
+  'role.nurse': {
+    fr: 'Infirmerie',
+    ar: 'التمريض',
+    en: 'School nurse',
+  },
+  'nav.infirmary': {
+    fr: 'Infirmerie',
+    ar: 'التمريض',
+    en: 'Infirmary',
+  },
+  'infirmary.title': {
+    fr: 'Infirmerie',
+    ar: 'التمريض',
+    en: 'Infirmary',
+  },
+  'infirmary.copy': {
+    fr: '{count} élève(s) sur {total} ont une fiche santé. Votre compte n\'a accès qu\'aux fiches santé.',
+    ar: '{count} من {total} تلميذ لهم بطاقة صحية. حسابك يطلع فقط على البطاقات الصحية.',
+    en: '{count} of {total} students have a health sheet. Your account only reaches health sheets.',
+  },
+  'infirmary.onlyAlerts': {
+    fr: 'Seulement les élèves avec une alerte',
+    ar: 'فقط التلاميذ الذين لديهم تنبيه',
+    en: 'Only students with an alert',
+  },
+  'infirmary.alert': {
+    fr: 'Alerte',
+    ar: 'تنبيه',
+    en: 'Alert',
+  },
+  'infirmary.recordNoAlert': {
+    fr: 'Fiche sans alerte',
+    ar: 'بطاقة بدون تنبيه',
+    en: 'Sheet, no alert',
+  },
+  'infirmary.noRecord': {
+    fr: 'Pas de fiche',
+    ar: 'لا توجد بطاقة',
+    en: 'No sheet',
+  },
+  'infirmary.open': {
+    fr: 'Ouvrir la fiche',
+    ar: 'فتح البطاقة',
+    en: 'Open sheet',
+  },
+  'infirmary.create': {
+    fr: 'Créer la fiche',
+    ar: 'إنشاء البطاقة',
+    en: 'Create sheet',
+  },
+  'infirmary.audit': {
+    fr: 'Chaque fiche ouverte est enregistrée dans le journal d\'activité de l\'école. Une nouvelle fiche ne se crée qu\'avec le consentement écrit du parent (formulaire papier signé).',
+    ar: 'كل بطاقة تُفتح تُسجَّل في سجل نشاط المدرسة. لا تُنشأ بطاقة جديدة إلا بموافقة الولي الكتابية (استمارة ورقية موقعة).',
+    en: 'Every sheet opened is recorded in the school\'s activity log. A new sheet needs the parent\'s written consent (signed paper form).',
+  },
+  'reportCards.republic': {
+    fr: 'République algérienne démocratique et populaire',
+    ar: 'الجمهورية الجزائرية الديمقراطية الشعبية',
+    en: 'People\'s Democratic Republic of Algeria',
+  },
+  'reportCards.mention.felicitations': {
+    fr: 'Félicitations',
+    ar: 'تهنئة',
+    en: 'Congratulations',
+  },
+  'reportCards.mention.encouragements': {
+    fr: 'Encouragements',
+    ar: 'تشجيع',
+    en: 'Encouragement',
+  },
+  'reportCards.mention.tableau_honneur': {
+    fr: 'Tableau d\'honneur',
+    ar: 'لوحة الشرف',
+    en: 'Honour roll',
+  },
+  'reportCards.verifyHint': {
+    fr: 'Scannez pour vérifier l\'authenticité de ce bulletin.',
+    ar: 'امسح للتحقق من صحة هذا الكشف.',
+    en: 'Scan to check this report card is genuine.',
+  },
+  'verify.genuine': {
+    fr: 'Bulletin authentique',
+    ar: 'كشف أصلي',
+    en: 'Genuine report card',
+  },
+  'verify.copy': {
+    fr: 'Voici ce que l\'établissement a publié pour ce bulletin.',
+    ar: 'هذا ما نشرته المؤسسة لهذا الكشف.',
+    en: 'This is what the school published for this report card.',
+  },
+  'verify.compare': {
+    fr: 'Comparez avec le document papier : toute différence signifie qu\'il a été modifié.',
+    ar: 'قارن مع الوثيقة الورقية: أي اختلاف يعني أنها عُدّلت.',
+    en: 'Compare with the paper copy: any difference means it was altered.',
+  },
+  'verify.school': {
+    fr: 'Établissement',
+    ar: 'المؤسسة',
+    en: 'School',
+  },
+  'verify.term': {
+    fr: 'Trimestre',
+    ar: 'الفصل',
+    en: 'Term',
+  },
+  'verify.mention': {
+    fr: 'Distinction',
+    ar: 'التمييز',
+    en: 'Distinction',
+  },
+  'verify.published': {
+    fr: 'Publié le',
+    ar: 'نُشر في',
+    en: 'Published on',
+  },
+  'verify.notFound': {
+    fr: 'Bulletin introuvable',
+    ar: 'الكشف غير موجود',
+    en: 'Report card not found',
+  },
+  'verify.notFoundCopy': {
+    fr: 'Ce code ne correspond à aucun bulletin publié, ou l\'établissement l\'a retiré. Contactez l\'école.',
+    ar: 'هذا الرمز لا يطابق أي كشف منشور، أو سحبته المؤسسة. اتصل بالمدرسة.',
+    en: 'This code matches no published report card, or the school withdrew it. Contact the school.',
+  },
+  'verify.home': {
+    fr: 'Aller sur Wasel Edu',
+    ar: 'الذهاب إلى Wasel Edu',
+    en: 'Go to Wasel Edu',
+  },
+  'referral.title': {
+    fr: 'Parrainez une école : {months} mois offerts',
+    ar: 'رشّح مدرسة: {months} أشهر مجانية',
+    en: 'Refer a school: {months} months free',
+  },
+  'referral.copy': {
+    fr: 'Partagez votre code avec une autre école. Quand elle est activée, vous recevez chacune {months} mois offerts sur l\'abonnement.',
+    ar: 'شارك رمزك مع مدرسة أخرى. عند تفعيلها، تحصل كل مدرسة على {months} أشهر مجانية في الاشتراك.',
+    en: 'Share your code with another school. Once it is activated, you each get {months} months free on your subscription.',
+  },
+  'referral.copyLink': {
+    fr: 'Copier le lien d\'inscription',
+    ar: 'نسخ رابط التسجيل',
+    en: 'Copy the sign-up link',
+  },
+  'referral.copied': {
+    fr: 'Lien copié',
+    ar: 'تم نسخ الرابط',
+    en: 'Link copied',
+  },
+  'referral.copyPrompt': {
+    fr: 'Copiez ce lien :',
+    ar: 'انسخ هذا الرابط:',
+    en: 'Copy this link:',
+  },
+  'referral.pending': {
+    fr: 'en attente d\'activation',
+    ar: 'في انتظار التفعيل',
+    en: 'waiting for activation',
+  },
+  'referral.active': {
+    fr: 'activée',
+    ar: 'مفعّلة',
+    en: 'activated',
+  },
+  'referral.rewarded': {
+    fr: '{months} mois offerts',
+    ar: '{months} أشهر مجانية',
+    en: '{months} months given',
+  },
+  'register.referralCode': {
+    fr: 'Code de parrainage (facultatif)',
+    ar: 'رمز الترشيح (اختياري)',
+    en: 'Referral code (optional)',
+  },
+  'register.referralPlaceholder': {
+    fr: 'Code donné par une école partenaire',
+    ar: 'رمز من مدرسة شريكة',
+    en: 'Code from a partner school',
+  },
+  'login.pricing': {
+    fr: 'Offre et tarifs',
+    ar: 'العرض والأسعار',
+    en: 'Plans and pricing',
+  },
+  'pricing.kicker': {
+    fr: 'Pour les écoles privées',
+    ar: 'للمدارس الخاصة',
+    en: 'For private schools',
+  },
+  'pricing.title': {
+    fr: 'Toute l\'école dans une seule application',
+    ar: 'كل المدرسة في تطبيق واحد',
+    en: 'Your whole school in one app',
+  },
+  'pricing.copy': {
+    fr: 'Direction, enseignants et parents reliés, sur le web et sur mobile, en arabe, français et anglais.',
+    ar: 'الإدارة والأساتذة والأولياء مترابطون، على الويب والهاتف، بالعربية والفرنسية والإنجليزية.',
+    en: 'Administration, teachers and parents connected, on the web and on phones, in Arabic, French and English.',
+  },
+  'pricing.trial': {
+    fr: 'Le premier trimestre est offert',
+    ar: 'الفصل الأول مجاني',
+    en: 'Your first trimester is free',
+  },
+  'pricing.trialCopy': {
+    fr: 'Après l\'activation de votre école, vous utilisez tout gratuitement jusqu\'à la fin du trimestre en cours (ou du suivant s\'il reste moins d\'un mois).',
+    ar: 'بعد تفعيل مدرستك، تستعمل كل شيء مجانا حتى نهاية الفصل الجاري (أو الفصل الموالي إذا بقي أقل من شهر).',
+    en: 'Once your school is activated, everything is free until the end of the current trimester (or the next one if less than a month is left).',
+  },
+  'pricing.included': {
+    fr: 'Tout est inclus',
+    ar: 'كل شيء مشمول',
+    en: 'Everything included',
+  },
+  'pricing.f.grades': {
+    fr: 'Notes, moyennes et validation par la direction',
+    ar: 'النقاط والمعدلات والمصادقة من الإدارة',
+    en: 'Grades, averages and approval by the administration',
+  },
+  'pricing.f.attendance': {
+    fr: 'Appel en classe et alerte immédiate aux parents',
+    ar: 'المناداة وتنبيه فوري للأولياء',
+    en: 'Attendance with instant alerts to parents',
+  },
+  'pricing.f.reportCards': {
+    fr: 'Bulletins avec distinctions et QR de vérification',
+    ar: 'كشوف النقاط مع التمييز ورمز QR للتحقق',
+    en: 'Report cards with distinctions and a verification QR',
+  },
+  'pricing.f.messages': {
+    fr: 'Messagerie, annonces et rendez-vous parents',
+    ar: 'الرسائل والإعلانات ومواعيد الأولياء',
+    en: 'Messages, announcements and parent meetings',
+  },
+  'pricing.f.fees': {
+    fr: 'Frais scolaires, reçus et rappels',
+    ar: 'المصاريف المدرسية والوصولات والتذكيرات',
+    en: 'School fees, receipts and reminders',
+  },
+  'pricing.f.health': {
+    fr: 'Fiche santé et infirmerie (données chiffrées)',
+    ar: 'البطاقة الصحية والتمريض (بيانات مشفرة)',
+    en: 'Health sheets and infirmary (encrypted data)',
+  },
+  'pricing.f.monthly': {
+    fr: 'Bilan mensuel et suivi des élèves en difficulté',
+    ar: 'الحصيلة الشهرية ومتابعة التلاميذ المتعثرين',
+    en: 'Monthly report and early warning on struggling students',
+  },
+  'pricing.f.apps': {
+    fr: 'Application mobile pour les parents et les enseignants',
+    ar: 'تطبيق للهاتف للأولياء والأساتذة',
+    en: 'Mobile app for parents and teachers',
+  },
+  'pricing.f.security': {
+    fr: 'Données isolées par école, journal d\'activité',
+    ar: 'بيانات معزولة لكل مدرسة وسجل نشاط',
+    en: 'Data isolated per school, activity log',
+  },
+  'pricing.price': {
+    fr: 'Tarif annuel selon le nombre d\'élèves : demandez votre devis après l\'inscription.',
+    ar: 'سعر سنوي حسب عدد التلاميذ: اطلب عرض السعر بعد التسجيل.',
+    en: 'Yearly price based on the number of students: ask for your quote after signing up.',
+  },
+  'pricing.referral': {
+    fr: 'Recommandé par une autre école ? Indiquez son code à l\'inscription : deux mois offerts à chacune.',
+    ar: 'رشّحتك مدرسة أخرى؟ أدخل رمزها عند التسجيل: شهران مجانيان لكل واحدة.',
+    en: 'Recommended by another school? Enter its code when you sign up: two months free for each.',
+  },
+  'pricing.signUp': {
+    fr: 'Inscrire mon école',
+    ar: 'تسجيل مدرستي',
+    en: 'Sign up my school',
+  },
+  'pricing.demo': {
+    fr: 'Essayer la démo',
+    ar: 'تجربة العرض',
+    en: 'Try the demo',
+  },
+  'pricing.contact': {
+    fr: 'Nous contacter',
+    ar: 'اتصل بنا',
+    en: 'Contact us',
   },
 };
 

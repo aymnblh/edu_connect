@@ -7,16 +7,25 @@ import {
   ShieldCheck, 
   FileText, 
   LogOut, 
+  KeyRound,
+  MonitorSmartphone,
+  ScrollText,
   BookOpen,
   HeartHandshake,
   Users,
   GraduationCap,
-  UserPlus
+  UserPlus,
+  Megaphone,
+  CalendarRange,
+  HeartPulse,
+  Wallet
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { logoutSession } from '../lib/api';
 import { useLocale } from '../lib/i18n';
 import { readWorkspaceSessionItem } from '../lib/workspace';
+import ChangePasswordModal from './ChangePasswordModal';
+import DevicesModal from './DevicesModal';
 import LocaleSwitcher from './LocaleSwitcher';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 
@@ -27,6 +36,8 @@ interface SidebarProps {
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [devicesModalOpen, setDevicesModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { activeRole } = useWorkspace();
@@ -57,14 +68,24 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
       case 'secretary':
         return [
           { to: '/director', label: t('nav.directorOverview'), icon: LayoutDashboard },
+          { to: '/director/monthly-report', label: t('nav.monthlyReport'), icon: CalendarRange },
           { to: '/director/students', label: t('nav.studentsParents'), icon: Users },
           { to: '/director/classes', label: t('nav.classesCourses'), icon: GraduationCap },
+          { to: '/director/fees', label: t('nav.fees'), icon: Wallet },
           { to: '/director/team', label: t('nav.teamTeachers'), icon: UserPlus },
+          { to: '/director/report-cards', label: t('nav.reportCards'), icon: FileText },
+          { to: '/director/announcements', label: t('nav.announcements'), icon: Megaphone },
+          { to: '/director/audit-log', label: t('nav.auditLog'), icon: ScrollText },
           { to: '/policies', label: t('nav.legal'), icon: FileText },
         ];
       case 'teacher':
         return [
           { to: '/teacher/dashboard', label: t('nav.teacherClass'), icon: BookOpen },
+          { to: '/policies', label: t('nav.legal'), icon: FileText },
+        ];
+      case 'nurse':
+        return [
+          { to: '/infirmary', label: t('nav.infirmary'), icon: HeartPulse },
           { to: '/policies', label: t('nav.legal'), icon: FileText },
         ];
       case 'parent':
@@ -174,6 +195,28 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             )}
           </div>
           {!collapsed && (
+            <button
+              type="button"
+              onClick={() => setDevicesModalOpen(true)}
+              className="logout-btn"
+              title={t('devices.title')}
+              aria-label={t('devices.title')}
+            >
+              <MonitorSmartphone size={16} />
+            </button>
+          )}
+          {!collapsed && (
+            <button
+              type="button"
+              onClick={() => setPasswordModalOpen(true)}
+              className="logout-btn"
+              title={t('password.changeTitle')}
+              aria-label={t('password.changeTitle')}
+            >
+              <KeyRound size={16} />
+            </button>
+          )}
+          {!collapsed && (
             <button 
               onClick={handleLogout}
               className="logout-btn"
@@ -185,6 +228,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
           )}
         </div>
       </div>
+      {passwordModalOpen && <ChangePasswordModal onClose={() => setPasswordModalOpen(false)} />}
+      {devicesModalOpen && <DevicesModal onClose={() => setDevicesModalOpen(false)} />}
     </aside>
   );
 }

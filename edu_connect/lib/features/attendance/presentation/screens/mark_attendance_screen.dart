@@ -12,6 +12,7 @@ import '../../../class/data/models/student_model.dart';
 import '../../../class/presentation/providers/class_provider.dart';
 import '../providers/attendance_provider.dart';
 import '../../data/models/attendance_model.dart';
+import '../../../health/health_screen.dart';
 
 class MarkAttendanceScreen extends ConsumerWidget {
   final String classId;
@@ -99,12 +100,14 @@ class MarkAttendanceScreen extends ConsumerWidget {
 
             return ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: students.length,
+              itemCount: students.length + 1,
               itemBuilder: (ctx, i) {
+                // Short health alerts first (teachers never see the full record).
+                if (i == 0) return ClassHealthAlertsBanner(classId: classId);
                 return _AttendanceRow(
                   classId: classId,
-                  student: students[i],
-                  index: i,
+                  student: students[i - 1],
+                  index: i - 1,
                 );
               },
             );

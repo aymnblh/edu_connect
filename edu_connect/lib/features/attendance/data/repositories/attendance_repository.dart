@@ -24,6 +24,18 @@ class AttendanceRepository {
     return AttendanceModel.fromJson(response.data as Map<String, dynamic>);
   }
 
+  /// Correct a saved record (any day); parents alerted earlier are told.
+  Future<void> correctAttendance({
+    required String classId,
+    required String attendanceId,
+    required AttendanceStatus status,
+  }) async {
+    await _api.dio.patch(
+      '/classes/$classId/attendance/$attendanceId',
+      data: {'status': status.name},
+    );
+  }
+
   Future<List<AttendanceModel>> getClassAttendance(String classId) async {
     final response = await _api.dio.get('/classes/$classId/attendance/');
     return (response.data as List)

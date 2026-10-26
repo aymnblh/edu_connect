@@ -11,6 +11,11 @@ import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/providers/children_provider.dart';
+import 'package:dio/dio.dart';
+
+import '../../../class/data/models/student_model.dart';
+import '../../../class/data/repositories/admin_repository.dart';
+import '../../../class/presentation/providers/class_provider.dart';
 import '../../data/models/grade_model.dart';
 import '../providers/grades_provider.dart';
 
@@ -65,13 +70,12 @@ class GradesListScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 tooltip: text.bulletin,
-                onPressed: () {
-                  final studentId = user.isParent ? user.id : null;
-                  context.push(
-                    '/class/$classId/grades/bulletin'
-                    '${studentId != null ? '?studentId=$studentId' : ''}',
-                  );
-                },
+                // Parents see the term report cards published by the school.
+                onPressed: () => context.push(
+                  user.isParent
+                      ? '/report-cards'
+                      : '/class/$classId/grades/bulletin',
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.refresh),
@@ -129,6 +133,12 @@ class GradesListScreen extends ConsumerWidget {
                                       showStudentName: !user.isParent,
                                       canApprove:
                                           canApprove && !entry.value.isApproved,
+                                      canEdit: !entry.value.isApproved &&
+                                          (user.isTeacher || canApprove),
+                                      onEdit: () => _showEditGradeDialog(
+                                          context, ref, entry.value),
+                                      onDelete: () => _deleteGrade(
+                                          context, ref, entry.value),
                                       onApprove: () async {
                                         await ref
                                             .read(
@@ -192,12 +202,14 @@ class GradesListScreen extends ConsumerWidget {
       backgroundColor:
           Theme.of(context).colorScheme.surface.withValues(alpha: 0),
       builder: (ctx) => _AddGradeSheet(
-        onSubmit: (studentId, studentName, subject, value, comment) async {
+        classId: classId,
+        onSubmit: (studentId, studentName, course, value, comment) async {
           await ref.read(gradesNotifierProvider.notifier).addGrade(
                 classId: classId,
                 studentId: studentId,
                 studentName: studentName,
-                subject: subject,
+                subject: course.courseName ?? '',
+                courseId: course.courseId,
                 value: value,
                 comment: comment,
               );
@@ -209,29 +221,152 @@ class GradesListScreen extends ConsumerWidget {
   }
 }
 
-class _AddGradeSheet extends StatefulWidget {
-  final Future<void> Function(String, String, String, double, String?) onSubmit;
-
-  const _AddGradeSheet({required this.onSubmit});
-
-  @override
-  State<_AddGradeSheet> createState() => _AddGradeSheetState();
+String _serverMessage(Object error) {
+  if (error is DioException) {
+    final data = error.response?.data;
+    final detail = data is Map ? data['detail'] : null;
+    if (detail is String) return detail;
+  }
+  return '$error';
 }
 
-class _AddGradeSheetState extends State<_AddGradeSheet> {
+Future<void> _deleteGrade(
+    BuildContext context, WidgetRef ref, GradeModel grade) async {
+  final text = _GradesText.of(context);
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(text.delete),
+      content: Text(text.confirmDeleteGrade),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(text.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(text.delete),
+        ),
+      ],
+    ),
+  );
+  if (confirm != true || !context.mounted) return;
+  try {
+    await ref
+        .read(gradesRepositoryProvider)
+        .deleteGrade(classId: grade.classId, gradeId: grade.id);
+    ref.invalidate(gradesProvider(grade.classId));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(text.gradeDeleted)));
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(text.actionFailed(_serverMessage(e)))));
+    }
+  }
+}
+
+Future<void> _showEditGradeDialog(
+    BuildContext context, WidgetRef ref, GradeModel grade) async {
+  final text = _GradesText.of(context);
+  final formKey = GlobalKey<FormState>();
+  final scoreCtrl = TextEditingController(text: grade.value.toString());
+  final commentCtrl = TextEditingController(text: grade.comment ?? '');
+  final saved = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(text.editGrade),
+      content: Form(
+        key: formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: scoreCtrl,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              validator: (value) {
+                final number =
+                    double.tryParse((value ?? '').trim().replaceAll(',', '.'));
+                if (number == null || number < 0 || number > grade.maxValue) {
+                  return text.scoreRange(grade.maxValue);
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: text.scoreOutOf(grade.maxValue),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: commentCtrl,
+              decoration: InputDecoration(labelText: text.optionalComment),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(text.cancel),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (formKey.currentState!.validate()) Navigator.of(ctx).pop(true);
+          },
+          child: Text(text.save),
+        ),
+      ],
+    ),
+  );
+  final score = double.tryParse(scoreCtrl.text.trim().replaceAll(',', '.'));
+  final comment = commentCtrl.text.trim();
+  scoreCtrl.dispose();
+  commentCtrl.dispose();
+  if (saved != true || score == null || !context.mounted) return;
+  try {
+    await ref.read(gradesRepositoryProvider).updateGrade(
+          classId: grade.classId,
+          gradeId: grade.id,
+          score: score,
+          comment: comment.isEmpty ? null : comment,
+        );
+    ref.invalidate(gradesProvider(grade.classId));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(text.gradeUpdated)));
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(text.actionFailed(_serverMessage(e)))));
+    }
+  }
+}
+
+class _AddGradeSheet extends ConsumerStatefulWidget {
+  final String classId;
+  final Future<void> Function(String, String, ClassCourseModel, double, String?)
+      onSubmit;
+
+  const _AddGradeSheet({required this.classId, required this.onSubmit});
+
+  @override
+  ConsumerState<_AddGradeSheet> createState() => _AddGradeSheetState();
+}
+
+class _AddGradeSheetState extends ConsumerState<_AddGradeSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _studentIdCtrl = TextEditingController();
-  final _studentNameCtrl = TextEditingController();
-  final _subjectCtrl = TextEditingController();
+  String? _studentId;
+  String? _courseId;
   final _valueCtrl = TextEditingController();
   final _commentCtrl = TextEditingController();
   bool _loading = false;
 
   @override
   void dispose() {
-    _studentIdCtrl.dispose();
-    _studentNameCtrl.dispose();
-    _subjectCtrl.dispose();
     _valueCtrl.dispose();
     _commentCtrl.dispose();
     super.dispose();
@@ -242,6 +377,15 @@ class _AddGradeSheetState extends State<_AddGradeSheet> {
     final text = _GradesText.of(context);
     final colors = context.appColors;
     final colorScheme = Theme.of(context).colorScheme;
+    final coursesAsync = ref.watch(teacherCoursesProvider(widget.classId));
+    final courses = coursesAsync.valueOrNull ?? const <ClassCourseModel>[];
+    final selectedCourseId =
+        _courseId ?? (courses.length == 1 ? courses.first.courseId : null);
+    final studentsAsync = ref.watch(classDetailProvider(widget.classId));
+    final students = [
+      ...(studentsAsync.valueOrNull?.members ?? const <StudentModel>[]),
+    ]..sort((a, b) => a.fullName.compareTo(b.fullName));
+    final canSubmit = courses.isNotEmpty && students.isNotEmpty && !_loading;
     return Container(
       decoration: BoxDecoration(
         color: colors.cardBg,
@@ -277,33 +421,75 @@ class _AddGradeSheetState extends State<_AddGradeSheet> {
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _studentIdCtrl,
-                validator: (v) => Validators.required(v, text.studentId),
-                decoration: InputDecoration(
-                  labelText: text.studentId,
-                  prefixIcon: const Icon(Icons.badge_outlined),
+              studentsAsync.when(
+                loading: () => const LinearProgressIndicator(),
+                error: (e, _) => Text(
+                  text.studentsLoadError(e),
+                  style: TextStyle(color: colorScheme.error),
                 ),
+                data: (_) => students.isEmpty
+                    ? Text(
+                        text.noStudents,
+                        style: TextStyle(color: colorScheme.error),
+                      )
+                    : DropdownButtonFormField<String>(
+                        initialValue: _studentId,
+                        isExpanded: true,
+                        validator: (v) =>
+                            Validators.required(v ?? '', text.studentName),
+                        decoration: InputDecoration(
+                          labelText: text.studentName,
+                          prefixIcon: const Icon(Icons.person_outline),
+                        ),
+                        items: [
+                          for (final student in students)
+                            DropdownMenuItem(
+                              value: student.id,
+                              child: Text(
+                                student.studentId == null
+                                    ? student.fullName
+                                    : '${student.fullName} (${student.studentId})',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _studentId = value),
+                      ),
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _studentNameCtrl,
-                validator: (v) => Validators.required(v, text.studentName),
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: text.studentName,
-                  prefixIcon: const Icon(Icons.person_outline),
+              coursesAsync.when(
+                loading: () => const LinearProgressIndicator(),
+                error: (e, _) => Text(
+                  text.subjectsLoadError(e),
+                  style: TextStyle(color: colorScheme.error),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _subjectCtrl,
-                validator: (v) => Validators.required(v, text.subject),
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: text.subject,
-                  prefixIcon: const Icon(Icons.menu_book_outlined),
-                ),
+                data: (_) => courses.isEmpty
+                    ? Text(
+                        text.noSubjectsAssigned,
+                        style: TextStyle(color: colorScheme.error),
+                      )
+                    : DropdownButtonFormField<String>(
+                        initialValue: selectedCourseId,
+                        isExpanded: true,
+                        validator: (v) =>
+                            Validators.required(v ?? '', text.subject),
+                        decoration: InputDecoration(
+                          labelText: text.subject,
+                          prefixIcon: const Icon(Icons.menu_book_outlined),
+                        ),
+                        items: [
+                          for (final course in courses)
+                            DropdownMenuItem(
+                              value: course.courseId,
+                              child: Text(
+                                course.courseName ?? course.courseId,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                        onChanged: (value) => setState(() => _courseId = value),
+                      ),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -327,16 +513,20 @@ class _AddGradeSheetState extends State<_AddGradeSheet> {
               ),
               const SizedBox(height: 18),
               ElevatedButton.icon(
-                onPressed: _loading
+                onPressed: !canSubmit
                     ? null
                     : () async {
                         if (!_formKey.currentState!.validate()) return;
+                        final course = courses.firstWhere(
+                            (item) => item.courseId == selectedCourseId);
+                        final student = students
+                            .firstWhere((item) => item.id == _studentId);
                         setState(() => _loading = true);
                         try {
                           await widget.onSubmit(
-                            _studentIdCtrl.text.trim(),
-                            _studentNameCtrl.text.trim(),
-                            _subjectCtrl.text.trim(),
+                            student.id,
+                            student.fullName,
+                            course,
                             double.parse(_valueCtrl.text.trim()),
                             _commentCtrl.text.trim().isEmpty
                                 ? null
@@ -458,14 +648,20 @@ class _GradeCard extends StatelessWidget {
   final int index;
   final bool showStudentName;
   final bool canApprove;
+  final bool canEdit;
   final Future<void> Function()? onApprove;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const _GradeCard({
     required this.grade,
     required this.index,
     required this.showStudentName,
     required this.canApprove,
+    this.canEdit = false,
     this.onApprove,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -523,7 +719,8 @@ class _GradeCard extends StatelessWidget {
               ],
             ),
           ),
-          if (grade.comment?.isNotEmpty == true || canApprove) const Divider(),
+          if (grade.comment?.isNotEmpty == true || canApprove || canEdit)
+            const Divider(),
           if (grade.comment?.isNotEmpty == true)
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
@@ -536,6 +733,28 @@ class _GradeCard extends StatelessWidget {
                     height: 1.3,
                   ),
                 ),
+              ),
+            ),
+          if (canEdit)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: Text(text.edit),
+                  ),
+                  TextButton.icon(
+                    onPressed: onDelete,
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: Text(text.delete),
+                  ),
+                ],
               ),
             ),
           if (canApprove)
@@ -886,6 +1105,43 @@ class _GradesText {
   String get studentId => pick('معرف التلميذ', 'ID eleve', 'Student ID');
   String get studentName => pick('اسم التلميذ', 'Nom eleve', 'Student name');
   String get subject => pick('المادة', 'Matiere', 'Subject');
+  String get edit => pick('تعديل', 'Modifier', 'Edit');
+  String get delete => pick('حذف', 'Supprimer', 'Delete');
+  String get editGrade =>
+      pick('تعديل النقطة', 'Modifier la note', 'Edit grade');
+  String get confirmDeleteGrade => pick(
+      'حذف هذه النقطة نهائيا؟',
+      'Supprimer definitivement cette note ?',
+      'Delete this grade permanently?');
+  String get gradeDeleted =>
+      pick('تم حذف النقطة.', 'Note supprimee.', 'Grade deleted.');
+  String get gradeUpdated =>
+      pick('تم تعديل النقطة.', 'Note modifiee.', 'Grade updated.');
+  String get cancel => pick('إلغاء', 'Annuler', 'Cancel');
+  String get noStudents => pick('لا يوجد تلاميذ في هذا القسم.',
+      'Aucun eleve dans cette classe.', 'No students in this class.');
+  String studentsLoadError(Object error) => pick(
+      'تعذر تحميل التلاميذ: $error',
+      'Impossible de charger les eleves : $error',
+      'Could not load students: $error');
+  String scoreOutOf(double max) => pick(
+      'النقطة من ${max.toStringAsFixed(0)}',
+      'Note sur ${max.toStringAsFixed(0)}',
+      'Score out of ${max.toStringAsFixed(0)}');
+  String scoreRange(double max) => pick(
+      'أدخل نقطة بين 0 و ${max.toStringAsFixed(0)}',
+      'Saisissez une note entre 0 et ${max.toStringAsFixed(0)}',
+      'Enter a score between 0 and ${max.toStringAsFixed(0)}');
+  String actionFailed(Object error) => pick('تعذر تنفيذ العملية: $error',
+      'Operation impossible : $error', 'Action failed: $error');
+  String get noSubjectsAssigned => pick(
+      'لا توجد مادة مسندة إليك في هذا القسم.',
+      'Aucune matiere ne vous est attribuee dans cette classe.',
+      'No subject is assigned to you in this class.');
+  String subjectsLoadError(Object error) => pick(
+      'تعذر تحميل المواد: $error',
+      'Impossible de charger les matieres : $error',
+      'Could not load subjects: $error');
   String get gradeOutOf20 =>
       pick('النقطة من 20', 'Note sur 20', 'Grade out of 20');
   String get optionalComment =>

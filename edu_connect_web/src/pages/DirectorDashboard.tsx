@@ -2,8 +2,20 @@ import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'rea
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import AnnouncementsPanel from '../components/AnnouncementsPanel';
+import AuditLogPanel from '../components/AuditLogPanel';
+import { StudentFileModal, TeacherHistoryModal } from '../components/DirectorRecordsPanels';
+import DirectorInsightsPanel from '../components/DirectorInsightsPanel';
+import FeesPanel from '../components/FeesPanel';
+import MonthlyReportPanel from '../components/MonthlyReportPanel';
+import SetupChecklist, { ParentCodesSheet } from '../components/SetupChecklist';
+import TeacherImport from '../components/TeacherImport';
+import ReferralCard from '../components/ReferralCard';
+import SchoolBrandingCard from '../components/SchoolBrandingCard';
+import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
+import { downloadStudentTemplate } from '../lib/downloads';
 import { t as translate, useLocale, type Locale } from '../lib/i18n';
 import { readWorkspaceSessionItem } from '../lib/workspace';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -12,15 +24,24 @@ import {
   Award,
   BookOpen,
   CalendarDays,
+  CalendarRange,
   CheckCircle2,
   ClipboardCopy,
   FileUp,
   GraduationCap,
   KeyRound,
+  LogOut,
+  FolderOpen,
+  History,
+  ScrollText,
+  UserX,
   Link2Off,
   Loader2,
+  FileText,
+  Megaphone,
   MessageSquare,
   Plus,
+  Printer,
   QrCode,
   Search,
   Share2,
@@ -29,6 +50,7 @@ import {
   TrendingUp,
   UserPlus,
   Users,
+  Wallet,
   X,
 } from 'lucide-react';
 
@@ -140,11 +162,18 @@ interface CreateTeacherResponse extends Teacher {
   invite_code?: string | null;
 }
 
-type StaffInviteRole = 'teacher' | 'secretary';
+type StaffInviteRole = 'teacher' | 'secretary' | 'nurse';
 
 interface StaffMember extends Teacher {
   role: string;
   invite_code?: string | null;
+  deactivated_at?: string | null;
+}
+
+interface LinkedParent {
+  id: string;
+  full_name: string;
+  email: string;
 }
 
 interface ClassCourseAssignment {
@@ -157,7 +186,7 @@ interface ClassCourseAssignment {
 }
 
 type ToastType = 'success' | 'error' | 'warning';
-type DirectorTab = 'overview' | 'students' | 'classes' | 'team' | 'messages';
+type DirectorTab = 'overview' | 'monthly' | 'fees' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
 
 interface Toast {
   id: number;
@@ -183,9 +212,14 @@ const directorTabs: Array<{
   icon: typeof Activity;
 }> = [
   { id: 'overview', labelKey: 'director.tab.overview', route: '/director', icon: Activity },
+  { id: 'monthly', labelKey: 'director.tab.monthly', route: '/director/monthly-report', icon: CalendarRange },
   { id: 'students', labelKey: 'director.tab.students', route: '/director/students', icon: Users },
   { id: 'classes', labelKey: 'director.tab.classes', route: '/director/classes', icon: BookOpen },
+  { id: 'fees', labelKey: 'director.tab.fees', route: '/director/fees', icon: Wallet },
   { id: 'team', labelKey: 'director.tab.team', route: '/director/team', icon: UserPlus },
+  { id: 'reports', labelKey: 'director.tab.reports', route: '/director/report-cards', icon: FileText },
+  { id: 'announcements', labelKey: 'director.tab.announcements', route: '/director/announcements', icon: Megaphone },
+  { id: 'journal', labelKey: 'director.tab.journal', route: '/director/audit-log', icon: ScrollText },
   { id: 'messages', labelKey: 'director.tab.messages', route: '/director/messages', icon: MessageSquare },
 ];
 
@@ -222,9 +256,14 @@ function readCurrentUserRole(): string {
 }
 
 function tabFromPath(pathname: string): DirectorTab {
+  if (pathname.includes('/director/monthly-report')) return 'monthly';
+  if (pathname.includes('/director/fees')) return 'fees';
   if (pathname.includes('/director/students')) return 'students';
   if (pathname.includes('/director/classes')) return 'classes';
   if (pathname.includes('/director/team')) return 'team';
+  if (pathname.includes('/director/report-cards')) return 'reports';
+  if (pathname.includes('/director/announcements')) return 'announcements';
+  if (pathname.includes('/director/audit-log')) return 'journal';
   if (pathname.includes('/director/messages')) return 'messages';
   return 'overview';
 }
@@ -389,7 +428,7 @@ export default function DirectorDashboard() {
 
   const classesQuery = useQuery<SchoolClass[]>({
     queryKey: ['director-classes'],
-    enabled: activeTab === 'classes',
+    enabled: activeTab === 'classes' || activeTab === 'announcements' || activeTab === 'reports',
     queryFn: async () => {
       const res = await api.get('/classes/');
       return res.data;
@@ -407,7 +446,7 @@ export default function DirectorDashboard() {
 
   const staffQuery = useQuery<StaffMember[]>({
     queryKey: ['director-staff'],
-    enabled: activeTab === 'team',
+    enabled: activeTab === 'team' || activeTab === 'journal',
     queryFn: async () => {
       const res = await api.get('/admin/staff');
       return res.data;
@@ -476,6 +515,15 @@ export default function DirectorDashboard() {
     return labelKey ? t(`director.parentLink.${labelKey}`) : label || t('director.parentLink.parent');
   };
 
+  const linkedParentsQuery = useQuery<LinkedParent[]>({
+    queryKey: ['student-parents', resolvedSelectedStudentId],
+    enabled: activeTab === 'students' && Boolean(resolvedSelectedStudentId),
+    queryFn: async () => {
+      const res = await api.get(`/admin/students/${resolvedSelectedStudentId}/parents`);
+      return res.data;
+    },
+  });
+
   const linkAuditQuery = useQuery<ParentLinkAudit[]>({
     queryKey: ['student-links', resolvedSelectedStudentId],
     enabled: activeTab === 'students' && Boolean(resolvedSelectedStudentId),
@@ -536,12 +584,16 @@ export default function DirectorDashboard() {
       const formData = new FormData();
       formData.append('file', file);
       const res = await api.post('/admin/import/students', formData);
-      return res.data as { imported: number; skipped: number };
+      return res.data as { imported: number; skipped: number; assigned?: number; unknown_classes?: string[] };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['director-students'] });
       queryClient.invalidateQueries({ queryKey: ['director-analytics'] });
       addToast(t('director.toast.importedStudents', { imported: result.imported, skipped: result.skipped }), 'success');
+      if (result.assigned) addToast(t('director.toast.importedAssigned', { count: result.assigned }), 'success');
+      if (result.unknown_classes?.length) {
+        addToast(t('director.toast.importedUnknownClasses', { classes: result.unknown_classes.join(', ') }), 'error');
+      }
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
     onError: (error) => addToast(getErrorMessage(error), 'error'),
@@ -603,6 +655,76 @@ export default function DirectorDashboard() {
     },
     onError: (error) => addToast(getErrorMessage(error), 'error'),
   });
+
+  const resetStaffAccessMutation = useMutation({
+    mutationFn: async (member: StaffMember) => {
+      const res = await api.post<CreateTeacherResponse>(`/admin/staff/${member.id}/reset-access`);
+      return res.data;
+    },
+    onSuccess: (staffMember) => {
+      queryClient.invalidateQueries({ queryKey: ['director-staff'] });
+      setStaffInvite(staffMember);
+      addToast(t('director.toast.staffAccessReset'), 'success');
+    },
+    onError: (error) => addToast(getErrorMessage(error), 'error'),
+  });
+
+  const resetStaffAccess = (member: StaffMember) => {
+    if (!window.confirm(t('director.team.resetAccessConfirm', { name: member.full_name }))) return;
+    resetStaffAccessMutation.mutate(member);
+  };
+
+  const deactivateStaffMutation = useMutation({
+    mutationFn: async (member: StaffMember) => {
+      const res = await api.post<StaffMember>(`/admin/staff/${member.id}/deactivate`);
+      return res.data;
+    },
+    onSuccess: (staffMember) => {
+      queryClient.invalidateQueries({ queryKey: ['director-staff'] });
+      queryClient.invalidateQueries({ queryKey: ['director-teachers'] });
+      if (staffInvite?.id === staffMember.id) setStaffInvite(null);
+      addToast(t('director.toast.staffDeactivated'), 'success');
+    },
+    onError: (error) => addToast(getErrorMessage(error), 'error'),
+  });
+
+  const [fileStudentId, setFileStudentId] = useState<string | null>(null);
+  const [codesSheetOpen, setCodesSheetOpen] = useState(false);
+  const [historyTeacherId, setHistoryTeacherId] = useState<string | null>(null);
+
+  const signOutMutation = useMutation({
+    mutationFn: async (userId: string) => api.post(`/admin/users/${userId}/sign-out`),
+    onSuccess: () => addToast(t('director.toast.signedOut'), 'success'),
+    onError: (error) => addToast(getErrorMessage(error), 'error'),
+  });
+
+  const signOutUser = (userId: string, name: string) => {
+    if (window.confirm(t('director.signOutConfirm', { name }))) signOutMutation.mutate(userId);
+  };
+
+  const deactivateStaff = (member: StaffMember) => {
+    if (!window.confirm(t('director.team.deactivateConfirm', { name: member.full_name }))) return;
+    deactivateStaffMutation.mutate(member);
+  };
+
+  const [parentResetCode, setParentResetCode] = useState<{ name: string; code: string } | null>(null);
+
+  const resetParentAccessMutation = useMutation({
+    mutationFn: async (parent: LinkedParent) => {
+      const res = await api.post<StaffMember>(`/admin/parents/${parent.id}/reset-access`);
+      return res.data;
+    },
+    onSuccess: (parent) => {
+      if (parent.invite_code) setParentResetCode({ name: parent.full_name, code: parent.invite_code });
+      addToast(t('director.toast.parentAccessReset'), 'success');
+    },
+    onError: (error) => addToast(getErrorMessage(error), 'error'),
+  });
+
+  const resetParentAccess = (parent: LinkedParent) => {
+    if (!window.confirm(t('director.parents.resetConfirm', { name: parent.full_name }))) return;
+    resetParentAccessMutation.mutate(parent);
+  };
 
   const createClassMutation = useMutation({
     mutationFn: async () => {
@@ -781,10 +903,6 @@ export default function DirectorDashboard() {
     const text = getQrShareText();
     void copyText(text, t('director.toast.smsCopied'));
     window.location.href = `sms:?&body=${encodeURIComponent(text)}`;
-  };
-
-  const copyCsvTemplate = () => {
-    copyText('full_name\nAmina Benali\nYacine Haddad\nNour Bensaid', t('director.toast.csvCopied'));
   };
 
   const renderToasts = () => (
@@ -1067,9 +1185,17 @@ export default function DirectorDashboard() {
               accept=".csv,text/csv"
               onChange={handleStudentImport}
             />
-            <button type="button" className="btn btn-secondary btn-compact" onClick={copyCsvTemplate}>
-              <ClipboardCopy size={15} />
-              {t('director.students.csvTemplate')}
+            <button
+              type="button"
+              className="btn btn-secondary btn-compact"
+              onClick={() => void downloadStudentTemplate().catch(() => addToast(t('common.errorGeneric'), 'error'))}
+            >
+              <FileText size={15} />
+              {t('setup.template')}
+            </button>
+            <button type="button" className="btn btn-secondary btn-compact" onClick={() => setCodesSheetOpen(true)}>
+              <Printer size={15} />
+              {t('codes.print')}
             </button>
             <button
               type="button"
@@ -1222,6 +1348,15 @@ export default function DirectorDashboard() {
 
         <button
           type="button"
+          className="btn btn-secondary btn-full"
+          disabled={!selectedStudent}
+          onClick={() => selectedStudent && setFileStudentId(selectedStudent.id)}
+        >
+          <FolderOpen size={16} /> {t('records.openFile')}
+        </button>
+
+        <button
+          type="button"
           className="btn btn-primary btn-full"
           disabled={!selectedStudent || Boolean(selectedStudent?.archived_at) || generateTokenMutation.isPending}
           onClick={() => selectedStudent && generateTokenMutation.mutate({ student: selectedStudent, label: linkLabel })}
@@ -1229,6 +1364,50 @@ export default function DirectorDashboard() {
           {generateTokenMutation.isPending ? <Loader2 size={16} className="spin-icon" /> : <QrCode size={16} />}
           {t('director.parentLink.generateQr')}
         </button>
+
+        <div className="link-audit-list">
+          <h3>{t('director.parents.title')}</h3>
+          {linkedParentsQuery.isLoading && <p className="dashboard-section-copy">{t('common.loading')}</p>}
+          {linkedParentsQuery.data?.map((parent) => (
+            <div key={parent.id} className="link-audit-item">
+              <div>
+                <strong>{parent.full_name}</strong>
+                <span>{parent.email}</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-compact"
+                onClick={() => resetParentAccess(parent)}
+                disabled={resetParentAccessMutation.isPending}
+              >
+                <KeyRound size={14} />
+                {t('director.team.resetAccess')}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-compact"
+                aria-label={t('director.signOut')}
+                title={t('director.signOut')}
+                onClick={() => signOutUser(parent.id, parent.full_name)}
+                disabled={signOutMutation.isPending}
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
+          ))}
+          {selectedStudent && !linkedParentsQuery.isLoading && (linkedParentsQuery.data?.length ?? 0) === 0 && (
+            <p className="dashboard-section-copy">{t('director.parents.empty')}</p>
+          )}
+          {parentResetCode && (
+            <div className="notice-box">
+              <strong>{t('director.team.inviteCode')}</strong>
+              <button type="button" className="token-code" onClick={() => copyText(parentResetCode.code, t('director.toast.inviteCopied'))}>
+                {parentResetCode.code}
+              </button>
+              <span>{t('director.parents.shareCode', { name: parentResetCode.name })}</span>
+            </div>
+          )}
+        </div>
 
         <div className="link-audit-list">
           <h3>{t('director.parentLink.history')}</h3>
@@ -1567,6 +1746,7 @@ export default function DirectorDashboard() {
 
   const renderTeam = () => (
     <div className="director-management-grid">
+      <SchoolBrandingCard canEdit={currentUserRole === 'principal'} />
       <section className="glass-card management-card">
         <h2 className="dashboard-section-title dashboard-section-title--plain">{t('director.team.inviteTitle')}</h2>
         <p className="dashboard-section-copy dashboard-section-copy--spaced">
@@ -1586,6 +1766,9 @@ export default function DirectorDashboard() {
               <option value="teacher">{t('director.team.roleTeacher')}</option>
               {currentUserRole === 'principal' && (
                 <option value="secretary">{t('director.team.roleSecretary')}</option>
+              )}
+              {currentUserRole === 'principal' && (
+                <option value="nurse">{t('role.nurse')}</option>
               )}
             </select>
           </div>
@@ -1627,6 +1810,7 @@ export default function DirectorDashboard() {
             <span>{t('director.team.shareInvite', { name: staffInvite.full_name })}</span>
           </div>
         )}
+        <TeacherImport />
       </section>
 
       <section className="glass-card management-card management-card--wide">
@@ -1645,11 +1829,12 @@ export default function DirectorDashboard() {
                 <th>{t('director.team.email')}</th>
                 <th>{t('director.team.role')}</th>
                 <th>{t('director.team.status')}</th>
+                <th aria-label={t('director.team.actions')} />
               </tr>
             </thead>
             <tbody>
               {staffQuery.isLoading && (
-                <tr><td colSpan={4}>{t('director.team.loading')}</td></tr>
+                <tr><td colSpan={5}>{t('director.team.loading')}</td></tr>
               )}
               {!staffQuery.isLoading && staffMembers.map((member) => (
                 <tr key={member.id}>
@@ -1657,16 +1842,62 @@ export default function DirectorDashboard() {
                   <td>{member.email}</td>
                   <td>{t(`role.${member.role}`)}</td>
                   <td>
-                    {member.invite_code ? (
+                    {member.deactivated_at ? (
+                      <span className="status-badge status-badge--danger">{t('director.team.deactivated')}</span>
+                    ) : member.invite_code ? (
                       <span className="status-badge status-badge--warning">{t('director.team.pendingActivation')}</span>
                     ) : (
                       <span className="status-badge status-badge--active">{t('director.team.activeAccount')}</span>
                     )}
                   </td>
+                  <td>
+                    {(member.role === 'teacher' || ((member.role === 'secretary' || member.role === 'nurse') && currentUserRole === 'principal')) && (
+                      <div className="table-actions">
+                        {member.role === 'teacher' && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-compact"
+                            onClick={() => setHistoryTeacherId(member.id)}
+                          >
+                            <History size={14} /> {t('records.history')}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-compact"
+                          onClick={() => resetStaffAccess(member)}
+                          disabled={resetStaffAccessMutation.isPending}
+                        >
+                          <KeyRound size={14} />
+                          {member.deactivated_at ? t('director.team.reactivate') : t('director.team.resetAccess')}
+                        </button>
+                        {!member.deactivated_at && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-compact"
+                            onClick={() => deactivateStaff(member)}
+                            disabled={deactivateStaffMutation.isPending}
+                          >
+                            <UserX size={14} /> {t('director.team.deactivate')}
+                          </button>
+                        )}
+                        {!member.deactivated_at && !member.invite_code && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-compact"
+                            onClick={() => signOutUser(member.id, member.full_name)}
+                            disabled={signOutMutation.isPending}
+                          >
+                            <LogOut size={14} /> {t('director.signOut')}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
               {!staffQuery.isLoading && staffMembers.length === 0 && (
-                <tr><td colSpan={4}>{t('director.team.empty')}</td></tr>
+                <tr><td colSpan={5}>{t('director.team.empty')}</td></tr>
               )}
             </tbody>
           </table>
@@ -1691,10 +1922,34 @@ export default function DirectorDashboard() {
 
       {renderPageTabs()}
 
+      {activeTab === 'overview' && <SetupChecklist />}
       {activeTab === 'overview' && renderOverview()}
+      {activeTab === 'monthly' && <MonthlyReportPanel />}
+      {activeTab === 'fees' && <FeesPanel canChangeSettings={currentUserRole === 'principal'} />}
+      {activeTab === 'overview' && <DirectorInsightsPanel />}
+      {activeTab === 'overview' && <ReferralCard />}
       {activeTab === 'students' && renderStudents()}
       {activeTab === 'classes' && renderClasses()}
       {activeTab === 'team' && renderTeam()}
+      {activeTab === 'reports' && (
+        <ReportCardsAdminPanel
+          classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
+        />
+      )}
+      {codesSheetOpen && <ParentCodesSheet onClose={() => setCodesSheetOpen(false)} />}
+      {fileStudentId && <StudentFileModal studentId={fileStudentId} onClose={() => setFileStudentId(null)} />}
+      {historyTeacherId && <TeacherHistoryModal teacherId={historyTeacherId} onClose={() => setHistoryTeacherId(null)} />}
+      {activeTab === 'journal' && (
+        <AuditLogPanel people={staffMembers.map((member) => ({ id: member.id, full_name: member.full_name }))} />
+      )}
+      {activeTab === 'announcements' && (
+        <AnnouncementsPanel
+          scopeKey="director"
+          canCreate
+          allowWholeSchool
+          classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
+        />
+      )}
       {activeTab === 'messages' && (
         <section className="glass-card dashboard-card-pad">
           <DirectMessagingPanel scopeKey="director" />

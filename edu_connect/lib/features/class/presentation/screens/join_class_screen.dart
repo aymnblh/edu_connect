@@ -4,13 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:dio/dio.dart';
-import '../../../../core/utils/validators.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/data/models/user_model.dart';
-import '../providers/class_provider.dart';
 import '../../data/repositories/student_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import 'package:edu_connect/l10n/app_localizations.dart';
 
 class JoinClassScreen extends ConsumerStatefulWidget {
   const JoinClassScreen({super.key});
@@ -21,14 +18,12 @@ class JoinClassScreen extends ConsumerStatefulWidget {
 
 class _JoinClassScreenState extends ConsumerState<JoinClassScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _codeCtrl = TextEditingController();
   final _studentIdCtrl = TextEditingController();
   final _pinCtrl = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _codeCtrl.dispose();
     _studentIdCtrl.dispose();
     _pinCtrl.dispose();
     super.dispose();
@@ -43,25 +38,15 @@ class _JoinClassScreenState extends ConsumerState<JoinClassScreen> {
 
     setState(() => _isLoading = true);
     try {
-      if (user.isParent) {
-        await ref.read(studentRepositoryProvider).requestLinkByPin(
-              studentId: _studentIdCtrl.text.trim(),
-              linkingPin: _pinCtrl.text.trim(),
-            );
-      } else {
-        await ref.read(classNotifierProvider.notifier).joinClass(
-              joinCode: _codeCtrl.text.trim().toUpperCase(),
-            );
-      }
+      await ref.read(studentRepositoryProvider).requestLinkByPin(
+            studentId: _studentIdCtrl.text.trim(),
+            linkingPin: _pinCtrl.text.trim(),
+          );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              user.isParent
-                  ? copy.linkRequestSent
-                  : AppLocalizations.of(context)!.successfullyJoined,
-            ),
+            content: Text(copy.linkRequestSent),
             backgroundColor: colors.successGreen,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -90,9 +75,6 @@ class _JoinClassScreenState extends ConsumerState<JoinClassScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final user = ref.watch(authNotifierProvider).valueOrNull;
-    final isParentMode = user?.isParent ?? false;
     final copy = _JoinClassCopy.of(context);
     final colors = context.appColors;
     final colorScheme = Theme.of(context).colorScheme;
@@ -104,7 +86,7 @@ class _JoinClassScreenState extends ConsumerState<JoinClassScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(isParentMode ? copy.linkChildTitle : l10n.joinClass),
+          title: Text(copy.linkChildTitle),
           leading: IconButton(
             tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             icon: Icon(Icons.adaptive.arrow_back),
@@ -138,7 +120,7 @@ class _JoinClassScreenState extends ConsumerState<JoinClassScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      isParentMode ? copy.linkChildTitle : l10n.joinClass,
+                      copy.linkChildTitle,
                       style: TextStyle(
                         color: colorScheme.onPrimary,
                         fontSize: 22,
@@ -147,7 +129,7 @@ class _JoinClassScreenState extends ConsumerState<JoinClassScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      isParentMode ? copy.parentHelp : copy.classHelp,
+                      copy.parentHelp,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: colorScheme.onPrimary.withValues(alpha: 0.75),
@@ -162,18 +144,12 @@ class _JoinClassScreenState extends ConsumerState<JoinClassScreen> {
 
               Form(
                 key: _formKey,
-                child: isParentMode
-                    ? _ParentLinkForm(
-                        studentIdCtrl: _studentIdCtrl,
-                        pinCtrl: _pinCtrl,
-                        isLoading: _isLoading,
-                        onSubmit: _join,
-                      )
-                    : _ClassCodeForm(
-                        codeCtrl: _codeCtrl,
-                        isLoading: _isLoading,
-                        onSubmit: _join,
-                      ),
+                child: _ParentLinkForm(
+                  studentIdCtrl: _studentIdCtrl,
+                  pinCtrl: _pinCtrl,
+                  isLoading: _isLoading,
+                  onSubmit: _join,
+                ),
               ),
             ],
           ),
@@ -188,72 +164,6 @@ class _JoinClassScreenState extends ConsumerState<JoinClassScreen> {
     } else {
       context.go('/classes');
     }
-  }
-}
-
-class _ClassCodeForm extends StatelessWidget {
-  final TextEditingController codeCtrl;
-  final bool isLoading;
-  final VoidCallback onSubmit;
-
-  const _ClassCodeForm({
-    required this.codeCtrl,
-    required this.isLoading,
-    required this.onSubmit,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = context.appColors;
-    return Column(
-      children: [
-        TextFormField(
-          controller: codeCtrl,
-          textCapitalization: TextCapitalization.characters,
-          textInputAction: TextInputAction.done,
-          textAlign: TextAlign.center,
-          maxLength: 6,
-          onChanged: (value) {
-            final normalized = value.toUpperCase();
-            if (value != normalized) {
-              codeCtrl.value = TextEditingValue(
-                text: normalized,
-                selection: TextSelection.collapsed(offset: normalized.length),
-              );
-            }
-          },
-          onFieldSubmitted: (_) => onSubmit(),
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 8,
-            color: colors.tealDark,
-          ),
-          validator: Validators.joinCode,
-          decoration: InputDecoration(
-            labelText: l10n.joinCode,
-            hintText: 'QAM26A',
-            hintStyle: TextStyle(
-              color: colors.mutedText.withValues(alpha: 0.45),
-              letterSpacing: 8,
-              fontWeight: FontWeight.w800,
-              fontSize: 24,
-            ),
-            counterText: '',
-          ),
-        ).animate().fadeIn(delay: 200.ms),
-        const SizedBox(height: 12),
-        _InlineHelp(text: _JoinClassCopy.of(context).pinNotClassCode),
-        const SizedBox(height: 28),
-        _SubmitButton(
-          isLoading: isLoading,
-          label: l10n.joinClass,
-          icon: Icons.login,
-          onPressed: onSubmit,
-        ).animate().fadeIn(delay: 250.ms),
-      ],
-    );
   }
 }
 

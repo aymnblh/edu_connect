@@ -176,6 +176,41 @@ Suggested alert thresholds:
 - Any refresh-token reuse event
 - Any ClamAV unavailable event when `MEDIA_MALWARE_SCAN_REQUIRED=true`
 
+### Application logs
+
+- Level and format: `LOG_LEVEL` (`DEBUG`, `INFO`, `WARNING`, `ERROR`) and `LOG_FORMAT` (`json` in production by default, `text` for local work). Change them in the environment and restart the API.
+- Every request gets an ID, returned in the `X-Request-ID` response header and written on every log line (`request_id`). When a user reports an error, ask for the time and, if possible, that ID; then search the logs for it.
+- One access line per request (`educonnect.access`): method, path **without query string**, status, duration, user id, client IP. Health checks log at DEBUG only. Uvicorn's own access log is disabled (`--no-access-log`) because it prints full URLs.
+- Passwords, tokens, `Bearer` headers, JWTs, invite codes and PINs are masked (`[REDACTED]`) before any line is written, including exception tracebacks. Never add a log line that prints a request body wholesale.
+
+### Health data encryption key
+
+- Health records are encrypted in the database with `HEALTH_DATA_KEY` (required in production; the API refuses to start without a valid one). Generate it once with `python manage.py generate-health-key`.
+- **Keep a copy outside the server** (password manager, sealed envelope). Database backups are useless for health records without this key.
+- To change the key: put the new one in `HEALTH_DATA_KEY` and the old one in `HEALTH_DATA_PREVIOUS_KEYS`, restart. Rows are re-encrypted with the new key as they are saved; keep the old key listed until then.
+
+### Activation, free trimester and referrals
+
+- Activating a school (platform admin) with no subscription yet sets `subscription_expires_at` to the end of the current trimester (the next one if fewer than 30 days remain): that is the free first trimester. Record payments (`/system/schools/{id}/subscription`) before it ends, or the school is blocked (HTTP 402).
+- If the school signed up with another school's referral code, both get 2 months, once (`tenant_config.referral_rewarded_at`), and both directors are notified. The activation message says what was applied.
+- Distinction thresholds per school: `tenant_config.mentions`, e.g. `{"felicitations": 15, "encouragements": 13, "tableau_honneur": 11}` (defaults 16 / 14 / 12, on the average out of 20).
+- Public report card check: `GET /public/report-cards/{code}` (no account, 60 per hour per IP). A narrow RLS policy lets it read only the card with that code.
+- Optional web build variable `VITE_SALES_EMAIL` adds a "Nous contacter" button to /pricing.
+
+### Background jobs
+
+- The API runs hourly jobs (`BACKGROUND_JOBS_ENABLED`, on by default; they are safe with several workers):
+  - **Fee reminders** (schools where the director turned on automatic reminders): parents of unpaid fees get a heads-up up to 3 days before the due date, then one reminder a week once overdue, at most 4, only between 08:00 and 20:00 Algeria time. Rows are locked while handled (`FOR UPDATE SKIP LOCKED`).
+  - **Monthly report notifications:** on the 1st, each director gets "Votre bilan de … est prêt". Each school remembers the month it was told about (`tenant_config.monthly_report_notified`), so a restart never sends it twice.
+  - **Public demo refresh** (only with `PUBLIC_DEMO_ENABLED=true`): seeds the demo school if it is missing and rebuilds it once a day after 03:00 Algeria time. A Postgres advisory lock keeps it to one worker.
+- Public demo safety: demo accounts (`@demo.educonnect.dz`) are read-only (HTTP writes and chat WebSockets refused), their sessions are not audited, visitors' IPs and browsers are never shown, demo PINs cannot register a parent, no platform admin is created and the password is random. To close the demo, set `PUBLIC_DEMO_ENABLED=false` and restart; the demo school stays in the database, but nobody can sign in to it (its password is random); delete it if you no longer need it.
+
+### Activity (audit) log
+
+- Directors and secretaries see it in the web app (Journal tab), filter by category, person and dates, and export CSV (max 5000 rows; the export is itself logged).
+- It records sign-ins and failures, password changes, device sign-outs, staff/parent resets and deactivations, grade/homework/lesson/attendance changes, report card and announcement publication, data exports and security alerts.
+- Retention follows `AUDIT_RETENTION_DAYS`; purge with `POST /security/audit-events/retention/purge` (system admin).
+
 ## Incident Response
 
 Severity levels:

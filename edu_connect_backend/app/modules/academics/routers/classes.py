@@ -7,7 +7,7 @@ from sqlalchemy import and_, select, delete as sa_delete, or_
 from app.core.access import assert_class_read_access, assert_school_admin_for_class
 from app.db.database import get_db
 from app.models import Class, ClassMember, ClassTemporaryAccess, User, UserRole, Student, ClassTeacher, StudentParent, ClassCourse, Course
-from app.schemas import ClassCreate, ClassOut, JoinClassRequest, ClassCourseAssign, ClassCourseOut, ClassStudentEnroll, TeacherSimpleOut
+from app.schemas import ClassCreate, ClassOut, ClassCourseAssign, ClassCourseOut, ClassStudentEnroll, TeacherSimpleOut
 from app.core.security import get_current_user
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
@@ -157,35 +157,6 @@ async def create_class(
     return _class_out(result.scalar_one())
 
 
-@router.post("/join", response_model=ClassOut)
-async def join_class(
-    payload: JoinClassRequest,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    if current_user.role != UserRole.teacher:
-        raise HTTPException(status_code=403, detail="Seuls les enseignants peuvent rejoindre une classe.")
-
-    result = await db.execute(
-        select(Class)
-        .where(Class.join_code == payload.join_code)
-        .options(
-            selectinload(Class.teachers),
-            selectinload(Class.members).selectinload(ClassMember.student),
-        )
-    )
-    cls = result.scalar_one_or_none()
-    if not cls:
-        raise HTTPException(status_code=404, detail="Invalid join code.")
-    if current_user.role.value != "system_admin" and cls.school_id != current_user.school_id:
-        raise HTTPException(status_code=403, detail="Acces refuse.")
-    
-    if current_user not in cls.teachers:
-        cls.teachers.append(current_user)
-        await db.commit()
-    return _class_out(cls)
-
-
 @router.get("/teachers/all", response_model=list[TeacherSimpleOut])
 async def list_school_teachers(
     current_user: User = Depends(get_current_user),
@@ -197,7 +168,8 @@ async def list_school_teachers(
     result = await db.execute(
         select(User).where(
             User.school_id == current_user.school_id,
-            User.role == UserRole.teacher
+            User.role == UserRole.teacher,
+            User.deactivated_at.is_(None),
         )
     )
     return result.scalars().all()
@@ -552,6 +524,40 @@ async def get_class_courses(
     return out
 
 
+async def _ensure_class_teacher(db: AsyncSession, school_id: str, class_id: str, teacher_id: str) -> None:
+    existing = await db.execute(
+        select(ClassTeacher).where(
+            ClassTeacher.school_id == school_id,
+            ClassTeacher.class_id == class_id,
+            ClassTeacher.teacher_id == teacher_id,
+        )
+    )
+    if not existing.scalar_one_or_none():
+        db.add(ClassTeacher(school_id=school_id, class_id=class_id, teacher_id=teacher_id))
+
+
+async def _drop_class_teacher_if_unassigned(db: AsyncSession, school_id: str, class_id: str, teacher_id: str) -> None:
+    """Remove a teacher's class membership once they no longer teach any course in it."""
+    remaining = await db.execute(
+        select(ClassCourse.course_id)
+        .where(
+            ClassCourse.school_id == school_id,
+            ClassCourse.class_id == class_id,
+            ClassCourse.teacher_id == teacher_id,
+        )
+        .limit(1)
+    )
+    if remaining.scalar_one_or_none():
+        return
+    await db.execute(
+        sa_delete(ClassTeacher).where(
+            ClassTeacher.school_id == school_id,
+            ClassTeacher.class_id == class_id,
+            ClassTeacher.teacher_id == teacher_id,
+        )
+    )
+
+
 @router.post("/{class_id}/courses", response_model=ClassCourseOut)
 async def assign_course_to_class(
     class_id: str,
@@ -594,9 +600,14 @@ async def assign_course_to_class(
     )
     existing_cc = existing.scalar_one_or_none()
     if existing_cc:
+        previous_teacher_id = existing_cc.teacher_id
         existing_cc.teacher_id = payload.teacher_id
         if payload.coefficient is not None:
             existing_cc.coefficient = payload.coefficient
+        await db.flush()
+        await _ensure_class_teacher(db, current_user.school_id, class_id, payload.teacher_id)
+        if previous_teacher_id != payload.teacher_id:
+            await _drop_class_teacher_if_unassigned(db, current_user.school_id, class_id, previous_teacher_id)
         await db.commit()
         cc = existing_cc
     else:
@@ -607,20 +618,7 @@ async def assign_course_to_class(
             school_id=current_user.school_id,
             coefficient=payload.coefficient or _course_coefficient(course),
         )
-        # Also add the teacher to class_teachers if not already there
-        teacher_exists = await db.execute(
-            select(ClassTeacher).where(
-                ClassTeacher.school_id == current_user.school_id,
-                ClassTeacher.class_id == class_id,
-                ClassTeacher.teacher_id == payload.teacher_id
-            )
-        )
-        if not teacher_exists.scalar_one_or_none():
-            db.add(ClassTeacher(
-                school_id=current_user.school_id,
-                class_id=class_id,
-                teacher_id=payload.teacher_id
-            ))
+        await _ensure_class_teacher(db, current_user.school_id, class_id, payload.teacher_id)
         db.add(cc)
         await db.commit()
         await db.refresh(cc)
@@ -651,6 +649,14 @@ async def remove_course_from_class(
     if not cls_res.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Classe introuvable")
 
+    removed = await db.execute(
+        select(ClassCourse.teacher_id).where(
+            ClassCourse.school_id == current_user.school_id,
+            ClassCourse.class_id == class_id,
+            ClassCourse.course_id == course_id,
+        )
+    )
+    removed_teacher_ids = set(removed.scalars().all())
     await db.execute(
         sa_delete(ClassCourse).where(
             ClassCourse.school_id == current_user.school_id,
@@ -658,5 +664,7 @@ async def remove_course_from_class(
             ClassCourse.course_id == course_id
         )
     )
+    for teacher_id in removed_teacher_ids:
+        await _drop_class_teacher_if_unassigned(db, current_user.school_id, class_id, teacher_id)
     await db.commit()
     return {"status": "success"}

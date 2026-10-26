@@ -1,9 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from pydantic import BaseModel
+from app.modules.demo.access import is_read_only_demo_user
+from app.core.audit import record_audit_event
 from app.db.database import get_db
-from app.models import User, UserRole, Student, StudentParent
+from app.models import (
+    Notification,
+    NotificationPreference,
+    RefreshToken,
+    Student,
+    StudentParent,
+    User,
+    UserRole,
+    VerificationRequest,
+)
 from app.schemas import UserCreate, UserOut, UserUpdate, PushTokenRequest, StudentCreate, StudentOut
 from app.core.security import get_current_user
 
@@ -32,7 +45,9 @@ async def create_user(
 
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    out = UserOut.model_validate(current_user)
+    out.is_demo = is_read_only_demo_user(current_user)
+    return out
 
 
 @router.put("/me", response_model=UserOut)
@@ -62,13 +77,70 @@ async def register_push_token(
     return {"status": "ok"}
 
 
+DELETED_ACCOUNT_NAME = "Compte supprime"
+# Must stay a syntactically valid address: user payloads validate emails.
+DELETED_ACCOUNT_EMAIL_DOMAIN = "deleted.waseledu.dz"
+
+
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_me(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Deletes the current user's profile from the backend database."""
-    await db.delete(current_user)
+    """Delete the signed-in parent's account.
+
+    The row is anonymized rather than removed: messages, reports and audit
+    events keep a valid author (a hard delete would either fail on class-chat
+    messages or cascade away the school's message history). Personal data,
+    child links, pending link requests, notifications and sessions are erased.
+    Staff accounts belong to the school and are closed by its administration.
+    """
+    if current_user.role != UserRole.parent:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "account_deletion_by_school",
+                "message": "Les comptes du personnel sont geres par l'etablissement. "
+                "Contactez la direction pour fermer ce compte.",
+            },
+        )
+
+    links_res = await db.execute(
+        select(func.count()).select_from(StudentParent).where(StudentParent.parent_id == current_user.id)
+    )
+    linked_students = links_res.scalar_one()
+    await record_audit_event(
+        db,
+        action="account.deleted",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="user",
+        resource_id=current_user.id,
+        method=request.method,
+        path=request.url.path,
+        metadata={"role": current_user.role.value, "linked_students": linked_students},
+    )
+
+    for model, column in (
+        (StudentParent, StudentParent.parent_id),
+        (VerificationRequest, VerificationRequest.parent_id),
+        (Notification, Notification.user_id),
+        (NotificationPreference, NotificationPreference.user_id),
+        (RefreshToken, RefreshToken.user_id),
+    ):
+        await db.execute(delete(model).where(column == current_user.id))
+
+    current_user.full_name = DELETED_ACCOUNT_NAME
+    current_user.email = f"deleted-{current_user.id}@{DELETED_ACCOUNT_EMAIL_DOMAIN}"
+    current_user.phone = None
+    current_user.avatar_url = None
+    current_user.push_token = None
+    current_user.password_hash = None
+    current_user.invite_code = None
+    current_user.invite_expires_at = None
+    current_user.deactivated_at = datetime.now(timezone.utc)
+    current_user.token_version = (current_user.token_version or 0) + 1
     await db.commit()
     return None
 

@@ -1,3 +1,4 @@
+import hashlib
 import time
 from collections import defaultdict, deque
 import logging
@@ -6,6 +7,16 @@ from fastapi import HTTPException
 import redis.asyncio as redis
 
 from app.core.config import settings
+
+# Invite/QR/PIN lookup budgets (see auth.limit_code_lookup).
+CODE_LOOKUP_IP_LIMIT = 30
+STUDENT_PIN_ATTEMPT_LIMIT = 10
+CODE_LOOKUP_WINDOW_SECONDS = 900
+
+
+def rate_key_part(value: str) -> str:
+    """Stable, non-reversible rate-limit key fragment for a user-supplied identifier."""
+    return hashlib.sha256(value.strip().lower().encode()).hexdigest()
 
 _buckets: dict[str, deque[float]] = defaultdict(deque)
 _redis_client: redis.Redis | None = None

@@ -19,6 +19,11 @@ class School(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     subscription_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # data: URL of a small PNG/JPEG/WebP (at most 200 KB), shown on printed documents.
+    logo_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Referral: this school's code to share, and the school that brought it in.
+    referral_code: Mapped[str | None] = mapped_column(String(12), nullable=True, unique=True)
+    referred_by: Mapped[str | None] = mapped_column(String(36), ForeignKey("schools.id", ondelete="SET NULL"), nullable=True)
     
     tenant_config: Mapped[dict] = mapped_column(
         JSONB, 

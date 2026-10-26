@@ -358,4 +358,56 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get retry => 'Réessayer';
+
+  @override
+  String get superadminCreateSchool => 'Créer un établissement';
+
+  @override
+  String get superadminSchoolName => 'Nom de l\'établissement';
+
+  @override
+  String get superadminCreate => 'Créer';
+
+  @override
+  String get superadminCreating => 'Création en cours...';
+
+  @override
+  String get superadminSchoolCreated => 'Établissement créé avec succès';
+
+  @override
+  String get superadminActivate => 'Activer';
+
+  @override
+  String get superadminSuspend => 'Suspendre';
+
+  @override
+  String get superadminActivated => 'Établissement activé';
+
+  @override
+  String get superadminSuspended => 'Établissement suspendu';
+
+  @override
+  String get superadminConfirmSuspend =>
+      'Voulez-vous vraiment suspendre cet établissement ?';
+
+  @override
+  String get createStaffTitle => 'Créer un compte';
+
+  @override
+  String get createStaffHelp =>
+      'Invitez un membre du personnel. Il définira son mot de passe lors de sa première connexion.';
+
+  @override
+  String get staffRole => 'Rôle';
+
+  @override
+  String get roleTeacher => 'Enseignant';
+
+  @override
+  String get roleSecretary => 'Secrétaire';
+
+  @override
+  String staffCreated(String name) {
+    return 'Compte $name créé avec succès';
+  }
 }

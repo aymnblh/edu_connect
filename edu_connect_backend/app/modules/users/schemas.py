@@ -17,6 +17,8 @@ class UserOut(BaseModel):
     avatar_url: str | None
     created_at: datetime
     students_linking: list["StudentOut"] = []
+    # True for the shared, read-only public demo accounts.
+    is_demo: bool = False
     model_config = ConfigDict(from_attributes=True)
 
 class UserUpdate(BaseModel):
