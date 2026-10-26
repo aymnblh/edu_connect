@@ -11,7 +11,7 @@ Le bundle identifier ne peut plus changer apres la premiere publication: choisis
 
 ## Application Flutter
 
-Le projet iOS existe deja dans `edu_connect/ios`. La CI (`Flutter iOS build`) compile une version release non signee a chaque push.
+Le projet iOS existe deja dans `edu_connect/ios`. La CI (`Flutter iOS build`) compile une version simulateur a chaque push pour valider la compilation sans exiger de compte Apple.
 
 Sur le Mac:
 

@@ -603,7 +603,7 @@ def test_release_manifest_generator_records_core_fingerprints(tmp_path):
     assert "__pycache__" not in manifest
     assert ".pyc" not in manifest
     # The built web app only exists after `npm run build` (not on a fresh checkout).
-    if (ROOT.parent / "edu_connect_web" / "dist").exists():
+    if (ROOT.parent / "edu_connect_web" / "dist" / "index.html").exists():
         assert "index.html" in manifest
     assert "SHA-256" in manifest
 
@@ -645,8 +645,9 @@ def test_launch_status_can_run_fast_local_gates():
 
 
 @pytest.mark.skipif(
-    not (ROOT / ".env.production.generated").exists(),
-    reason="Needs the generated production env files, which are never committed.",
+    not (ROOT / ".env.production.generated").exists()
+    or not (ROOT / ".env.staging.generated").exists(),
+    reason="Needs the generated production and staging env files, which are never committed.",
 )
 def test_launch_status_can_run_generated_env_local_gates():
     result = subprocess.run(

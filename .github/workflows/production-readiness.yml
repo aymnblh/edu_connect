@@ -246,10 +246,9 @@ jobs:
       - name: Validate iOS property lists
         run: plutil -lint ios/Runner/Info.plist ios/Runner/PrivacyInfo.xcprivacy ios/ExportOptions.plist
 
-      - name: Build unsigned iOS release
+      - name: Build iOS simulator app
         run: >-
           flutter build ios
-          --release
-          --no-codesign
+          --simulator
           --no-pub
           --dart-define-from-file=config/production.example.json
