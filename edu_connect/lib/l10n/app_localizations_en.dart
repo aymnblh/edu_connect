@@ -356,4 +356,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get superadminCreateSchool => 'Create school';
+
+  @override
+  String get superadminSchoolName => 'School name';
+
+  @override
+  String get superadminCreate => 'Create';
+
+  @override
+  String get superadminCreating => 'Creating...';
+
+  @override
+  String get superadminSchoolCreated => 'School created successfully';
+
+  @override
+  String get superadminActivate => 'Activate';
+
+  @override
+  String get superadminSuspend => 'Suspend';
+
+  @override
+  String get superadminActivated => 'School activated';
+
+  @override
+  String get superadminSuspended => 'School suspended';
+
+  @override
+  String get superadminConfirmSuspend =>
+      'Are you sure you want to suspend this school?';
+
+  @override
+  String get createStaffTitle => 'Create account';
+
+  @override
+  String get createStaffHelp =>
+      'Invite a staff member. They will set their password on first login.';
+
+  @override
+  String get staffRole => 'Role';
+
+  @override
+  String get roleTeacher => 'Teacher';
+
+  @override
+  String get roleSecretary => 'Secretary';
+
+  @override
+  String staffCreated(String name) {
+    return '$name account created successfully';
+  }
 }

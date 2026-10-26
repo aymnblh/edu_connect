@@ -771,6 +771,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// No description provided for @superadminCreateSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'Create school'**
+  String get superadminCreateSchool;
+
+  /// No description provided for @superadminSchoolName.
+  ///
+  /// In en, this message translates to:
+  /// **'School name'**
+  String get superadminSchoolName;
+
+  /// No description provided for @superadminCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get superadminCreate;
+
+  /// No description provided for @superadminCreating.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating...'**
+  String get superadminCreating;
+
+  /// No description provided for @superadminSchoolCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'School created successfully'**
+  String get superadminSchoolCreated;
+
+  /// No description provided for @superadminActivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate'**
+  String get superadminActivate;
+
+  /// No description provided for @superadminSuspend.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspend'**
+  String get superadminSuspend;
+
+  /// No description provided for @superadminActivated.
+  ///
+  /// In en, this message translates to:
+  /// **'School activated'**
+  String get superadminActivated;
+
+  /// No description provided for @superadminSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'School suspended'**
+  String get superadminSuspended;
+
+  /// No description provided for @superadminConfirmSuspend.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to suspend this school?'**
+  String get superadminConfirmSuspend;
+
+  /// No description provided for @createStaffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createStaffTitle;
+
+  /// No description provided for @createStaffHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a staff member. They will set their password on first login.'**
+  String get createStaffHelp;
+
+  /// No description provided for @staffRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get staffRole;
+
+  /// No description provided for @roleTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher'**
+  String get roleTeacher;
+
+  /// No description provided for @roleSecretary.
+  ///
+  /// In en, this message translates to:
+  /// **'Secretary'**
+  String get roleSecretary;
+
+  /// No description provided for @staffCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} account created successfully'**
+  String staffCreated(String name);
 }
 
 class _AppLocalizationsDelegate
