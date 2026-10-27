@@ -6,8 +6,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 //
 // Correct pattern: use Dart's conditional imports to select a platform-specific
 // implementation. The web stub returns safe defaults; the native stub uses dart:io.
-import 'device_info_stub.dart'
-    if (dart.library.io) 'device_info_native.dart';
+import 'device_info_stub.dart' if (dart.library.io) 'device_info_native.dart';
 
 class DeviceInfoUtil {
   static final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();

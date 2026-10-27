@@ -24,6 +24,25 @@ class AppConstants {
     defaultValue: 'development',
   );
 
+  // Firebase (push when the app is closed). All empty = push stays off.
+  static const String firebaseApiKey =
+      String.fromEnvironment('FIREBASE_API_KEY', defaultValue: '');
+  static const String firebaseAppIdAndroid =
+      String.fromEnvironment('FIREBASE_APP_ID_ANDROID', defaultValue: '');
+  static const String firebaseAppIdIos =
+      String.fromEnvironment('FIREBASE_APP_ID_IOS', defaultValue: '');
+  static const String firebaseSenderId =
+      String.fromEnvironment('FIREBASE_SENDER_ID', defaultValue: '');
+  static const String firebaseProjectId =
+      String.fromEnvironment('FIREBASE_PROJECT_ID', defaultValue: '');
+
+  static bool get hasFirebase =>
+      firebaseApiKey.trim().isNotEmpty &&
+      firebaseSenderId.trim().isNotEmpty &&
+      firebaseProjectId.trim().isNotEmpty &&
+      (firebaseAppIdAndroid.trim().isNotEmpty ||
+          firebaseAppIdIos.trim().isNotEmpty);
+
   static bool get hasNtfyTransport =>
       ntfyBaseUrl.trim().isNotEmpty && ntfyWsBaseUrl.trim().isNotEmpty;
 
