@@ -29,7 +29,13 @@ def _secret(num_bytes: int) -> str:
 
 
 def _generated_values() -> dict[str, str]:
-    return {key: _secret(num_bytes) for key, num_bytes in SECRET_BYTES.items()}
+    values = {key: _secret(num_bytes) for key, num_bytes in SECRET_BYTES.items()}
+    # Encrypts health records in the database. It must be backed up outside the
+    # server: without it those records cannot be read, even from a backup.
+    from cryptography.fernet import Fernet
+
+    values["HEALTH_DATA_KEY"] = Fernet.generate_key().decode()
+    return values
 
 
 def _replace_env_line(line: str, values: dict[str, str]) -> str:
@@ -91,6 +97,10 @@ def validate_generated_env(content: str) -> list[str]:
         failures.append("DATABASE_URL still contains a placeholder password.")
     elif values.get("APP_DB_PASSWORD") and values["APP_DB_PASSWORD"] not in database_url:
         failures.append("DATABASE_URL password does not match APP_DB_PASSWORD.")
+
+    health_key = values.get("HEALTH_DATA_KEY", "")
+    if health_key and len(health_key) != 44:
+        failures.append("HEALTH_DATA_KEY is not a valid key (python manage.py generate-health-key).")
 
     redis_url = values.get("REDIS_URL", "")
     if not redis_url:
