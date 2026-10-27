@@ -158,8 +158,7 @@ script refuse explicitement de restaurer dans `APP_ENV=production`.
 8. Conserver Render/Vercel sans ecriture pendant quelques jours avant suppression.
 
 Les notifications visibles lorsque l'application est ouverte utilisent l'API.
-Le changement d'hebergeur ne remplace pas l'integration FCM/APNs necessaire aux
-notifications lorsque l'application mobile est completement fermee.
+Pour les alertes quand l'application est fermee, voir la section 8 (Firebase).
 
 ## 7. Exploitation quotidienne
 
@@ -182,3 +181,40 @@ docker compose --env-file .env.production pull
 
 Ne pas publier les ports 5432, 6379 ou 3310. PostgreSQL, Redis et ClamAV doivent
 rester accessibles uniquement sur le reseau Docker interne.
+
+## 8. Reglages ajoutes recemment
+
+Verifier ces points dans `.env.production` avant le premier deploiement.
+
+**Cle de chiffrement des fiches sante (obligatoire).**
+`generate_production_env.py` cree `HEALTH_DATA_KEY`. Sans cette cle, l'API refuse
+de demarrer. **Gardez-en une copie hors du serveur** (gestionnaire de mots de
+passe, enveloppe scellee) : les sauvegardes sont inutilisables pour les fiches
+sante sans elle. Pour la changer plus tard, mettre l'ancienne dans
+`HEALTH_DATA_PREVIOUS_KEYS`.
+
+**Taches automatiques.** `BACKGROUND_JOBS_ENABLED=true` (par defaut) lance dans
+l'API : bilan mensuel le 1er, rappels automatiques des frais, reconstruction
+nocturne de la demo. Avec plusieurs instances de l'API, c'est sans danger.
+
+**Demo publique (facultatif).** `PUBLIC_DEMO_ENABLED=true` ajoute « Decouvrir
+sans compte » sur la page de connexion, avec une ecole fictive en lecture seule
+reconstruite chaque nuit. A activer sur le serveur de test, pas forcement en
+production.
+
+**Notifications telephone (facultatif).** `FCM_PROJECT_ID` et
+`FCM_SERVICE_ACCOUNT_FILE` (voir `OPERATIONS_RUNBOOK.md`, section Firebase).
+Placer le fichier JSON dans `secrets/` (propriete `10001:10001`, mode 600) et
+l'indiquer sous la forme `/app/secrets/firebase.json`.
+
+**Premier trimestre offert.** A l'activation d'une ecole (compte administrateur
+plateforme), l'abonnement court jusqu'a la fin du trimestre en cours. Enregistrez
+le paiement avant cette date, sinon l'ecole est bloquee.
+
+**Ordre conseille pour un serveur de test.**
+1. Louer le VPS (section 1) et reserver deux noms de domaine (section 2).
+2. Preparer le serveur (section 3), puis installer l'application (section 4).
+3. Creer l'administrateur plateforme, puis une ecole de test depuis la page
+   d'inscription, et l'activer.
+4. Essayer la sauvegarde chiffree et **un test de restauration** (section 5).
+5. Construire l'application mobile avec `API_BASE_URL` du serveur de test.
