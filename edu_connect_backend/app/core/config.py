@@ -62,6 +62,11 @@ class Settings(BaseSettings):
     # Encryption key for health records (Fernet; `python manage.py generate-health-key`).
     # Required in production. Old keys, comma-separated, keep older rows readable after a change.
     health_data_key: str = ""
+    # Firebase Cloud Messaging (push to phones even when the app is closed).
+    # Give the service account as a file path or as inline JSON; both empty = off.
+    fcm_project_id: str = ""
+    fcm_service_account_file: str = ""
+    fcm_service_account_json: str = ""
     health_data_previous_keys: str = ""
 
     # In-memory keys (loaded at startup)

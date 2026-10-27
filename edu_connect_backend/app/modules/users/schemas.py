@@ -7,6 +7,10 @@ class PushTokenRequest(BaseModel):
     token: str | None = None
     push_token: str | None = None
 
+class PushDeviceRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=512)
+    platform: str = Field(default="unknown", max_length=20)
+
 class UserOut(BaseModel):
     id: str
     school_id: str | None

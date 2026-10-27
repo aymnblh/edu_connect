@@ -1,6 +1,7 @@
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models import Notification, NotificationPreference, StudentParent, User
+from app.models import Notification, NotificationPreference, PushDevice, StudentParent, User
+from app.utils.fcm import fcm_enabled, send_to_devices
 from sqlalchemy import select
 import uuid
 
@@ -77,5 +78,14 @@ async def create_notification(
     from app.utils.push import send_push
     if user and user.push_token and (push_enabled or is_critical):
         asyncio.create_task(send_push(user.push_token, title, content))
+
+    # Phones registered with Firebase get it even when the app is closed.
+    if push_enabled or is_critical:
+        if fcm_enabled():
+            tokens = (
+                await db.execute(select(PushDevice.token).where(PushDevice.user_id == user_id, PushDevice.school_id == resolved_school_id))
+            ).scalars().all()
+            if tokens:
+                asyncio.create_task(send_to_devices(resolved_school_id, list(tokens), title, content, notification_type))
     
     return notification
