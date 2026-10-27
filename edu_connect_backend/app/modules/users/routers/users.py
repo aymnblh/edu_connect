@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel
 from app.modules.demo.access import is_read_only_demo_user
 from app.core.audit import record_audit_event
@@ -10,6 +11,7 @@ from app.db.database import get_db
 from app.models import (
     Notification,
     NotificationPreference,
+    PushDevice,
     RefreshToken,
     Student,
     StudentParent,
@@ -17,7 +19,7 @@ from app.models import (
     UserRole,
     VerificationRequest,
 )
-from app.schemas import UserCreate, UserOut, UserUpdate, PushTokenRequest, StudentCreate, StudentOut
+from app.schemas import UserCreate, UserOut, UserUpdate, PushTokenRequest, PushDeviceRequest, StudentCreate, StudentOut
 from app.core.security import get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -77,6 +79,51 @@ async def register_push_token(
     return {"status": "ok"}
 
 
+@router.post("/me/push-devices")
+async def register_push_device(
+    payload: PushDeviceRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Register this phone for push notifications (a user may have several)."""
+    if not current_user.school_id or is_read_only_demo_user(current_user):
+        return {"status": "skipped"}
+    now = datetime.now(timezone.utc)
+    # A token belongs to one account: if the phone changed hands, it follows the new sign-in.
+    # Row security hides other schools' rows, so claim it by writing, not by reading.
+    await db.execute(delete(PushDevice).where(PushDevice.token == payload.token, PushDevice.user_id != current_user.id))
+    existing = (
+        await db.execute(select(PushDevice).where(PushDevice.token == payload.token, PushDevice.user_id == current_user.id))
+    ).scalar_one_or_none()
+    if existing is None:
+        db.add(PushDevice(school_id=current_user.school_id, user_id=current_user.id, token=payload.token, platform=payload.platform))
+    else:
+        existing.last_seen_at = now
+        existing.platform = payload.platform
+    try:
+        await db.commit()
+    except IntegrityError:
+        # Still registered to an account of another school on this phone.
+        await db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Cet appareil est deja lie a un autre compte : deconnectez-le d'abord.",
+        )
+    return {"status": "ok"}
+
+
+@router.delete("/me/push-devices")
+async def unregister_push_device(
+    payload: PushDeviceRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Stop pushing to this phone (sign-out)."""
+    await db.execute(delete(PushDevice).where(PushDevice.token == payload.token, PushDevice.user_id == current_user.id))
+    await db.commit()
+    return {"status": "ok"}
+
+
 DELETED_ACCOUNT_NAME = "Compte supprime"
 # Must stay a syntactically valid address: user payloads validate emails.
 DELETED_ACCOUNT_EMAIL_DOMAIN = "deleted.waseledu.dz"
@@ -127,6 +174,7 @@ async def delete_me(
         (VerificationRequest, VerificationRequest.parent_id),
         (Notification, Notification.user_id),
         (NotificationPreference, NotificationPreference.user_id),
+        (PushDevice, PushDevice.user_id),
         (RefreshToken, RefreshToken.user_id),
     ):
         await db.execute(delete(model).where(column == current_user.id))

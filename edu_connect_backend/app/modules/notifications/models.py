@@ -24,6 +24,20 @@ class Notification(Base):
     user: Mapped["User"] = relationship("User", back_populates="notifications")
 
 
+class PushDevice(Base):
+    """A phone that receives push notifications for a user (Firebase token)."""
+
+    __tablename__ = "push_devices"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    school_id: Mapped[str] = mapped_column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token: Mapped[str] = mapped_column(String(512), nullable=False, unique=True)
+    platform: Mapped[str] = mapped_column(String(20), nullable=False, default="unknown")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class NotificationPreference(Base):
     __tablename__ = "notification_preferences"
 
