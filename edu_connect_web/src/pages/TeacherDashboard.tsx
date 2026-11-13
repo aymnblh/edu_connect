@@ -1,11 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import {
+  AlertTriangle,
   BookOpen,
   Calendar,
   CalendarClock,
+  Check,
+  CheckCheck,
+  CheckCircle2,
   ClipboardList,
+  Loader2,
   Megaphone,
   MessageSquare,
   NotebookText,
@@ -14,6 +19,7 @@ import {
   Trash2,
   UserCheck,
   Users,
+  X,
 } from 'lucide-react';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
 import DashboardActionGrid from '../components/DashboardActionGrid';
@@ -162,6 +168,67 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
   return value === 'assignment' || value === 'exam' ? value : 'homework';
 }
 
+function TeacherClassSelector({
+  classes,
+  selectedClass,
+  onSelect,
+}: {
+  classes: SchoolClass[];
+  selectedClass: SchoolClass;
+  onSelect: (schoolClass: SchoolClass) => void;
+}) {
+  const selectId = useId();
+  const { t } = useLocale();
+
+  return (
+    <>
+      <div className="form-group teacher-mobile-class-selector">
+        <label className="form-label" htmlFor={selectId}>{t('teacher.assignedClasses')}</label>
+        <select
+          id={selectId}
+          className="form-input"
+          value={selectedClass.id}
+          onChange={(event) => {
+            const nextClass = classes.find((schoolClass) => schoolClass.id === event.target.value);
+            if (nextClass) onSelect(nextClass);
+          }}
+        >
+          {classes.map((schoolClass) => (
+            <option key={schoolClass.id} value={schoolClass.id}>
+              {schoolClass.name} - {schoolClass.subject || t('teacher.class')}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="dashboard-side teacher-desktop-class-selector">
+        <h3 className="dashboard-section-title">{t('teacher.assignedClasses')}</h3>
+        <div className="dashboard-list">
+          {classes.map((schoolClass) => (
+            <button
+              type="button"
+              key={schoolClass.id}
+              onClick={() => onSelect(schoolClass)}
+              className={`class-card class-card-button ${selectedClass.id === schoolClass.id ? 'class-card--active' : ''}`}
+              aria-label={t('teacher.selectClassAria', {
+                name: schoolClass.name,
+                subject: schoolClass.subject || t('teacher.class'),
+              })}
+            >
+              <h4 className="class-card-title">{schoolClass.name}</h4>
+              <p className="class-card-subtitle">{schoolClass.subject || t('teacher.class')}</p>
+              <div className="class-card-meta">
+                <span>{t('teacher.studentsCount', { count: schoolClass.members?.length ?? 0 })}</span>
+                <span className="class-card-metric">{schoolClass.subject || '-'}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'homework' | 'schedule' | 'meetings' | 'announcements' | 'chat'>('classes');
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -294,6 +361,8 @@ export default function TeacherDashboard() {
   const selectedHomeworkCourse = classCourses.find((course) => course.course_id === homeworkForm.courseId);
   const selectedExamCourse = classCourses.find((course) => course.course_id === examForm.courseId);
   const pendingGradesCount = grades.filter((grade) => !grade.is_approved).length;
+  const markedAttendanceCount = students.filter((student) => Boolean(attendanceState[student.id])).length;
+  const attendanceProgress = students.length > 0 ? (markedAttendanceCount / students.length) * 100 : 0;
   const upcomingHomeworkCount = homework.filter((item) => {
     const dueDate = new Date(item.due_date);
     return Number.isNaN(dueDate.getTime()) || dueDate >= new Date(new Date().toDateString());
@@ -422,11 +491,7 @@ export default function TeacherDashboard() {
       );
     },
     onSuccess: () => {
-      addToast(t('teacher.toastSaved'), 'success');
       void queryClient.invalidateQueries({ queryKey: ['teacher', 'students', selectedClass?.id] });
-    },
-    onError: (error) => {
-      addToast(error instanceof Error ? error.message : t('auth.connectionError'), 'error');
     },
   });
 
@@ -518,12 +583,8 @@ export default function TeacherDashboard() {
       });
     },
     onSuccess: () => {
-      addToast(t('teacher.gradeToastSaved'), 'success');
       setGradeForm((current) => ({ ...current, score: '', comment: '' }));
       void queryClient.invalidateQueries({ queryKey: ['teacher', 'grades', selectedClass?.id] });
-    },
-    onError: (error) => {
-      addToast(error instanceof Error ? error.message : t('auth.connectionError'), 'error');
     },
   });
 
@@ -600,6 +661,8 @@ export default function TeacherDashboard() {
   const selectClass = (schoolClass: SchoolClass) => {
     setSelectedClassId(schoolClass.id);
     setAttendanceState({});
+    saveAttendanceMutation.reset();
+    addGradeMutation.reset();
     setGradeForm({
       studentId: '',
       courseId: '',
@@ -628,10 +691,16 @@ export default function TeacherDashboard() {
   };
 
   const toggleAttendance = (student: Student, status: 'present' | 'absent') => {
+    saveAttendanceMutation.reset();
     setAttendanceState((current) => ({
       ...current,
       [student.id]: status,
     }));
+  };
+
+  const markAllPresent = () => {
+    saveAttendanceMutation.reset();
+    setAttendanceState(Object.fromEntries(students.map((student) => [student.id, 'present' as const] as const)));
   };
 
   const handleGradeSubmit = (event: React.FormEvent) => {
@@ -815,30 +884,7 @@ export default function TeacherDashboard() {
         {!isLoading && selectedClass && activeTab === 'classes' && <ClassHealthAlerts classId={selectedClass.id} />}
         {!isLoading && selectedClass && activeTab === 'classes' && (
           <div className="animate-fade-in dashboard-split" role="tabpanel">
-            <div className="dashboard-side">
-              <h3 className="dashboard-section-title">{t('teacher.assignedClasses')}</h3>
-              <div className="dashboard-list">
-                {classes.map((schoolClass) => (
-                  <button
-                    type="button"
-                    key={schoolClass.id}
-                    onClick={() => selectClass(schoolClass)}
-                    className={`class-card class-card-button ${selectedClass.id === schoolClass.id ? 'class-card--active' : ''}`}
-                    aria-label={t('teacher.selectClassAria', {
-                      name: schoolClass.name,
-                      subject: schoolClass.subject || t('teacher.class'),
-                    })}
-                  >
-                    <h4 className="class-card-title">{schoolClass.name}</h4>
-                    <p className="class-card-subtitle">{schoolClass.subject || t('teacher.class')}</p>
-                    <div className="class-card-meta">
-                      <span>{t('teacher.studentsCount', { count: schoolClass.members?.length ?? 0 })}</span>
-                      <span className="class-card-metric">{schoolClass.subject || '-'}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <TeacherClassSelector classes={classes} selectedClass={selectedClass} onSelect={selectClass} />
 
             <div ref={attendanceSectionRef} className="teacher-attendance-section" tabIndex={-1}>
               <div className="dashboard-toolbar">
@@ -846,59 +892,112 @@ export default function TeacherDashboard() {
                   <h3 className="dashboard-section-title dashboard-section-title--plain">{t('teacher.attendanceTitle')}</h3>
                   <p className="dashboard-section-copy">{t('teacher.attendanceCopy', { className: selectedClass.name })}</p>
                 </div>
-                <button
-                  className="btn btn-primary btn-compact"
-                  aria-label={t('teacher.saveAttendance')}
-                  disabled={saveAttendanceMutation.isPending || students.length === 0}
-                  onClick={() => saveAttendanceMutation.mutate()}
-                >
-                  <UserCheck size={16} /> {t('teacher.saveAttendance')}
-                </button>
               </div>
 
               {students.length === 0 ? (
                 <p className="empty-list-copy">{t('teacher.emptyStudents')}</p>
               ) : (
-                <div className="premium-table-wrapper">
-                  <table className="premium-table">
-                    <thead>
-                      <tr>
-                        <th>{t('teacher.studentName')}</th>
-                        <th className="table-heading-center">{t('teacher.presence')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {students.map((student) => {
-                        const status = attendanceState[student.id];
-                        return (
-                          <tr key={student.id}>
-                            <td className="table-cell-strong">{student.full_name}</td>
-                            <td className="attendance-choice-cell">
-                              <button
-                                type="button"
-                                onClick={() => toggleAttendance(student, 'present')}
-                                className={`attendance-btn ${status === 'present' ? 'attendance-btn--present' : ''}`}
-                                aria-label={t('teacher.markPresent', { student: student.full_name })}
-                                aria-pressed={status === 'present'}
-                              >
-                                {t('teacher.present')}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => toggleAttendance(student, 'absent')}
-                                className={`attendance-btn ${status === 'absent' ? 'attendance-btn--absent' : ''}`}
-                                aria-label={t('teacher.markAbsent', { student: student.full_name })}
-                                aria-pressed={status === 'absent'}
-                              >
-                                {t('teacher.absent')}
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                <>
+                  <div className="teacher-attendance-actionbar" aria-busy={saveAttendanceMutation.isPending}>
+                    <div className="teacher-attendance-progress">
+                      <div className="teacher-attendance-progress-copy">
+                        <strong>{t('teacher.attendanceProgress', { marked: markedAttendanceCount, total: students.length })}</strong>
+                        <span>{t('teacher.attendanceRemaining', { count: students.length - markedAttendanceCount })}</span>
+                      </div>
+                      <div
+                        className="teacher-attendance-progress-track"
+                        role="progressbar"
+                        aria-label={t('teacher.attendanceProgressAria')}
+                        aria-valuemin={0}
+                        aria-valuemax={students.length}
+                        aria-valuenow={markedAttendanceCount}
+                      >
+                        <span style={{ width: `${attendanceProgress}%` }} />
+                      </div>
+                    </div>
+                    <div className="teacher-attendance-actions">
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-compact"
+                        disabled={saveAttendanceMutation.isPending}
+                        onClick={markAllPresent}
+                      >
+                        <CheckCheck size={16} /> {t('teacher.markAllPresent')}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-compact"
+                        disabled={saveAttendanceMutation.isPending}
+                        onClick={() => saveAttendanceMutation.mutate()}
+                      >
+                        {saveAttendanceMutation.isPending ? <Loader2 size={16} className="spin-icon" /> : <UserCheck size={16} />}
+                        {saveAttendanceMutation.isPending ? t('teacher.attendanceSaving') : t('teacher.saveAttendance')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {(saveAttendanceMutation.isPending || saveAttendanceMutation.isSuccess || saveAttendanceMutation.isError) && (
+                    <div
+                      className={`teacher-save-feedback teacher-save-feedback--${saveAttendanceMutation.isPending ? 'pending' : saveAttendanceMutation.isSuccess ? 'success' : 'error'}`}
+                      role={saveAttendanceMutation.isError ? 'alert' : 'status'}
+                    >
+                      {saveAttendanceMutation.isPending ? <Loader2 size={17} className="spin-icon" /> : saveAttendanceMutation.isSuccess ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
+                      <span>
+                        {saveAttendanceMutation.isPending
+                          ? t('teacher.attendanceSaving')
+                          : saveAttendanceMutation.isSuccess
+                            ? t('teacher.toastSaved')
+                            : apiErrorMessage(
+                                saveAttendanceMutation.error,
+                                saveAttendanceMutation.error instanceof Error ? saveAttendanceMutation.error.message : t('auth.connectionError'),
+                              )}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="premium-table-wrapper teacher-attendance-table-wrap">
+                    <table className="premium-table teacher-attendance-table">
+                      <thead>
+                        <tr>
+                          <th>{t('teacher.studentName')}</th>
+                          <th className="table-heading-center">{t('teacher.presence')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {students.map((student) => {
+                          const status = attendanceState[student.id];
+                          return (
+                            <tr key={student.id} className={status ? 'teacher-attendance-row--marked' : ''}>
+                              <td className="table-cell-strong">{student.full_name}</td>
+                              <td className="attendance-choice-cell">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleAttendance(student, 'present')}
+                                  className={`attendance-btn ${status === 'present' ? 'attendance-btn--present' : ''}`}
+                                  aria-label={t('teacher.markPresent', { student: student.full_name })}
+                                  aria-pressed={status === 'present'}
+                                  disabled={saveAttendanceMutation.isPending}
+                                >
+                                  <Check size={15} /> {t('teacher.present')}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleAttendance(student, 'absent')}
+                                  className={`attendance-btn ${status === 'absent' ? 'attendance-btn--absent' : ''}`}
+                                  aria-label={t('teacher.markAbsent', { student: student.full_name })}
+                                  aria-pressed={status === 'absent'}
+                                  disabled={saveAttendanceMutation.isPending}
+                                >
+                                  <X size={15} /> {t('teacher.absent')}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -906,30 +1005,7 @@ export default function TeacherDashboard() {
 
         {!isLoading && selectedClass && activeTab === 'grades' && (
           <div className="animate-fade-in dashboard-split dashboard-split--teacher-grades" role="tabpanel">
-            <div className="dashboard-side">
-              <h3 className="dashboard-section-title">{t('teacher.assignedClasses')}</h3>
-              <div className="dashboard-list">
-                {classes.map((schoolClass) => (
-                  <button
-                    type="button"
-                    key={schoolClass.id}
-                    onClick={() => selectClass(schoolClass)}
-                    className={`class-card class-card-button ${selectedClass.id === schoolClass.id ? 'class-card--active' : ''}`}
-                    aria-label={t('teacher.selectClassAria', {
-                      name: schoolClass.name,
-                      subject: schoolClass.subject || t('teacher.class'),
-                    })}
-                  >
-                    <h4 className="class-card-title">{schoolClass.name}</h4>
-                    <p className="class-card-subtitle">{schoolClass.subject || t('teacher.class')}</p>
-                    <div className="class-card-meta">
-                      <span>{t('teacher.studentsCount', { count: schoolClass.members?.length ?? 0 })}</span>
-                      <span className="class-card-metric">{schoolClass.subject || '-'}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <TeacherClassSelector classes={classes} selectedClass={selectedClass} onSelect={selectClass} />
 
             <div>
               <div className="dashboard-toolbar">
@@ -943,7 +1019,14 @@ export default function TeacherDashboard() {
               </div>
 
               <div className="teacher-grade-entry-grid">
-                <form className="stacked-form teacher-grade-form" onSubmit={handleGradeSubmit}>
+                <form
+                  className="stacked-form teacher-grade-form"
+                  onSubmit={handleGradeSubmit}
+                  onChange={() => {
+                    if (addGradeMutation.isSuccess || addGradeMutation.isError) addGradeMutation.reset();
+                  }}
+                  aria-busy={addGradeMutation.isPending}
+                >
                   <div className="form-group">
                     <label className="form-label" htmlFor="grade-student">{t('teacher.gradeStudent')}</label>
                     <select
@@ -1002,8 +1085,12 @@ export default function TeacherDashboard() {
                       <label className="form-label" htmlFor="grade-score">{t('teacher.gradeScore')}</label>
                       <input
                         id="grade-score"
-                        className="form-input"
+                        className="form-input teacher-grade-score-input"
                         type="number"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        enterKeyHint="next"
+                        placeholder="0.00"
                         min="0"
                         max={gradeForm.maxScore || undefined}
                         step="0.25"
@@ -1016,8 +1103,11 @@ export default function TeacherDashboard() {
                       <label className="form-label" htmlFor="grade-max-score">{t('teacher.gradeMaxScore')}</label>
                       <input
                         id="grade-max-score"
-                        className="form-input"
+                        className="form-input teacher-grade-score-input"
                         type="number"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        enterKeyHint="next"
                         min="1"
                         step="0.5"
                         value={gradeForm.maxScore}
@@ -1035,17 +1125,40 @@ export default function TeacherDashboard() {
                       value={gradeForm.comment}
                       onChange={(event) => setGradeForm((current) => ({ ...current, comment: event.target.value }))}
                       placeholder={t('teacher.gradeCommentPlaceholder')}
+                      aria-describedby="grade-validation-hint"
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-full"
-                    disabled={addGradeMutation.isPending || students.length === 0}
-                  >
-                    <NotebookText size={16} /> {t('teacher.gradeSave')}
-                  </button>
-                  <p className="dashboard-section-copy teacher-grade-note">{t('teacher.gradeValidationHint')}</p>
+                  {(addGradeMutation.isPending || addGradeMutation.isSuccess || addGradeMutation.isError) && (
+                    <div
+                      className={`teacher-save-feedback teacher-save-feedback--${addGradeMutation.isPending ? 'pending' : addGradeMutation.isSuccess ? 'success' : 'error'}`}
+                      role={addGradeMutation.isError ? 'alert' : 'status'}
+                    >
+                      {addGradeMutation.isPending ? <Loader2 size={17} className="spin-icon" /> : addGradeMutation.isSuccess ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
+                      <span>
+                        {addGradeMutation.isPending
+                          ? t('teacher.gradeSaving')
+                          : addGradeMutation.isSuccess
+                            ? t('teacher.gradeToastSaved')
+                            : apiErrorMessage(
+                                addGradeMutation.error,
+                                addGradeMutation.error instanceof Error ? addGradeMutation.error.message : t('auth.connectionError'),
+                              )}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="teacher-form-actions">
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-full"
+                      disabled={addGradeMutation.isPending || students.length === 0}
+                    >
+                      {addGradeMutation.isPending ? <Loader2 size={16} className="spin-icon" /> : <NotebookText size={16} />}
+                      {addGradeMutation.isPending ? t('teacher.gradeSaving') : t('teacher.gradeSave')}
+                    </button>
+                    <p id="grade-validation-hint" className="dashboard-section-copy teacher-grade-note">{t('teacher.gradeValidationHint')}</p>
+                  </div>
                 </form>
 
                 <div>
@@ -1146,30 +1259,7 @@ export default function TeacherDashboard() {
 
         {!isLoading && selectedClass && activeTab === 'homework' && (
           <div className="animate-fade-in dashboard-split dashboard-split--teacher-homework" role="tabpanel">
-            <div className="dashboard-side">
-              <h3 className="dashboard-section-title">{t('teacher.assignedClasses')}</h3>
-              <div className="dashboard-list">
-                {classes.map((schoolClass) => (
-                  <button
-                    type="button"
-                    key={schoolClass.id}
-                    onClick={() => selectClass(schoolClass)}
-                    className={`class-card class-card-button ${selectedClass.id === schoolClass.id ? 'class-card--active' : ''}`}
-                    aria-label={t('teacher.selectClassAria', {
-                      name: schoolClass.name,
-                      subject: schoolClass.subject || t('teacher.class'),
-                    })}
-                  >
-                    <h4 className="class-card-title">{schoolClass.name}</h4>
-                    <p className="class-card-subtitle">{schoolClass.subject || t('teacher.class')}</p>
-                    <div className="class-card-meta">
-                      <span>{t('teacher.studentsCount', { count: schoolClass.members?.length ?? 0 })}</span>
-                      <span className="class-card-metric">{schoolClass.subject || '-'}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <TeacherClassSelector classes={classes} selectedClass={selectedClass} onSelect={selectClass} />
 
             <div>
               <div className="dashboard-toolbar">

@@ -3634,6 +3634,31 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'حفظ الحضور',
     en: 'Save attendance',
   },
+  'teacher.attendanceSaving': {
+    fr: "Enregistrement de l'appel...",
+    ar: 'جار حفظ الحضور...',
+    en: 'Saving attendance...',
+  },
+  'teacher.markAllPresent': {
+    fr: 'Tous présents',
+    ar: 'الكل حاضر',
+    en: 'Mark all present',
+  },
+  'teacher.attendanceProgress': {
+    fr: '{marked} sur {total} marqués',
+    ar: 'تم تسجيل {marked} من {total}',
+    en: '{marked} of {total} marked',
+  },
+  'teacher.attendanceRemaining': {
+    fr: '{count} restant(s)',
+    ar: 'المتبقي {count}',
+    en: '{count} remaining',
+  },
+  'teacher.attendanceProgressAria': {
+    fr: "Progression de l'appel",
+    ar: 'تقدم تسجيل الحضور',
+    en: 'Attendance completion',
+  },
   'teacher.toastIncomplete': {
     fr: "Veuillez faire l'appel pour tous les élèves.",
     ar: 'يرجى تسجيل الحضور لكل الطلاب.',
@@ -3713,6 +3738,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'Ajouter la note',
     ar: 'إضافة الدرجة',
     en: 'Add grade',
+  },
+  'teacher.gradeSaving': {
+    fr: 'Ajout de la note...',
+    ar: 'جار إضافة الدرجة...',
+    en: 'Adding grade...',
   },
   'teacher.gradeValidationHint': {
     fr: 'La note sera visible aux parents après validation par la direction.',
