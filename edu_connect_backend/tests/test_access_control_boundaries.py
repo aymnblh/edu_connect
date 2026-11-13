@@ -1438,6 +1438,7 @@ def test_parent_account_deletion_anonymizes_and_revokes_everything():
         "verification_requests",
         "notifications",
         "notification_preferences",
+        "push_devices",
         "refresh_tokens",
     ]
     assert [e.action for e in db.added if isinstance(e, AuditEvent)] == ["account.deleted"]

@@ -115,6 +115,11 @@ export default function Login() {
     <div className="login-splitscreen">
       <div className="login-brand-side">
         <div className="login-brand-content">
+          <div className="login-masthead">
+            <img src="/wasel-edu-logo.svg" alt="" />
+            <span className="login-masthead-name">{t('common.appName')}</span>
+            <span className="login-masthead-meta">FR · AR · EN</span>
+          </div>
           <div className="login-kicker animate-fade-in">
             <GraduationCap size={14} /> {t('login.kicker')}
           </div>

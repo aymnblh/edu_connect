@@ -41,41 +41,41 @@ class AppColors extends ThemeExtension<AppColors> {
   });
 
   static const light = AppColors(
-    cardBg: Colors.white,
-    cardBorder: Color(0xFFE2E8F0),
-    subtitleText: Color(0xFF475569),
-    glassSurface: Color(0xFFF8FAFC),
-    tealAccent: Color(0xFF14B8A6),
-    tealLight: Color(0xFFCCFBF1),
-    tealDark: Color(0xFF0F766E),
-    successGreen: Color(0xFF10B981),
-    dangerRed: Color(0xFFEF4444),
-    warningAmber: Color(0xFFF59E0B),
-    mutedText: Color(0xFF94A3B8),
-    inputBg: Color(0xFFF1F5F9),
-    inputBorder: Color(0xFFCBD5E1),
-    dividerColor: Color(0xFFE2E8F0),
-    shimmerBase: Color(0xFFE2E8F0),
-    shimmerHighlight: Color(0xFFF8FAFC),
+    cardBg: Color(0xFFFFFDF8),
+    cardBorder: Color(0xFFD8DDD6),
+    subtitleText: Color(0xFF63716D),
+    glassSurface: Color(0xFFF8F7F2),
+    tealAccent: Color(0xFF0D655D),
+    tealLight: Color(0xFFE5EEEA),
+    tealDark: Color(0xFF084C46),
+    successGreen: Color(0xFF247A59),
+    dangerRed: Color(0xFFB64B43),
+    warningAmber: Color(0xFF9A681C),
+    mutedText: Color(0xFF7A8580),
+    inputBg: Color(0xFFFFFDF8),
+    inputBorder: Color(0xFFD8DDD6),
+    dividerColor: Color(0xFFD8DDD6),
+    shimmerBase: Color(0xFFE5E7E0),
+    shimmerHighlight: Color(0xFFF8F7F2),
   );
 
   static const dark = AppColors(
-    cardBg: Color(0xFF1E293B),
-    cardBorder: Color(0xFF334155),
-    subtitleText: Color(0xFF94A3B8),
-    glassSurface: Color(0xFF0F172A),
-    tealAccent: Color(0xFF14B8A6),
-    tealLight: Color(0xFF134E4A),
-    tealDark: Color(0xFF0D9488),
-    successGreen: Color(0xFF10B981),
-    dangerRed: Color(0xFFEF4444),
-    warningAmber: Color(0xFFF59E0B),
-    mutedText: Color(0xFF64748B),
-    inputBg: Color(0xFF0F172A),
-    inputBorder: Color(0xFF334155),
-    dividerColor: Color(0xFF1E293B),
-    shimmerBase: Color(0xFF1E293B),
-    shimmerHighlight: Color(0xFF334155),
+    cardBg: Color(0xFF1B2927),
+    cardBorder: Color(0xFF354641),
+    subtitleText: Color(0xFFA8B7B1),
+    glassSurface: Color(0xFF14211F),
+    tealAccent: Color(0xFF72B9AA),
+    tealLight: Color(0xFF294740),
+    tealDark: Color(0xFF9ACFC2),
+    successGreen: Color(0xFF72C69E),
+    dangerRed: Color(0xFFF0958D),
+    warningAmber: Color(0xFFD9AE68),
+    mutedText: Color(0xFF899B94),
+    inputBg: Color(0xFF14211F),
+    inputBorder: Color(0xFF435750),
+    dividerColor: Color(0xFF354641),
+    shimmerBase: Color(0xFF263835),
+    shimmerHighlight: Color(0xFF354641),
   );
 
   @override
@@ -148,31 +148,33 @@ extension AppThemeContext on BuildContext {
 
 class AppTheme {
   // ── Light Design Tokens ──────────────────────────────────────────────────
-  static const _primary = Color(0xFF0F766E); // deep teal
-  static const _primaryDark = Color(0xFF0B5D56);
-  static const _primaryLight = Color(0xFFE6F4F1);
+  static const _primary = Color(0xFF0D655D);
+  static const _primaryDark = Color(0xFF084C46);
+  static const _primaryLight = Color(0xFFE5EEEA);
   static const _onPrimary = Colors.white;
-  static const _accent = Color(0xFFEC6A5C);
-  static const _success = Color(0xFF22A879);
-  static const _warning = Color(0xFFF2C230);
-  static const _error = Color(0xFFE85D57);
-  static const _surface = Color(0xFFFFFFFF);
-  static const _scaffoldBg = Color(0xFFF4F7F8);
-  static const _surfaceSoft = Color(0xFFF8FBFB);
-  static const _textPrimary = Color(0xFF12233D);
-  static const _textSecondary = Color(0xFF718096);
-  static const _border = Color(0xFFE4EAEE);
-  static const _inputFill = Color(0xFFF2F6F6);
-  static const _shadow = Color(0x1A203040);
+  static const _accent = Color(0xFFA96F24);
+  static const _success = Color(0xFF247A59);
+  static const _warning = Color(0xFF9A681C);
+  static const _error = Color(0xFFB64B43);
+  static const _surface = Color(0xFFFFFDF8);
+  static const _scaffoldBg = Color(0xFFF3F1EB);
+  static const _surfaceSoft = Color(0xFFF8F7F2);
+  static const _textPrimary = Color(0xFF18302E);
+  static const _textSecondary = Color(0xFF63716D);
+  static const _border = Color(0xFFD8DDD6);
+  static const _inputFill = Color(0xFFFFFDF8);
+  static const _shadow = Color(0x0D18302E);
 
   // ── Dark Design Tokens ──────────────────────────────────────────────────
-  static const _primaryDarkTheme = Color(0xFF14B8A6); // vibrant teal
-  static const _surfaceDark = Color(0xFF1E293B); // slate-blue glass
-  static const _scaffoldBgDark = Color(0xFF0B0F19); // obsidian
-  static const _textPrimaryDark = Color(0xFFF8FAFC); // ice white
-  static const _textSecondaryDark = Color(0xFF94A3B8); // cool slate-grey
-  static const _borderDark = Color(0x1AFFFFFF); // glass border
-  static const _inputFillDark = Color(0xFF151922);
+  static const _primaryDarkTheme = Color(0xFF72B9AA);
+  static const _onPrimaryDark = Color(0xFF10201D);
+  static const _surfaceDark = Color(0xFF1B2927);
+  static const _scaffoldBgDark = Color(0xFF101B19);
+  static const _textPrimaryDark = Color(0xFFF5F3EB);
+  static const _textSecondaryDark = Color(0xFFA8B7B1);
+  static const _borderDark = Color(0xFF354641);
+  static const _inputFillDark = Color(0xFF14211F);
+  static const _errorDark = Color(0xFFF0958D);
   static const _shadowDark = Color(0x33000000);
 
   static TextTheme _getArabicBalancedTextTheme(
@@ -263,12 +265,12 @@ class AppTheme {
       // ── Cards ────────────────────────────────────────────────────────
       cardTheme: CardThemeData(
         color: _surface,
-        elevation: 1,
+        elevation: 0,
         shadowColor: _shadow,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: _border, width: 1),
         ),
       ),
@@ -281,7 +283,7 @@ class AppTheme {
           elevation: 0,
           shadowColor: _shadow,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: TextStyle(
@@ -296,7 +298,7 @@ class AppTheme {
           foregroundColor: _primary,
           side: const BorderSide(color: _border, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: TextStyle(
@@ -322,23 +324,23 @@ class AppTheme {
         filled: true,
         fillColor: _inputFill,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: _primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: _error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: _error, width: 1.5),
         ),
         contentPadding:
@@ -364,14 +366,14 @@ class AppTheme {
         foregroundColor: _onPrimary,
         elevation: 3,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
 
       // ── Snack Bars ───────────────────────────────────────────────────
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         elevation: 4,
         insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       ),
@@ -388,7 +390,7 @@ class AppTheme {
       // ── Misc ─────────────────────────────────────────────────────────
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(6),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -397,7 +399,7 @@ class AppTheme {
         space: 0,
       ),
       dialogTheme: DialogThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         titleTextStyle: TextStyle(
           fontFamily: fontFamily,
           fontSize: 18,
@@ -411,7 +413,7 @@ class AppTheme {
         showDragHandle: true,
         dragHandleColor: _border,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
       ),
     );
@@ -438,7 +440,7 @@ class AppTheme {
       seedColor: _primaryDarkTheme,
       brightness: Brightness.dark,
       primary: _primaryDarkTheme,
-      error: _error,
+      error: _errorDark,
       surface: _surfaceDark,
       surfaceContainerHighest: _scaffoldBgDark,
     );
@@ -481,12 +483,12 @@ class AppTheme {
       // ── Cards ────────────────────────────────────────────────────────
       cardTheme: CardThemeData(
         color: _surfaceDark,
-        elevation: 2,
+        elevation: 0,
         shadowColor: _shadowDark,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: _borderDark, width: 1),
         ),
       ),
@@ -495,11 +497,11 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: _primaryDarkTheme,
-          foregroundColor: Colors.black,
+          foregroundColor: _onPrimaryDark,
           elevation: 0,
           shadowColor: _shadowDark,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: TextStyle(
@@ -514,7 +516,7 @@ class AppTheme {
           foregroundColor: _primaryDarkTheme,
           side: const BorderSide(color: _borderDark, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: TextStyle(
@@ -540,24 +542,24 @@ class AppTheme {
         filled: true,
         fillColor: _inputFillDark,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: _primaryDarkTheme, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: _error, width: 1),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _errorDark, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: _error, width: 1.5),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _errorDark, width: 1.5),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -567,7 +569,7 @@ class AppTheme {
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return Colors.black;
+          if (states.contains(WidgetState.selected)) return _onPrimaryDark;
           return null;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
@@ -579,17 +581,17 @@ class AppTheme {
       // ── Floating Action Button ───────────────────────────────────────
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: _primaryDarkTheme,
-        foregroundColor: Colors.black,
+        foregroundColor: _onPrimaryDark,
         elevation: 3,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
 
       // ── Snack Bars ───────────────────────────────────────────────────
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         elevation: 4,
         insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       ),
@@ -606,7 +608,7 @@ class AppTheme {
       // ── Misc ─────────────────────────────────────────────────────────
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(6),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -615,7 +617,7 @@ class AppTheme {
         space: 0,
       ),
       dialogTheme: DialogThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         titleTextStyle: TextStyle(
           fontFamily: fontFamily,
           fontSize: 18,
@@ -629,7 +631,7 @@ class AppTheme {
         showDragHandle: true,
         dragHandleColor: _borderDark,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
       ),
     );

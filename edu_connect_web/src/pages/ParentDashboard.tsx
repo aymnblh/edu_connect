@@ -316,7 +316,7 @@ export default function ParentDashboard() {
     (activeSubTab === 'attendance' ? attendanceQuery.error : null);
 
   return (
-    <div className="container animate-fade-in">
+    <div className="container dashboard-page parent-page animate-fade-in">
       <header className="dashboard-header">
         <div className="badge dashboard-eyebrow">
           <HeartHandshake size={14} /> {t('parent.eyebrow')}

@@ -1094,17 +1094,11 @@ export default function DirectorDashboard() {
           <div className="chart-panel chart-panel--large" role="img" aria-label={t('director.chartAria')}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.class_performance}>
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--primary)" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.2} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
                 <XAxis dataKey="class_name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} dy={10} />
                 <YAxis domain={[0, 20]} stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} dx={-10} />
-                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} content={<CustomTooltip />} />
-                <Bar dataKey="average_score" fill="url(#barGradient)" radius={[8, 8, 0, 0]} barSize={48} />
+                <Tooltip cursor={{ fill: 'rgba(13,101,93,0.04)' }} content={<CustomTooltip />} />
+                <Bar dataKey="average_score" fill="var(--primary)" radius={[3, 3, 0, 0]} barSize={36} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -1907,7 +1901,7 @@ export default function DirectorDashboard() {
   );
 
   return (
-    <div className="container animate-fade-in">
+    <div className="container dashboard-page director-page animate-fade-in">
       {renderToasts()}
 
       <header className="dashboard-header">
