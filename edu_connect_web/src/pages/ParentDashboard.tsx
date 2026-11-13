@@ -7,16 +7,20 @@ import {
   CalendarClock,
   ClipboardList,
   FileText,
+  FolderOpen,
   HeartHandshake,
   HeartPulse,
+  LayoutDashboard,
   Megaphone,
   MessageSquare,
   NotebookText,
   RefreshCw,
   Wallet,
+  type LucideIcon,
 } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
+import DashboardActionGrid from '../components/DashboardActionGrid';
 import ParentReportCardsPanel from '../components/ParentReportCardsPanel';
 import { ParentMeetingsPanel } from '../components/MeetingsPanel';
 import HealthRecordForm from '../components/HealthRecordForm';
@@ -116,6 +120,23 @@ interface ChildContext {
   className: string;
 }
 
+type ParentTab = 'overview' | 'grades' | 'homework' | 'schedule' | 'attendance' | 'reports' | 'meetings' | 'health' | 'fees' | 'announcements' | 'message';
+type ParentSection = 'overview' | 'schoolwork' | 'attendance' | 'finance' | 'communication';
+
+const parentSectionOrder: ParentSection[] = ['overview', 'schoolwork', 'attendance', 'finance', 'communication'];
+const parentTabsBySection: Record<ParentSection, ParentTab[]> = {
+  overview: ['overview'],
+  schoolwork: ['grades', 'homework'],
+  attendance: ['attendance', 'schedule', 'health'],
+  finance: ['reports', 'fees'],
+  communication: ['message', 'announcements', 'meetings'],
+};
+const parentTabSections = Object.fromEntries(
+  Object.entries(parentTabsBySection).flatMap(([section, tabs]) =>
+    tabs.map((tab) => [tab, section as ParentSection]),
+  ),
+) as Record<ParentTab, ParentSection>;
+
 function localeToIntl(locale: Locale) {
   if (locale === 'ar') return 'ar-DZ';
   if (locale === 'en') return 'en-US';
@@ -188,7 +209,7 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
 export default function ParentDashboard() {
   const { t, locale } = useLocale();
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
-  const [activeSubTab, setActiveSubTab] = useState<'grades' | 'homework' | 'schedule' | 'attendance' | 'reports' | 'meetings' | 'health' | 'fees' | 'announcements' | 'message'>('grades');
+  const [activeSubTab, setActiveSubTab] = useState<ParentTab>('overview');
   const [scheduleSubView, setScheduleSubView] = useState<'weekly' | 'exams'>('weekly');
 
   const childrenQuery = useQuery<Student[]>({
@@ -275,6 +296,53 @@ export default function ParentDashboard() {
   const average = weightedAverage(grades);
   const todayIso = new Date().toISOString().slice(0, 10);
   const upcomingExamsCount = exams.filter((item) => item.exam_date >= todayIso).length;
+  const upcomingHomework = homework
+    .filter((item) => item.due_date.slice(0, 10) >= todayIso)
+    .slice()
+    .sort((a, b) => a.due_date.localeCompare(b.due_date));
+  const attendanceIssueCount = attendance.filter((item) => item.status !== 'present').length;
+  const recentGrades = grades.slice(0, 3);
+  const activeSection = parentTabSections[activeSubTab];
+  const sectionLabels: Record<ParentSection, string> = {
+    overview: t('parent.nav.overview'),
+    schoolwork: t('parent.nav.schoolwork'),
+    attendance: t('parent.nav.attendance'),
+    finance: t('parent.nav.finance'),
+    communication: t('parent.nav.communication'),
+  };
+  const tabLabels: Record<ParentTab, string> = {
+    overview: t('parent.nav.overview'),
+    grades: t('parent.tabGrades'),
+    homework: t('parent.tabHomework'),
+    schedule: t('parent.tabSchedule'),
+    attendance: t('parent.tabAttendance'),
+    reports: t('reportCards.tab'),
+    meetings: t('meetings.tab'),
+    health: t('health.tab'),
+    fees: t('fees.tab'),
+    announcements: t('announcements.tab'),
+    message: t('parent.tabMessage'),
+  };
+  const tabIcons: Record<ParentTab, LucideIcon> = {
+    overview: LayoutDashboard,
+    grades: NotebookText,
+    homework: ClipboardList,
+    schedule: Calendar,
+    attendance: CalendarCheck,
+    reports: FileText,
+    meetings: CalendarClock,
+    health: HeartPulse,
+    fees: Wallet,
+    announcements: Megaphone,
+    message: MessageSquare,
+  };
+  const sectionIcons: Record<ParentSection, LucideIcon> = {
+    overview: LayoutDashboard,
+    schoolwork: NotebookText,
+    attendance: CalendarCheck,
+    finance: FolderOpen,
+    communication: MessageSquare,
+  };
 
   const sortedSlots = useMemo(() => {
     return [...(scheduleSlotsQuery.data ?? [])].sort((a, b) => {
@@ -310,6 +378,9 @@ export default function ParentDashboard() {
   const loadError =
     childrenQuery.error ||
     classesQuery.error ||
+    (activeSubTab === 'overview'
+      ? gradesQuery.error || homeworkQuery.error || examsQuery.error || attendanceQuery.error
+      : null) ||
     (activeSubTab === 'grades' ? gradesQuery.error : null) ||
     (activeSubTab === 'homework' ? homeworkQuery.error : null) ||
     (activeSubTab === 'schedule' ? examsQuery.error : null) ||
@@ -388,91 +459,151 @@ export default function ParentDashboard() {
           </div>
 
           <div className="glass-card dashboard-card-pad">
-            <div className="tab-bar dashboard-tabs" role="tablist" aria-label={t('parent.tabsAria')}>
-              <button
-                onClick={() => setActiveSubTab('grades')}
-                className={`tab-button ${activeSubTab === 'grades' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'grades'}
-              >
-                <NotebookText size={14} /> {t('parent.tabGrades')}
-              </button>
-              <button
-                onClick={() => setActiveSubTab('homework')}
-                className={`tab-button ${activeSubTab === 'homework' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'homework'}
-              >
-                <ClipboardList size={14} /> {t('parent.tabHomework')}
-              </button>
-              <button
-                onClick={() => setActiveSubTab('schedule')}
-                className={`tab-button ${activeSubTab === 'schedule' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'schedule'}
-              >
-                <Calendar size={14} /> {t('parent.tabSchedule')}
-              </button>
-              <button
-                onClick={() => setActiveSubTab('attendance')}
-                className={`tab-button ${activeSubTab === 'attendance' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'attendance'}
-              >
-                <CalendarCheck size={14} /> {t('parent.tabAttendance')}
-              </button>
-              <button
-                onClick={() => setActiveSubTab('reports')}
-                className={`tab-button ${activeSubTab === 'reports' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'reports'}
-              >
-                <FileText size={14} /> {t('reportCards.tab')}
-              </button>
-              <button
-                onClick={() => setActiveSubTab('meetings')}
-                className={`tab-button ${activeSubTab === 'meetings' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'meetings'}
-              >
-                <CalendarClock size={14} /> {t('meetings.tab')}
-              </button>
-              <button
-                onClick={() => setActiveSubTab('health')}
-                className={`tab-button ${activeSubTab === 'health' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'health'}
-              >
-                <HeartPulse size={14} /> {t('health.tab')}
-              </button>
-              <button
-                onClick={() => setActiveSubTab('fees')}
-                className={`tab-button ${activeSubTab === 'fees' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'fees'}
-              >
-                <Wallet size={14} /> {t('fees.tab')}
-              </button>
-              <button
-                onClick={() => setActiveSubTab('message')}
-                className={`tab-button ${activeSubTab === 'message' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'message'}
-              >
-                <MessageSquare size={14} /> {t('parent.tabMessage')}
-              </button>
-              <button
-                onClick={() => setActiveSubTab('announcements')}
-                className={`tab-button ${activeSubTab === 'announcements' ? 'tab-button--active' : ''}`}
-                role="tab"
-                aria-selected={activeSubTab === 'announcements'}
-              >
-                <Megaphone size={14} /> {t('announcements.tab')}
-              </button>
+            <div className="parent-primary-nav" role="tablist" aria-label={t('parent.tabsAria')}>
+              {parentSectionOrder.map((section) => {
+                const Icon = sectionIcons[section];
+                const isActive = activeSection === section;
+                return (
+                  <button
+                    key={section}
+                    type="button"
+                    className={`parent-section-button ${isActive ? 'parent-section-button--active' : ''}`}
+                    onClick={() => setActiveSubTab(parentTabsBySection[section][0])}
+                    role="tab"
+                    aria-selected={isActive}
+                  >
+                    <Icon size={17} aria-hidden="true" />
+                    <span>{sectionLabels[section]}</span>
+                  </button>
+                );
+              })}
             </div>
+
+            {activeSection !== 'overview' && (
+              <div className="tab-bar parent-secondary-tabs" role="tablist" aria-label={t('parent.subtabsAria')}>
+                {parentTabsBySection[activeSection].map((tab) => {
+                  const Icon = tabIcons[tab];
+                  const isActive = activeSubTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      className={`tab-button ${isActive ? 'tab-button--active' : ''}`}
+                      onClick={() => setActiveSubTab(tab)}
+                      role="tab"
+                      aria-selected={isActive}
+                    >
+                      <Icon size={14} aria-hidden="true" /> {tabLabels[tab]}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {!activeChild.classId && !['message', 'announcements', 'reports', 'meetings', 'health', 'fees'].includes(activeSubTab) && (
               <p className="empty-list-copy">{t('parent.unassignedChildClass')}</p>
+            )}
+
+            {activeChild.classId && activeSubTab === 'overview' && (
+              <div className="animate-fade-in parent-overview" role="tabpanel">
+                <DashboardActionGrid
+                  title={t('parent.overview.title', { student: activeChild.student.full_name.split(' ')[0] })}
+                  copy={t('parent.overview.copy')}
+                  items={[
+                    {
+                      id: 'grades',
+                      label: t('parent.overview.average'),
+                      value: average === null ? '—' : `${average.toFixed(1)}/20`,
+                      detail: t('parent.overview.gradesDetail'),
+                      icon: NotebookText,
+                      onClick: () => setActiveSubTab('grades'),
+                    },
+                    {
+                      id: 'homework',
+                      label: t('parent.overview.homework'),
+                      value: upcomingHomework.length,
+                      detail: upcomingHomework[0]
+                        ? t('parent.overview.nextDue', { date: formatDate(upcomingHomework[0].due_date, locale) })
+                        : t('parent.overview.noUpcomingHomework'),
+                      icon: ClipboardList,
+                      onClick: () => setActiveSubTab('homework'),
+                      tone: upcomingHomework.length > 0 ? 'warning' : 'success',
+                    },
+                    {
+                      id: 'attendance',
+                      label: t('parent.overview.attendance'),
+                      value: attendanceIssueCount,
+                      detail: attendanceIssueCount > 0
+                        ? t('parent.overview.attendanceDetail', { count: attendanceIssueCount })
+                        : t('parent.overview.attendanceClear'),
+                      icon: CalendarCheck,
+                      onClick: () => setActiveSubTab('attendance'),
+                      tone: attendanceIssueCount > 0 ? 'danger' : 'success',
+                    },
+                    {
+                      id: 'exams',
+                      label: t('parent.overview.exams'),
+                      value: upcomingExamsCount,
+                      detail: t('parent.overview.examsDetail'),
+                      icon: Calendar,
+                      onClick: () => {
+                        setScheduleSubView('exams');
+                        setActiveSubTab('schedule');
+                      },
+                    },
+                  ]}
+                />
+
+                <div className="parent-overview-columns">
+                  <section className="parent-overview-section" aria-labelledby="parent-next-homework">
+                    <div className="parent-overview-section-heading">
+                      <h3 id="parent-next-homework">{t('parent.overview.nextTitle')}</h3>
+                      <button type="button" className="btn btn-secondary btn-compact" onClick={() => setActiveSubTab('homework')}>
+                        {t('parent.overview.viewAll')}
+                      </button>
+                    </div>
+                    {homeworkQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                    {!homeworkQuery.isLoading && upcomingHomework.length === 0 && (
+                      <p className="empty-list-copy">{t('parent.overview.emptyHomework')}</p>
+                    )}
+                    <div className="parent-overview-list">
+                      {upcomingHomework.slice(0, 3).map((item) => (
+                        <article key={item.id} className="parent-overview-record">
+                          <div className="parent-overview-record-meta">
+                            <span>{item.subject}</span>
+                            <time dateTime={item.due_date}>{formatDate(item.due_date, locale)}</time>
+                          </div>
+                          <p>{item.homework_content}</p>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="parent-overview-section" aria-labelledby="parent-latest-grades">
+                    <div className="parent-overview-section-heading">
+                      <h3 id="parent-latest-grades">{t('parent.overview.latestTitle')}</h3>
+                      <button type="button" className="btn btn-secondary btn-compact" onClick={() => setActiveSubTab('grades')}>
+                        {t('parent.overview.viewAll')}
+                      </button>
+                    </div>
+                    {gradesQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                    {!gradesQuery.isLoading && recentGrades.length === 0 && (
+                      <p className="empty-list-copy">{t('parent.overview.emptyGrades')}</p>
+                    )}
+                    <div className="parent-overview-list">
+                      {recentGrades.map((grade) => (
+                        <div key={grade.id} className="parent-overview-record parent-overview-grade">
+                          <div>
+                            <strong>{grade.subject}</strong>
+                            <span>{formatDate(grade.date, locale)}</span>
+                          </div>
+                          <strong className="parent-overview-grade-value">{gradeOnTwenty(grade).toFixed(1)}/20</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+              </div>
             )}
 
             {activeChild.classId && activeSubTab === 'grades' && (
@@ -490,11 +621,11 @@ export default function ParentDashboard() {
                     ) : (
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,118,110,0.12)" vertical={false} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
                           <XAxis dataKey="subject" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
                           <YAxis domain={[0, 20]} stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
-                          <Tooltip contentStyle={{ background: '#FFFFFF', borderColor: 'var(--surface-border)', color: 'var(--text-primary)' }} />
-                          <Line type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={3} dot={{ r: 5, fill: '#FFFFFF', strokeWidth: 2 }} activeDot={{ r: 7 }} />
+                          <Tooltip contentStyle={{ background: 'var(--surface-color)', borderColor: 'var(--surface-border)', color: 'var(--text-primary)' }} />
+                          <Line type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={3} dot={{ r: 5, fill: 'var(--surface-color)', strokeWidth: 2 }} activeDot={{ r: 7 }} />
                         </LineChart>
                       </ResponsiveContainer>
                     )}
@@ -577,7 +708,7 @@ export default function ParentDashboard() {
                       {t('parent.scheduleCopy', { className: activeChild.className })}
                     </p>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <div className="schedule-summary-badges">
                     <span className="badge badge-primary">
                       {t('parent.scheduleSlotsCount', { count: sortedSlots.length })}
                     </span>
@@ -587,7 +718,7 @@ export default function ParentDashboard() {
                   </div>
                 </div>
 
-                <div className="tab-bar" style={{ marginBottom: '1.25rem', width: 'fit-content' }}>
+                <div className="tab-bar parent-schedule-tabs">
                   <button
                     type="button"
                     onClick={() => setScheduleSubView('weekly')}
@@ -631,22 +762,22 @@ export default function ParentDashboard() {
                               return (
                                 <tr key={slot.id}>
                                   <td className="table-cell-primary">
-                                    <span className="badge badge-compact badge-primary" style={{ fontWeight: 600 }}>
+                                    <span className="badge badge-compact badge-primary schedule-day-badge">
                                       {dayLabel}
                                     </span>
                                   </td>
-                                  <td style={{ fontWeight: 500 }}>
+                                  <td className="schedule-time-cell">
                                     {formatClock(slot.start_time, locale)} - {formatClock(slot.end_time, locale)}
                                   </td>
                                   <td className="table-cell-strong">
                                     {slot.course_name}
                                     {isCancelledToday && (
-                                      <span className="badge badge-danger" style={{ marginLeft: '0.5rem', fontSize: '0.75rem' }}>
+                                      <span className="badge badge-danger schedule-cancelled-badge">
                                         {t('parent.scheduleCancelled')}
                                       </span>
                                     )}
                                   </td>
-                                  <td style={{ color: 'var(--text-muted)' }}>
+                                  <td className="schedule-teacher-cell">
                                     {slot.teacher_name || '-'}
                                   </td>
                                   <td>

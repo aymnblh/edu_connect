@@ -1924,6 +1924,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'فتح القائمة',
     en: 'Open menu',
   },
+  'layout.closeMenu': {
+    fr: 'Fermer le menu',
+    ar: 'إغلاق القائمة',
+    en: 'Close menu',
+  },
   'nav.main': {
     fr: 'Navigation principale',
     ar: 'التنقل الرئيسي',
@@ -2654,6 +2659,46 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'سيروا المؤسسة: البيانات المدرسية، العائلات، الأقسام، المواد والفريق التربوي.',
     en: 'Manage the school: academic data, families, classes, courses, and teaching team.',
   },
+  'director.actions.title': {
+    fr: 'À traiter maintenant',
+    ar: 'ما يحتاج إلى متابعة',
+    en: 'What needs attention',
+  },
+  'director.actions.copy': {
+    fr: 'Les prochaines actions de l’établissement, avant les indicateurs globaux.',
+    ar: 'الإجراءات التالية للمؤسسة قبل الاطلاع على المؤشرات العامة.',
+    en: 'The school’s next actions, before the broader metrics.',
+  },
+  'director.actions.pending': {
+    fr: 'Justifications à vérifier',
+    ar: 'التبريرات المطلوب مراجعتها',
+    en: 'Justifications to review',
+  },
+  'director.actions.pendingDetail': {
+    fr: '{count} enregistrement(s) de présence à contrôler',
+    ar: '{count} من سجلات الحضور للمراجعة',
+    en: '{count} attendance records to review',
+  },
+  'director.actions.support': {
+    fr: 'Élèves à accompagner',
+    ar: 'تلاميذ يحتاجون إلى دعم',
+    en: 'Students needing support',
+  },
+  'director.actions.supportDetail': {
+    fr: 'Repérés à partir des résultats récents',
+    ar: 'تم تحديدهم من النتائج الأخيرة',
+    en: 'Flagged by recent results',
+  },
+  'director.actions.classes': {
+    fr: 'Classes sous 10/20',
+    ar: 'أقسام بمعدل أقل من 10/20',
+    en: 'Classes below 10/20',
+  },
+  'director.actions.classesDetail': {
+    fr: 'Comparer les moyennes par classe',
+    ar: 'مقارنة معدلات الأقسام',
+    en: 'Compare class averages',
+  },
   'director.sectionsAria': {
     fr: 'Sections directeur',
     ar: 'أقسام المدير',
@@ -2733,6 +2778,31 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'Valider',
     ar: 'قبول',
     en: 'Approve',
+  },
+  'director.pending.search': {
+    fr: 'Rechercher un élève ou une classe',
+    ar: 'البحث عن تلميذ أو قسم',
+    en: 'Search for a student or class',
+  },
+  'director.pending.statusFilter': {
+    fr: 'Filtrer par statut',
+    ar: 'التصفية حسب الحالة',
+    en: 'Filter by status',
+  },
+  'director.pending.allStatuses': {
+    fr: 'Tous les statuts',
+    ar: 'كل الحالات',
+    en: 'All statuses',
+  },
+  'director.pending.noResults': {
+    fr: 'Aucun enregistrement ne correspond à cette recherche.',
+    ar: 'لا توجد سجلات مطابقة لهذا البحث.',
+    en: 'No records match this search.',
+  },
+  'director.pending.showMore': {
+    fr: 'Afficher plus ({count} restants)',
+    ar: 'عرض المزيد ({count} متبقية)',
+    en: 'Show more ({count} remaining)',
   },
   'director.attendance.absent': {
     fr: 'Absent',
@@ -3444,6 +3514,61 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'سجلوا الحضور، تابعوا الجدول، وتواصلوا مباشرة مع العائلات.',
     en: 'Manage attendance, view your schedule, and communicate directly with families.',
   },
+  'teacher.actions.title': {
+    fr: 'Votre journée de classe',
+    ar: 'يومكم الدراسي',
+    en: 'Your teaching day',
+  },
+  'teacher.actions.copy': {
+    fr: 'Les tâches utiles pour {className}, réunies avant les formulaires.',
+    ar: 'المهام المهمة لقسم {className} قبل الانتقال إلى الاستمارات.',
+    en: 'Useful tasks for {className}, gathered before the forms.',
+  },
+  'teacher.actions.sessions': {
+    fr: 'Séances aujourd’hui',
+    ar: 'حصص اليوم',
+    en: 'Sessions today',
+  },
+  'teacher.actions.noSessions': {
+    fr: 'Aucune séance prévue aujourd’hui',
+    ar: 'لا توجد حصص مبرمجة اليوم',
+    en: 'No sessions scheduled today',
+  },
+  'teacher.actions.nextSession': {
+    fr: 'Prochaine : {subject} à {time}',
+    ar: 'التالية: {subject} على {time}',
+    en: 'Next: {subject} at {time}',
+  },
+  'teacher.actions.attendance': {
+    fr: 'Appel à préparer',
+    ar: 'تسجيل الحضور',
+    en: 'Attendance to prepare',
+  },
+  'teacher.actions.attendanceDetail': {
+    fr: '{count} élèves dans {className}',
+    ar: '{count} تلاميذ في قسم {className}',
+    en: '{count} students in {className}',
+  },
+  'teacher.actions.grades': {
+    fr: 'Notes en attente',
+    ar: 'درجات في الانتظار',
+    en: 'Pending grades',
+  },
+  'teacher.actions.gradesDetail': {
+    fr: 'Saisie et suivi pour {className}',
+    ar: 'إدخال ومتابعة درجات قسم {className}',
+    en: 'Entry and follow-up for {className}',
+  },
+  'teacher.actions.homework': {
+    fr: 'Travail à venir',
+    ar: 'العمل القادم',
+    en: 'Upcoming schoolwork',
+  },
+  'teacher.actions.homeworkDetail': {
+    fr: 'Échéances publiées pour {className}',
+    ar: 'آجال منشورة لقسم {className}',
+    en: 'Published deadlines for {className}',
+  },
   'teacher.tabsAria': {
     fr: "Sections de l'espace enseignant",
     ar: 'أقسام فضاء المعلم',
@@ -4043,6 +4168,121 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: "Consultez le relevé de notes, l'appel, et échangez en direct avec l'équipe pédagogique.",
     ar: 'تابعوا الدرجات والحضور وتواصلوا مباشرة مع الفريق التربوي.',
     en: 'View grades and attendance, and chat directly with the teaching team.',
+  },
+  'parent.nav.overview': {
+    fr: 'Vue d’ensemble',
+    ar: 'نظرة عامة',
+    en: 'Overview',
+  },
+  'parent.nav.schoolwork': {
+    fr: 'Travail scolaire',
+    ar: 'الدراسة',
+    en: 'Schoolwork',
+  },
+  'parent.nav.attendance': {
+    fr: 'Présence et vie scolaire',
+    ar: 'الحضور والحياة المدرسية',
+    en: 'Attendance & school life',
+  },
+  'parent.nav.finance': {
+    fr: 'Documents et frais',
+    ar: 'الوثائق والمصاريف',
+    en: 'Documents & finance',
+  },
+  'parent.nav.communication': {
+    fr: 'Communication',
+    ar: 'التواصل',
+    en: 'Communication',
+  },
+  'parent.subtabsAria': {
+    fr: 'Sous-sections de l’espace parent',
+    ar: 'الأقسام الفرعية لفضاء ولي الأمر',
+    en: 'Parent workspace subsections',
+  },
+  'parent.overview.title': {
+    fr: 'L’essentiel pour {student}',
+    ar: 'أهم ما يخص {student}',
+    en: 'What matters for {student}',
+  },
+  'parent.overview.copy': {
+    fr: 'Les prochaines échéances et les derniers résultats, sans parcourir toutes les rubriques.',
+    ar: 'المواعيد القادمة وأحدث النتائج دون التنقل بين جميع الأقسام.',
+    en: 'Upcoming deadlines and the latest results, without visiting every section.',
+  },
+  'parent.overview.average': {
+    fr: 'Moyenne générale',
+    ar: 'المعدل العام',
+    en: 'Overall average',
+  },
+  'parent.overview.gradesDetail': {
+    fr: 'Voir le détail des notes',
+    ar: 'عرض تفاصيل الدرجات',
+    en: 'View detailed grades',
+  },
+  'parent.overview.homework': {
+    fr: 'Devoirs à venir',
+    ar: 'الواجبات القادمة',
+    en: 'Upcoming homework',
+  },
+  'parent.overview.nextDue': {
+    fr: 'Prochaine échéance : {date}',
+    ar: 'الموعد القادم: {date}',
+    en: 'Next deadline: {date}',
+  },
+  'parent.overview.noUpcomingHomework': {
+    fr: 'Aucune échéance à venir',
+    ar: 'لا توجد واجبات قادمة',
+    en: 'No upcoming deadlines',
+  },
+  'parent.overview.attendance': {
+    fr: 'Absences et retards',
+    ar: 'الغيابات والتأخرات',
+    en: 'Absences and lateness',
+  },
+  'parent.overview.attendanceDetail': {
+    fr: '{count} événement(s) à consulter',
+    ar: '{count} من السجلات للاطلاع عليها',
+    en: '{count} records to review',
+  },
+  'parent.overview.attendanceClear': {
+    fr: 'Aucune absence ni retard enregistré',
+    ar: 'لا توجد غيابات أو تأخرات مسجلة',
+    en: 'No absences or lateness recorded',
+  },
+  'parent.overview.exams': {
+    fr: 'Examens à venir',
+    ar: 'الاختبارات القادمة',
+    en: 'Upcoming exams',
+  },
+  'parent.overview.examsDetail': {
+    fr: 'Ouvrir le calendrier des examens',
+    ar: 'فتح جدول الاختبارات',
+    en: 'Open the exam calendar',
+  },
+  'parent.overview.nextTitle': {
+    fr: 'Prochains devoirs',
+    ar: 'الواجبات القادمة',
+    en: 'Next assignments',
+  },
+  'parent.overview.latestTitle': {
+    fr: 'Dernières notes',
+    ar: 'أحدث الدرجات',
+    en: 'Latest grades',
+  },
+  'parent.overview.viewAll': {
+    fr: 'Tout voir',
+    ar: 'عرض الكل',
+    en: 'View all',
+  },
+  'parent.overview.emptyHomework': {
+    fr: 'Rien à préparer pour le moment.',
+    ar: 'لا توجد واجبات للتحضير لها حالياً.',
+    en: 'Nothing to prepare right now.',
+  },
+  'parent.overview.emptyGrades': {
+    fr: 'Aucune note publiée pour le moment.',
+    ar: 'لا توجد درجات منشورة حالياً.',
+    en: 'No grades published yet.',
   },
   'parent.average': {
     fr: 'Moyenne',

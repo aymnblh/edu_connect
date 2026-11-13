@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, 
@@ -18,7 +18,8 @@ import {
   Megaphone,
   CalendarRange,
   HeartPulse,
-  Wallet
+  Wallet,
+  X
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { logoutSession } from '../lib/api';
@@ -38,6 +39,17 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [devicesModalOpen, setDevicesModalOpen] = useState(false);
+
+  useEffect(() => {
+    const mobile = window.matchMedia('(max-width: 768px)');
+    const expandOnMobile = () => {
+      if (mobile.matches) setCollapsed(false);
+    };
+    expandOnMobile();
+    mobile.addEventListener('change', expandOnMobile);
+    return () => mobile.removeEventListener('change', expandOnMobile);
+  }, []);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { activeRole } = useWorkspace();
@@ -120,6 +132,15 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             </span>
           )}
         </div>
+        <button
+          type="button"
+          className="sidebar-close-btn"
+          data-sidebar-close
+          onClick={() => setSidebarOpen?.(false)}
+          aria-label={t('layout.closeMenu')}
+        >
+          <X size={19} />
+        </button>
         {!collapsed && (
           <button 
             type="button"
@@ -172,7 +193,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             <span className="sidebar-section-label">
               {t('sidebar.activeRole')}
             </span>
-            <WorkspaceSwitcher />
+            <WorkspaceSwitcher onNavigate={() => setSidebarOpen?.(false)} />
             <LocaleSwitcher />
           </div>
         )}

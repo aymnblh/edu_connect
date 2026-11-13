@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import {
@@ -16,6 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import AnnouncementsPanel from '../components/AnnouncementsPanel';
+import DashboardActionGrid from '../components/DashboardActionGrid';
 import { TeacherMeetingsPanel } from '../components/MeetingsPanel';
 import { ClassHealthAlerts } from '../components/DirectorRecordsPanels';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
@@ -191,6 +192,7 @@ export default function TeacherDashboard() {
     description: '',
   });
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const attendanceSectionRef = useRef<HTMLDivElement | null>(null);
   const queryClient = useQueryClient();
   const { t, locale } = useLocale();
 
@@ -296,7 +298,13 @@ export default function TeacherDashboard() {
     const dueDate = new Date(item.due_date);
     return Number.isNaN(dueDate.getTime()) || dueDate >= new Date(new Date().toDateString());
   }).length;
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const today = new Date();
+  const todayIso = today.toISOString().slice(0, 10);
+  const todayDayIndex = (today.getDay() + 6) % 7;
+  const todaySchedule = schedule
+    .filter((slot) => slot.day_of_week === todayDayIndex)
+    .slice()
+    .sort((a, b) => a.start_time.localeCompare(b.start_time));
   const upcomingExamsCount = exams.filter((item) => item.exam_date >= todayIso).length;
 
   useEffect(() => {
@@ -650,7 +658,7 @@ export default function TeacherDashboard() {
     (activeTab === 'homework' ? classCoursesQuery.error || homeworkQuery.error : null);
 
   return (
-    <div className="container animate-fade-in">
+    <div className="container dashboard-page teacher-page animate-fade-in">
       {toasts.length > 0 && (
         <div className="toast-container" aria-live="polite">
           {toasts.map((toast) => (
@@ -673,6 +681,59 @@ export default function TeacherDashboard() {
         <h1>{t('teacher.title')}</h1>
         <p>{t('teacher.subtitle')}</p>
       </header>
+
+      {activeTab === 'classes' && selectedClass && (
+        <DashboardActionGrid
+          title={t('teacher.actions.title')}
+          copy={t('teacher.actions.copy', { className: selectedClass.name })}
+          items={[
+            {
+              id: 'sessions',
+              label: t('teacher.actions.sessions'),
+              value: scheduleQuery.isLoading ? '…' : todaySchedule.length,
+              detail: todaySchedule[0]
+                ? t('teacher.actions.nextSession', {
+                    subject: todaySchedule[0].course_name,
+                    time: formatClock(todaySchedule[0].start_time, locale),
+                  })
+                : t('teacher.actions.noSessions'),
+              icon: Calendar,
+              onClick: () => setActiveTab('schedule'),
+            },
+            {
+              id: 'attendance',
+              label: t('teacher.actions.attendance'),
+              value: students.length,
+              detail: t('teacher.actions.attendanceDetail', {
+                count: students.length,
+                className: selectedClass.name,
+              }),
+              icon: UserCheck,
+              onClick: () => {
+                attendanceSectionRef.current?.scrollIntoView({ block: 'start' });
+                attendanceSectionRef.current?.focus({ preventScroll: true });
+              },
+            },
+            {
+              id: 'grades',
+              label: t('teacher.actions.grades'),
+              value: gradesQuery.isLoading ? '…' : pendingGradesCount,
+              detail: t('teacher.actions.gradesDetail', { className: selectedClass.name }),
+              icon: NotebookText,
+              onClick: () => setActiveTab('grades'),
+              tone: pendingGradesCount > 0 ? 'warning' : 'success',
+            },
+            {
+              id: 'homework',
+              label: t('teacher.actions.homework'),
+              value: homeworkQuery.isLoading ? '…' : upcomingHomeworkCount,
+              detail: t('teacher.actions.homeworkDetail', { className: selectedClass.name }),
+              icon: ClipboardList,
+              onClick: () => setActiveTab('homework'),
+            },
+          ]}
+        />
+      )}
 
       <div className="tab-bar dashboard-tabs" role="tablist" aria-label={t('teacher.tabsAria')}>
         <button
@@ -779,7 +840,7 @@ export default function TeacherDashboard() {
               </div>
             </div>
 
-            <div>
+            <div ref={attendanceSectionRef} className="teacher-attendance-section" tabIndex={-1}>
               <div className="dashboard-toolbar">
                 <div>
                   <h3 className="dashboard-section-title dashboard-section-title--plain">{t('teacher.attendanceTitle')}</h3>
