@@ -55,6 +55,7 @@ DEMO_SEED_RESET_ON_STARTUP=false
 MEDIA_UPLOADS_ENABLED=false
 PRIVATE_KEY=<full private key>
 PUBLIC_KEY=<full public key>
+HEALTH_DATA_KEY=<Fernet key from python manage.py generate-health-key>
 ```
 
 ## Vercel Variables To Confirm
