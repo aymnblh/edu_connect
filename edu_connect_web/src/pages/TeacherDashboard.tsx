@@ -253,10 +253,12 @@ function TeacherSaveFeedback({
           ? pendingMessage
           : mutation.isSuccess
             ? successMessage
-            : apiErrorMessage(
-                mutation.error,
-                mutation.error instanceof Error ? mutation.error.message : t('auth.connectionError'),
-              )}
+            : isAxiosError(mutation.error) && mutation.error.response?.status === 403 && mutation.error.response.headers?.['x-demo-read-only']
+              ? t('demo.blocked')
+              : apiErrorMessage(
+                  mutation.error,
+                  mutation.error instanceof Error ? mutation.error.message : t('auth.connectionError'),
+                )}
       </span>
     </div>
   );

@@ -78,6 +78,7 @@ const mockState = {
   failNextGrade: false,
   failNextHomework: false,
   failNextExam: false,
+  demoReadOnlyNextExam: false,
 };
 
 function browserCandidates() {
@@ -323,6 +324,14 @@ function mockResponse(path, method, body) {
       mockState.failNextExam = false;
       return { status: 500, data: { detail: 'Exam service unavailable' } };
     }
+    if (mockState.demoReadOnlyNextExam) {
+      mockState.demoReadOnlyNextExam = false;
+      return {
+        status: 403,
+        headers: [{ name: 'X-Demo-Read-Only', value: 'true' }],
+        data: { detail: 'Démo : consultation uniquement. Créez votre école pour enregistrer vos propres données.' },
+      };
+    }
     const exam = { ...body, id: `exam-${mockState.exams.length + 1}` };
     mockState.examPosts.push(body);
     mockState.exams.unshift(exam);
@@ -374,6 +383,7 @@ try {
         { name: 'Access-Control-Allow-Credentials', value: 'true' },
         { name: 'Access-Control-Allow-Headers', value: 'authorization,content-type,x-workspace-role' },
         { name: 'Access-Control-Allow-Methods', value: 'GET,POST,PATCH,PUT,DELETE,OPTIONS' },
+        { name: 'Access-Control-Expose-Headers', value: 'x-demo-read-only,x-request-id' },
         { name: 'Content-Type', value: 'application/json; charset=utf-8' },
       ];
       if (request.method === 'OPTIONS') {
@@ -393,7 +403,7 @@ try {
       await cdp.send('Fetch.fulfillRequest', {
         requestId,
         responseCode: status,
-        responseHeaders: headers,
+        responseHeaders: [...headers, ...(response.headers ?? [])],
         body: Buffer.from(JSON.stringify(data)).toString('base64'),
       });
     })().catch(async (error) => {
@@ -646,6 +656,46 @@ try {
   await waitFor(`document.body.innerText.includes('Exam added to the schedule and sent to parents.')`, 'exam retry success');
   assert.equal(mockState.examPosts.length, 2);
   console.log('exam validation, scheduling, errors, and retry passed');
+
+  for (const demoCase of [
+    {
+      locale: 'ar',
+      direction: 'rtl',
+      submitLabel: 'إضافة الاختبار إلى الجدول',
+      message: 'هذا الإجراء معطل في العرض التجريبي. أنشئ مدرستك لتجربته ببياناتك.',
+    },
+    {
+      locale: 'fr',
+      direction: 'ltr',
+      submitLabel: "Ajouter l'examen au planning",
+      message: "Cette action est désactivée dans la démo. Créez votre école pour l'essayer avec vos données.",
+    },
+    {
+      locale: 'en',
+      direction: 'ltr',
+      submitLabel: 'Add exam to schedule',
+      message: 'This action is disabled in the demo. Create your school to try it with your own data.',
+    },
+  ]) {
+    await evaluate(`(() => {
+      localStorage.setItem('educonnect_locale', ${JSON.stringify(demoCase.locale)});
+      window.dispatchEvent(new CustomEvent('educonnect_locale_change', { detail: ${JSON.stringify(demoCase.locale)} }));
+    })()`);
+    await waitFor(`document.documentElement.lang === ${JSON.stringify(demoCase.locale)}`, `${demoCase.locale} locale`);
+    assert.equal(await evaluate('document.documentElement.dir'), demoCase.direction);
+    mockState.demoReadOnlyNextExam = true;
+    await clickText('.teacher-exam-form button[type="submit"]', demoCase.submitLabel);
+    await waitFor(
+      `document.querySelector('.teacher-exam-form .teacher-save-feedback--error')?.innerText.includes(${JSON.stringify(demoCase.message)})`,
+      `${demoCase.locale} demo read-only feedback`,
+    );
+    assert.equal(
+      await evaluate(`document.querySelector('.teacher-exam-form .teacher-save-feedback--error').innerText.includes('Démo : consultation uniquement')`),
+      false,
+    );
+  }
+  assert.equal(mockState.examPosts.length, 2);
+  console.log('localized demo read-only feedback passed in Arabic, French, and English');
 
   await navigateRole('parent', '/parent/dashboard', '.parent-page');
   await waitFor(selectorExists('.parent-page .dashboard-action-card'), 'parent overview shortcuts');
