@@ -54,10 +54,30 @@ const parentGrades = [{
 const mockState = {
   attendancePosts: [],
   gradePosts: [],
+  homeworkPosts: [],
+  homeworkPatches: [],
+  homeworkDeletes: [],
+  examPosts: [],
   grades: [{ ...parentGrades[0], id: 'grade-1', is_approved: false, score: 12, normalized_score: 12 }],
+  homework: [{
+    id: 'homework-1',
+    class_id: 'class-1',
+    kind: 'homework',
+    course_id: 'course-math',
+    subject: 'Mathematics',
+    lesson_content: 'Review the lesson',
+    homework_content: 'Existing homework',
+    due_date: '2026-11-20T12:00:00Z',
+    created_by: 'teacher-1',
+  }],
+  exams: [],
   attendanceDelay: 0,
   gradeDelay: 0,
+  homeworkDelay: 0,
+  examDelay: 0,
   failNextGrade: false,
+  failNextHomework: false,
+  failNextExam: false,
 };
 
 function browserCandidates() {
@@ -263,8 +283,51 @@ function mockResponse(path, method, body) {
     return { status: 201, data: { ...body, id: `attendance-${mockState.attendancePosts.length}`, date: '2026-11-13' } };
   }
   if (/^\/classes\/[^/]+\/health-alerts$/.test(path)) return [];
-  if (/^\/classes\/[^/]+\/homework\/$/.test(path)) return [];
-  if (/^\/schedule\/class\/[^/]+\/exams$/.test(path)) return [];
+  const homeworkMatch = path.match(/^\/classes\/([^/]+)\/homework\/$/);
+  if (homeworkMatch) {
+    if (method === 'POST') {
+      if (mockState.failNextHomework) {
+        mockState.failNextHomework = false;
+        return { status: 500, data: { detail: 'Homework service unavailable' } };
+      }
+      const item = {
+        ...body,
+        id: `homework-${mockState.homework.length + 1}`,
+        class_id: homeworkMatch[1],
+        created_by: 'teacher-1',
+      };
+      mockState.homeworkPosts.push(body);
+      mockState.homework.unshift(item);
+      return { status: 201, data: item };
+    }
+    return mockState.homework.filter((item) => item.class_id === homeworkMatch[1]);
+  }
+  const homeworkItemMatch = path.match(/^\/classes\/([^/]+)\/homework\/([^/]+)$/);
+  if (homeworkItemMatch) {
+    const index = mockState.homework.findIndex((item) => item.id === homeworkItemMatch[2]);
+    if (method === 'PATCH') {
+      mockState.homeworkPatches.push(body);
+      mockState.homework[index] = { ...mockState.homework[index], ...body };
+      return mockState.homework[index];
+    }
+    if (method === 'DELETE') {
+      mockState.homeworkDeletes.push(homeworkItemMatch[2]);
+      mockState.homework.splice(index, 1);
+      return { data: { status: 'deleted' } };
+    }
+  }
+  const examsMatch = path.match(/^\/schedule\/class\/([^/]+)\/exams$/);
+  if (examsMatch) return mockState.exams.filter((exam) => exam.class_id === examsMatch[1]);
+  if (path === '/schedule/exams' && method === 'POST') {
+    if (mockState.failNextExam) {
+      mockState.failNextExam = false;
+      return { status: 500, data: { detail: 'Exam service unavailable' } };
+    }
+    const exam = { ...body, id: `exam-${mockState.exams.length + 1}` };
+    mockState.examPosts.push(body);
+    mockState.exams.unshift(exam);
+    return { status: 201, data: exam };
+  }
   if (/^\/schedule\/class\/[^/]+$/.test(path)) return [];
   return [];
 }
@@ -323,6 +386,8 @@ try {
       const response = mockResponse(path, request.method, body);
       if (path.endsWith('/attendance/') && mockState.attendanceDelay) await delay(mockState.attendanceDelay);
       if (path.endsWith('/grades/') && request.method === 'POST' && mockState.gradeDelay) await delay(mockState.gradeDelay);
+      if (path.endsWith('/homework/') && request.method === 'POST' && mockState.homeworkDelay) await delay(mockState.homeworkDelay);
+      if (path === '/schedule/exams' && request.method === 'POST' && mockState.examDelay) await delay(mockState.examDelay);
       const status = response.status ?? 200;
       const data = Object.hasOwn(response, 'data') ? response.data : response;
       await cdp.send('Fetch.fulfillRequest', {
@@ -505,6 +570,82 @@ try {
   await waitFor(`document.body.innerText.includes('Grade added. It is waiting for administration approval.')`, 'grade retry success');
   assert.equal(mockState.gradePosts.length, 2);
   console.log('grade entry, API payloads, errors, and retry passed');
+
+  await clickText('.teacher-page .dashboard-tabs [role="tab"]', 'Homework and exams');
+  await waitFor(visibleSelector('.teacher-homework-form'), 'homework entry');
+  assert.equal(await evaluate(`document.querySelectorAll('.teacher-homework-kind-option').length`), 3);
+  assert.equal(await evaluate(`document.querySelector('.teacher-homework-kind-option').getAttribute('aria-pressed')`), 'true');
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.teacher-homework-form .teacher-form-actions')).position`), 'sticky');
+  await clickText('.teacher-homework-kind-option', 'Assignment');
+  assert.equal(await evaluate(`document.querySelector('.teacher-homework-kind-option--active').innerText`), 'Assignment');
+  await setValue('#homework-preparation', 'Review fractions');
+  await setValue('#homework-content', 'Complete exercises 1 to 4');
+  mockState.homeworkDelay = 300;
+  await clickText('.teacher-homework-form button[type="submit"]', 'Publish announcement');
+  await waitFor(`document.querySelector('.teacher-homework-form button[type="submit"]').disabled`, 'homework publishing state');
+  await waitFor(`document.body.innerText.includes('Announcement published and sent to parents.')`, 'homework success feedback');
+  assert.equal(mockState.homeworkPosts.length, 1);
+  assert.equal(mockState.homeworkPosts[0].kind, 'assignment');
+  assert.equal(mockState.homeworkPosts[0].course_id, 'course-math');
+  assert.equal(mockState.homeworkPosts[0].lesson_content, 'Review fractions');
+  assert.equal(mockState.homeworkPosts[0].homework_content, 'Complete exercises 1 to 4');
+  assert.equal(await evaluate(`document.querySelector('#homework-content').value`), '');
+
+  await setValue('#homework-content', 'Second assignment');
+  mockState.failNextHomework = true;
+  await clickText('.teacher-homework-form button[type="submit"]', 'Publish announcement');
+  await waitFor(`document.querySelector('.teacher-homework-form .teacher-save-feedback--error')`, 'homework error feedback');
+  assert.equal(await evaluate(`document.querySelector('.teacher-homework-form .teacher-save-feedback--error').innerText.includes('Homework service unavailable')`), true);
+  await setValue('#homework-content', 'Second assignment retry');
+  assert.equal(await evaluate(`Boolean(document.querySelector('.teacher-homework-form .teacher-save-feedback--error'))`), false);
+  await clickText('.teacher-homework-form button[type="submit"]', 'Publish announcement');
+  await waitFor(`document.body.innerText.includes('Announcement published and sent to parents.')`, 'homework retry success');
+  assert.equal(mockState.homeworkPosts.length, 2);
+
+  await waitFor(visibleSelector('.teacher-homework-list .homework-announcement-card:first-child .btn-secondary'), 'homework edit action');
+  assert.ok(await evaluate(`document.querySelector('.teacher-homework-list .homework-announcement-card:first-child .btn-secondary').getBoundingClientRect().height >= 44`));
+  await clickText('.teacher-homework-list .homework-announcement-card:first-child .btn-secondary', 'Edit');
+  await setValue('.teacher-homework-list .homework-announcement-card:first-child .inline-edit-form textarea', 'Edited assignment');
+  await clickText('.teacher-homework-list .homework-announcement-card:first-child button[type="submit"]', 'Save');
+  await waitFor(`document.querySelector('.teacher-homework-list .homework-announcement-card:first-child').innerText.includes('Edited assignment')`, 'homework edit result');
+  assert.equal(mockState.homeworkPatches[0].homework_content, 'Edited assignment');
+  await evaluate('window.confirm = () => true');
+  await clickText('.teacher-homework-list .homework-announcement-card:first-child .btn-danger', 'Delete');
+  await waitFor(`!document.body.innerText.includes('Edited assignment')`, 'homework delete result');
+  assert.equal(mockState.homeworkDeletes.length, 1);
+  console.log('homework publishing, editing, deletion, errors, and retry passed');
+
+  await clickText('.teacher-page .dashboard-tabs [role="tab"]', 'Schedule');
+  await waitFor(visibleSelector('.teacher-exam-form'), 'exam entry');
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.teacher-exam-form .teacher-form-actions')).position`), 'sticky');
+  await setValue('#exam-end-time', '07:00');
+  await clickText('.teacher-exam-form button[type="submit"]', 'Add exam to schedule');
+  await waitFor(`document.body.innerText.includes('End time must be after start time.')`, 'exam time validation');
+  assert.equal(mockState.examPosts.length, 0);
+  await setValue('#exam-end-time', '10:00');
+  await setValue('#exam-room', 'Lab 2');
+  await setValue('#exam-description', 'Chapters 1 and 2');
+  mockState.examDelay = 300;
+  await clickText('.teacher-exam-form button[type="submit"]', 'Add exam to schedule');
+  await waitFor(`document.querySelector('.teacher-exam-form button[type="submit"]').disabled`, 'exam publishing state');
+  await waitFor(`document.body.innerText.includes('Exam added to the schedule and sent to parents.')`, 'exam success feedback');
+  assert.equal(mockState.examPosts.length, 1);
+  assert.equal(mockState.examPosts[0].class_id, 'class-1');
+  assert.equal(mockState.examPosts[0].course_id, 'course-math');
+  assert.equal(mockState.examPosts[0].room, 'Lab 2');
+  assert.equal(mockState.examPosts[0].description, 'Chapters 1 and 2');
+
+  await setValue('#exam-description', 'Second exam');
+  mockState.failNextExam = true;
+  await clickText('.teacher-exam-form button[type="submit"]', 'Add exam to schedule');
+  await waitFor(`document.querySelector('.teacher-exam-form .teacher-save-feedback--error')`, 'exam error feedback');
+  assert.equal(await evaluate(`document.querySelector('.teacher-exam-form .teacher-save-feedback--error').innerText.includes('Exam service unavailable')`), true);
+  await setValue('#exam-description', 'Second exam retry');
+  assert.equal(await evaluate(`Boolean(document.querySelector('.teacher-exam-form .teacher-save-feedback--error'))`), false);
+  await clickText('.teacher-exam-form button[type="submit"]', 'Add exam to schedule');
+  await waitFor(`document.body.innerText.includes('Exam added to the schedule and sent to parents.')`, 'exam retry success');
+  assert.equal(mockState.examPosts.length, 2);
+  console.log('exam validation, scheduling, errors, and retry passed');
 
   await navigateRole('parent', '/parent/dashboard', '.parent-page');
   await waitFor(selectorExists('.parent-page .dashboard-action-card'), 'parent overview shortcuts');

@@ -3874,6 +3874,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'نشر الإعلان',
     en: 'Publish announcement',
   },
+  'teacher.homeworkPublishing': {
+    fr: "Publication de l'annonce...",
+    ar: 'جار نشر الإعلان...',
+    en: 'Publishing announcement...',
+  },
   'teacher.homeworkNotificationHint': {
     fr: 'Les parents liés aux élèves de cette classe recevront une notification.',
     ar: 'سيتلقى أولياء التلاميذ المرتبطون بهذا القسم إشعارا.',
@@ -4123,6 +4128,11 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: "Ajouter l'examen au planning",
     ar: 'إضافة الاختبار إلى الجدول',
     en: 'Add exam to schedule',
+  },
+  'teacher.examPublishing': {
+    fr: "Ajout de l'examen au planning...",
+    ar: 'جار إضافة الاختبار إلى الجدول...',
+    en: 'Adding exam to schedule...',
   },
   'teacher.examNotificationHint': {
     fr: 'Les parents liés à cette classe recevront une notification.',

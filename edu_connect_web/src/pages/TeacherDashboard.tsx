@@ -229,6 +229,39 @@ function TeacherClassSelector({
   );
 }
 
+function TeacherSaveFeedback({
+  mutation,
+  pendingMessage,
+  successMessage,
+}: {
+  mutation: { isPending: boolean; isSuccess: boolean; isError: boolean; error: unknown };
+  pendingMessage: string;
+  successMessage: string;
+}) {
+  const { t } = useLocale();
+  if (!mutation.isPending && !mutation.isSuccess && !mutation.isError) return null;
+
+  const status = mutation.isPending ? 'pending' : mutation.isSuccess ? 'success' : 'error';
+  return (
+    <div
+      className={`teacher-save-feedback teacher-save-feedback--${status}`}
+      role={mutation.isError ? 'alert' : 'status'}
+    >
+      {mutation.isPending ? <Loader2 size={17} className="spin-icon" /> : mutation.isSuccess ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
+      <span>
+        {mutation.isPending
+          ? pendingMessage
+          : mutation.isSuccess
+            ? successMessage
+            : apiErrorMessage(
+                mutation.error,
+                mutation.error instanceof Error ? mutation.error.message : t('auth.connectionError'),
+              )}
+      </span>
+    </div>
+  );
+}
+
 export default function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState<'classes' | 'grades' | 'homework' | 'schedule' | 'meetings' | 'announcements' | 'chat'>('classes');
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -607,7 +640,6 @@ export default function TeacherDashboard() {
       });
     },
     onSuccess: () => {
-      addToast(t('teacher.homeworkToastSaved'), 'success');
       setHomeworkForm((current) => ({
         ...current,
         lessonContent: '',
@@ -615,9 +647,6 @@ export default function TeacherDashboard() {
         dueDate: defaultDueDate(),
       }));
       void queryClient.invalidateQueries({ queryKey: ['teacher', 'homework', selectedClass?.id] });
-    },
-    onError: (error) => {
-      addToast(error instanceof Error ? error.message : t('auth.connectionError'), 'error');
     },
   });
 
@@ -642,7 +671,6 @@ export default function TeacherDashboard() {
       });
     },
     onSuccess: () => {
-      addToast(t('teacher.examToastSaved'), 'success');
       setExamForm((current) => ({
         ...current,
         examDate: defaultDueDate(),
@@ -653,9 +681,6 @@ export default function TeacherDashboard() {
       }));
       void queryClient.invalidateQueries({ queryKey: ['teacher', 'schedule-exams', selectedClass?.id] });
     },
-    onError: (error) => {
-      addToast(error instanceof Error ? error.message : t('auth.connectionError'), 'error');
-    },
   });
 
   const selectClass = (schoolClass: SchoolClass) => {
@@ -663,6 +688,8 @@ export default function TeacherDashboard() {
     setAttendanceState({});
     saveAttendanceMutation.reset();
     addGradeMutation.reset();
+    publishHomeworkMutation.reset();
+    publishExamMutation.reset();
     setGradeForm({
       studentId: '',
       courseId: '',
@@ -936,24 +963,11 @@ export default function TeacherDashboard() {
                     </div>
                   </div>
 
-                  {(saveAttendanceMutation.isPending || saveAttendanceMutation.isSuccess || saveAttendanceMutation.isError) && (
-                    <div
-                      className={`teacher-save-feedback teacher-save-feedback--${saveAttendanceMutation.isPending ? 'pending' : saveAttendanceMutation.isSuccess ? 'success' : 'error'}`}
-                      role={saveAttendanceMutation.isError ? 'alert' : 'status'}
-                    >
-                      {saveAttendanceMutation.isPending ? <Loader2 size={17} className="spin-icon" /> : saveAttendanceMutation.isSuccess ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
-                      <span>
-                        {saveAttendanceMutation.isPending
-                          ? t('teacher.attendanceSaving')
-                          : saveAttendanceMutation.isSuccess
-                            ? t('teacher.toastSaved')
-                            : apiErrorMessage(
-                                saveAttendanceMutation.error,
-                                saveAttendanceMutation.error instanceof Error ? saveAttendanceMutation.error.message : t('auth.connectionError'),
-                              )}
-                      </span>
-                    </div>
-                  )}
+                  <TeacherSaveFeedback
+                    mutation={saveAttendanceMutation}
+                    pendingMessage={t('teacher.attendanceSaving')}
+                    successMessage={t('teacher.toastSaved')}
+                  />
 
                   <div className="premium-table-wrapper teacher-attendance-table-wrap">
                     <table className="premium-table teacher-attendance-table">
@@ -1129,24 +1143,11 @@ export default function TeacherDashboard() {
                     />
                   </div>
 
-                  {(addGradeMutation.isPending || addGradeMutation.isSuccess || addGradeMutation.isError) && (
-                    <div
-                      className={`teacher-save-feedback teacher-save-feedback--${addGradeMutation.isPending ? 'pending' : addGradeMutation.isSuccess ? 'success' : 'error'}`}
-                      role={addGradeMutation.isError ? 'alert' : 'status'}
-                    >
-                      {addGradeMutation.isPending ? <Loader2 size={17} className="spin-icon" /> : addGradeMutation.isSuccess ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
-                      <span>
-                        {addGradeMutation.isPending
-                          ? t('teacher.gradeSaving')
-                          : addGradeMutation.isSuccess
-                            ? t('teacher.gradeToastSaved')
-                            : apiErrorMessage(
-                                addGradeMutation.error,
-                                addGradeMutation.error instanceof Error ? addGradeMutation.error.message : t('auth.connectionError'),
-                              )}
-                      </span>
-                    </div>
-                  )}
+                  <TeacherSaveFeedback
+                    mutation={addGradeMutation}
+                    pendingMessage={t('teacher.gradeSaving')}
+                    successMessage={t('teacher.gradeToastSaved')}
+                  />
 
                   <div className="teacher-form-actions">
                     <button
@@ -1273,22 +1274,34 @@ export default function TeacherDashboard() {
               </div>
 
               <div className="teacher-homework-entry-grid">
-                <form className="stacked-form teacher-homework-form" onSubmit={handleHomeworkSubmit}>
+                <form
+                  className="stacked-form teacher-homework-form"
+                  onSubmit={handleHomeworkSubmit}
+                  onChange={() => {
+                    if (publishHomeworkMutation.isSuccess || publishHomeworkMutation.isError) publishHomeworkMutation.reset();
+                  }}
+                  aria-busy={publishHomeworkMutation.isPending}
+                >
                   <div className="teacher-homework-form-row">
                     <div className="form-group">
-                      <label className="form-label" htmlFor="homework-kind">{t('teacher.homeworkKind')}</label>
-                      <select
-                        id="homework-kind"
-                        className="form-input"
-                        value={homeworkForm.kind}
-                        onChange={(event) =>
-                          setHomeworkForm((current) => ({ ...current, kind: event.target.value as HomeworkKind }))
-                        }
-                      >
-                        <option value="homework">{t('teacher.homeworkKind.homework')}</option>
-                        <option value="assignment">{t('teacher.homeworkKind.assignment')}</option>
-                        <option value="exam">{t('teacher.homeworkKind.exam')}</option>
-                      </select>
+                      <span id="homework-kind-label" className="form-label">{t('teacher.homeworkKind')}</span>
+                      <div className="teacher-homework-kind" role="group" aria-labelledby="homework-kind-label">
+                        {(['homework', 'assignment', 'exam'] as HomeworkKind[]).map((kind) => (
+                          <button
+                            key={kind}
+                            type="button"
+                            className={`teacher-homework-kind-option ${homeworkForm.kind === kind ? 'teacher-homework-kind-option--active' : ''}`}
+                            aria-pressed={homeworkForm.kind === kind}
+                            disabled={publishHomeworkMutation.isPending}
+                            onClick={() => {
+                              publishHomeworkMutation.reset();
+                              setHomeworkForm((current) => ({ ...current, kind }));
+                            }}
+                          >
+                            {t(`teacher.homeworkKind.${kind}`)}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="form-group">
@@ -1364,14 +1377,23 @@ export default function TeacherDashboard() {
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-full"
-                    disabled={publishHomeworkMutation.isPending}
-                  >
-                    <ClipboardList size={16} /> {t('teacher.homeworkPublish')}
-                  </button>
-                  <p className="dashboard-section-copy teacher-homework-note">{t('teacher.homeworkNotificationHint')}</p>
+                  <TeacherSaveFeedback
+                    mutation={publishHomeworkMutation}
+                    pendingMessage={t('teacher.homeworkPublishing')}
+                    successMessage={t('teacher.homeworkToastSaved')}
+                  />
+
+                  <div className="teacher-form-actions">
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-full"
+                      disabled={publishHomeworkMutation.isPending}
+                    >
+                      {publishHomeworkMutation.isPending ? <Loader2 size={16} className="spin-icon" /> : <ClipboardList size={16} />}
+                      {publishHomeworkMutation.isPending ? t('teacher.homeworkPublishing') : t('teacher.homeworkPublish')}
+                    </button>
+                    <p className="dashboard-section-copy teacher-homework-note">{t('teacher.homeworkNotificationHint')}</p>
+                  </div>
                 </form>
 
                 <div>
@@ -1521,7 +1543,14 @@ export default function TeacherDashboard() {
                 </div>
 
                 <div className="teacher-homework-entry-grid teacher-exam-entry-grid">
-                  <form className="stacked-form teacher-homework-form teacher-exam-form" onSubmit={handleExamSubmit}>
+                  <form
+                    className="stacked-form teacher-homework-form teacher-exam-form"
+                    onSubmit={handleExamSubmit}
+                    onChange={() => {
+                      if (publishExamMutation.isSuccess || publishExamMutation.isError) publishExamMutation.reset();
+                    }}
+                    aria-busy={publishExamMutation.isPending}
+                  >
                     <div className="teacher-homework-form-row">
                       <div className="form-group">
                         <label className="form-label" htmlFor="exam-class">{t('teacher.examClass')}</label>
@@ -1641,14 +1670,23 @@ export default function TeacherDashboard() {
                       />
                     </div>
 
-                    <button
-                      type="submit"
-                      className="btn btn-primary btn-full"
-                      disabled={publishExamMutation.isPending}
-                    >
-                      <Calendar size={16} /> {t('teacher.examPublish')}
-                    </button>
-                    <p className="dashboard-section-copy teacher-homework-note">{t('teacher.examNotificationHint')}</p>
+                    <TeacherSaveFeedback
+                      mutation={publishExamMutation}
+                      pendingMessage={t('teacher.examPublishing')}
+                      successMessage={t('teacher.examToastSaved')}
+                    />
+
+                    <div className="teacher-form-actions">
+                      <button
+                        type="submit"
+                        className="btn btn-primary btn-full"
+                        disabled={publishExamMutation.isPending}
+                      >
+                        {publishExamMutation.isPending ? <Loader2 size={16} className="spin-icon" /> : <Calendar size={16} />}
+                        {publishExamMutation.isPending ? t('teacher.examPublishing') : t('teacher.examPublish')}
+                      </button>
+                      <p className="dashboard-section-copy teacher-homework-note">{t('teacher.examNotificationHint')}</p>
+                    </div>
                   </form>
 
                   <div>
