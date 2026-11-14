@@ -4294,10 +4294,15 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'الاختبارات القادمة',
     en: 'Upcoming exams',
   },
-  'parent.overview.examsDetail': {
-    fr: 'Ouvrir le calendrier des examens',
-    ar: 'فتح جدول الاختبارات',
-    en: 'Open the exam calendar',
+  'parent.overview.nextExam': {
+    fr: 'Prochain examen : {date}',
+    ar: 'الاختبار القادم: {date}',
+    en: 'Next exam: {date}',
+  },
+  'parent.overview.noUpcomingExams': {
+    fr: 'Aucun examen à venir',
+    ar: 'لا توجد اختبارات قادمة',
+    en: 'No upcoming exams',
   },
   'parent.overview.nextTitle': {
     fr: 'Prochains devoirs',
@@ -4574,25 +4579,60 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'لا توجد واجبات أو اختبارات منشورة حاليا.',
     en: 'No homework or exam has been published yet.',
   },
+  'parent.emptyUpcomingHomework': {
+    fr: 'Aucun devoir ou examen à venir. Vous êtes à jour.',
+    ar: 'لا توجد واجبات أو اختبارات قادمة.',
+    en: 'No upcoming homework or exams. You are up to date.',
+  },
+  'parent.emptyPastHomework': {
+    fr: 'Aucun devoir ou examen passé.',
+    ar: 'لا توجد واجبات أو اختبارات سابقة.',
+    en: 'No past homework or exams.',
+  },
+  'parent.schoolworkFilter.label': {
+    fr: 'Filtrer les travaux scolaires',
+    ar: 'تصفية الأعمال المدرسية',
+    en: 'Filter schoolwork',
+  },
+  'parent.schoolworkFilter.upcoming': {
+    fr: 'À venir ({count})',
+    ar: 'القادمة ({count})',
+    en: 'Upcoming ({count})',
+  },
+  'parent.schoolworkFilter.past': {
+    fr: 'Passés ({count})',
+    ar: 'السابقة ({count})',
+    en: 'Past ({count})',
+  },
+  'parent.schoolworkFilter.all': {
+    fr: 'Tous ({count})',
+    ar: 'الكل ({count})',
+    en: 'All ({count})',
+  },
   'parent.scheduleTitle': {
-    fr: 'Emploi du temps & Examens',
-    ar: 'التوقيت الأسبوعي والاختبارات',
-    en: 'Weekly Timetable & Exams',
+    fr: 'Emploi du temps hebdomadaire',
+    ar: 'التوقيت الأسبوعي',
+    en: 'Weekly timetable',
   },
   'parent.scheduleCopy': {
-    fr: 'Emploi du temps hebdomadaire et examens pour {className}.',
-    ar: 'التوقيت الأسبوعي والاختبارات المبرمجة لقسم {className}.',
-    en: 'Weekly timetable and scheduled exams for {className}.',
-  },
-  'parent.scheduleWeeklyTab': {
-    fr: 'Emploi du temps',
-    ar: 'التوقيت الأسبوعي',
-    en: 'Weekly Timetable',
+    fr: 'Cours hebdomadaires pour {className}.',
+    ar: 'الحصص الأسبوعية لقسم {className}.',
+    en: 'Weekly classes for {className}.',
   },
   'parent.scheduleExamsTab': {
     fr: 'Examens programmés',
     ar: 'الاختبارات المبرمجة',
-    en: 'Scheduled Exams',
+    en: 'Scheduled exams',
+  },
+  'parent.examsCopy': {
+    fr: 'Dates, horaires et consignes des examens pour {className}.',
+    ar: 'تواريخ وأوقات وتعليمات اختبارات قسم {className}.',
+    en: 'Exam dates, times, and instructions for {className}.',
+  },
+  'parent.examCount': {
+    fr: '{count} examens',
+    ar: '{count} اختبارات',
+    en: '{count} exams',
   },
   'parent.scheduleSlotsCount': {
     fr: '{count} cours / semaine',
@@ -4634,15 +4674,20 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'حصة ملغاة',
     en: 'Cancelled',
   },
-  'parent.scheduleExamCount': {
-    fr: '{count} examens à venir',
-    ar: '{count} اختبارات قادمة',
-    en: '{count} upcoming exams',
-  },
   'parent.emptyScheduleExams': {
     fr: 'Aucun examen planifié pour le moment.',
     ar: 'لا يوجد اختبار مبرمج حاليا.',
     en: 'No exam is scheduled yet.',
+  },
+  'parent.emptyUpcomingExams': {
+    fr: 'Aucun examen à venir.',
+    ar: 'لا توجد اختبارات قادمة.',
+    en: 'No upcoming exams.',
+  },
+  'parent.emptyPastExams': {
+    fr: 'Aucun examen passé.',
+    ar: 'لا توجد اختبارات سابقة.',
+    en: 'No past exams.',
   },
   'parent.scheduleExamFor': {
     fr: 'Planning de {className}',

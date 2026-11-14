@@ -71,6 +71,7 @@ const mockState = {
     created_by: 'teacher-1',
   }],
   exams: [],
+  scheduleSlots: [],
   attendanceDelay: 0,
   gradeDelay: 0,
   homeworkDelay: 0,
@@ -337,7 +338,8 @@ function mockResponse(path, method, body) {
     mockState.exams.unshift(exam);
     return { status: 201, data: exam };
   }
-  if (/^\/schedule\/class\/[^/]+$/.test(path)) return [];
+  const scheduleSlotsMatch = path.match(/^\/schedule\/class\/([^/]+)$/);
+  if (scheduleSlotsMatch) return mockState.scheduleSlots.filter((slot) => slot.class_id === scheduleSlotsMatch[1]);
   return [];
 }
 
@@ -697,6 +699,43 @@ try {
   assert.equal(mockState.examPosts.length, 2);
   console.log('localized demo read-only feedback passed in Arabic, French, and English');
 
+  mockState.homework.push({
+    id: 'parent-homework-past',
+    class_id: 'class-1',
+    kind: 'homework',
+    course_id: 'course-history',
+    subject: 'History',
+    lesson_content: 'Review the previous chapter',
+    homework_content: 'Past homework',
+    due_date: '2026-11-01T12:00:00Z',
+    created_by: 'teacher-1',
+  });
+  mockState.exams.push({
+    id: 'parent-exam-past',
+    class_id: 'class-1',
+    course_id: 'course-history',
+    course_name: 'History',
+    exam_date: '2026-11-01',
+    start_time: '08:00',
+    end_time: '10:00',
+    room: 'Room 4',
+    description: 'Past exam',
+    created_at: '2026-10-20T09:00:00Z',
+  });
+  mockState.scheduleSlots.push({
+    id: 'parent-slot-1',
+    class_id: 'class-1',
+    course_name: 'Mathematics',
+    teacher_id: 'teacher-1',
+    teacher_name: 'Browser Teacher',
+    day_of_week: 1,
+    day_name: 'Monday',
+    start_time: '08:00',
+    end_time: '09:00',
+    room: 'Room 12',
+    cancellations: [],
+  });
+
   await navigateRole('parent', '/parent/dashboard', '.parent-page');
   await waitFor(selectorExists('.parent-page .dashboard-action-card'), 'parent overview shortcuts');
   assert.equal(await evaluate(`document.querySelectorAll('.parent-primary-nav [role="tab"]').length`), 5);
@@ -709,6 +748,63 @@ try {
   }
   await clickText('.parent-primary-nav [role="tab"]', 'Overview');
   console.log('parent primary navigation and overview shortcut passed');
+
+  await clickText('.parent-page .dashboard-action-card', 'Upcoming exams', false);
+  await waitFor(`document.querySelector('.parent-secondary-tabs [aria-selected="true"]')?.textContent.trim() === 'Scheduled exams'`, 'parent exam overview shortcut');
+  await waitFor(`document.querySelectorAll('.exam-schedule-card').length === 2`, 'upcoming parent exams');
+  assert.equal(await evaluate(`document.querySelectorAll('.parent-schoolwork-filter button').length`), 3);
+  assert.equal(await evaluate(`[...document.querySelectorAll('.parent-schoolwork-filter button')].every((button) => button.getBoundingClientRect().height >= 44)`), true);
+  assert.equal(await evaluate(`document.querySelector('.parent-schoolwork-filter').innerText.includes('Upcoming (2)')`), true);
+  assert.equal(await evaluate(`document.querySelector('.parent-schoolwork-filter').innerText.includes('Past (1)')`), true);
+  assert.equal(await evaluate(`document.body.innerText.includes('History')`), false);
+  await clickText('.parent-schoolwork-filter button', 'Past (1)');
+  await waitFor(`document.querySelectorAll('.exam-schedule-card').length === 1`, 'past parent exams');
+  assert.equal(await evaluate(`document.querySelector('.exam-schedule-card').innerText.includes('History')`), true);
+  await clickText('.parent-schoolwork-filter button', 'All (3)');
+  await waitFor(`document.querySelectorAll('.exam-schedule-card').length === 3`, 'all parent exams');
+  assert.equal(await evaluate(`document.querySelector('.exam-schedule-card:last-child').innerText.includes('History')`), true);
+  assert.equal(await evaluate(`document.querySelector('.exam-schedule-card:first-child').innerText.includes('History')`), false);
+
+  await clickText('.parent-secondary-tabs [role="tab"]', 'Homework and exams');
+  await waitFor(`document.querySelectorAll('.homework-parent-list > article').length === 2`, 'upcoming parent homework');
+  assert.equal(await evaluate(`document.querySelector('.parent-schoolwork-filter').innerText.includes('Upcoming (2)')`), true);
+  assert.equal(await evaluate(`document.querySelector('.parent-schoolwork-filter').innerText.includes('Past (1)')`), true);
+  assert.equal(await evaluate(`document.body.innerText.includes('Past homework')`), false);
+  await clickText('.parent-schoolwork-filter button', 'Past (1)');
+  await waitFor(`document.querySelectorAll('.homework-parent-list > article').length === 1`, 'past parent homework');
+  assert.equal(await evaluate(`document.querySelector('.homework-parent-list > article').innerText.includes('Past homework')`), true);
+  await clickText('.parent-schoolwork-filter button', 'All (3)');
+  await waitFor(`document.querySelectorAll('.homework-parent-list > article').length === 3`, 'all parent homework');
+  assert.equal(await evaluate(`document.querySelector('.homework-parent-list > article:last-child').innerText.includes('Past homework')`), true);
+  assert.equal(await evaluate(`document.querySelector('.homework-parent-list > article:first-child').innerText.includes('Past homework')`), false);
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.homework-parent-list')).maxHeight`), 'none');
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.homework-parent-list')).overflow`), 'visible');
+  assert.equal(await evaluate(`document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1`), true);
+  console.log('parent schoolwork filters, counts, ordering, and mobile layout passed');
+
+  await clickText('.parent-primary-nav [role="tab"]', 'Attendance & school life');
+  await clickText('.parent-secondary-tabs [role="tab"]', 'Schedule');
+  await waitFor(`document.querySelectorAll('.parent-schedule-table tbody tr').length === 1`, 'mobile parent schedule card');
+  assert.equal(await evaluate(`document.querySelector('.parent-schedule-table tbody tr').innerText.includes('Mathematics')`), true);
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.parent-schedule-table thead')).display`), 'none');
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.parent-schedule-table tbody tr')).display`), 'grid');
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.parent-schedule-table td'), '::before').content`), '"Day"');
+  assert.equal(await evaluate(`document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1`), true);
+  console.log('parent mobile timetable cards and overflow checks passed');
+
+  mockState.homework = [];
+  mockState.exams = [];
+  await navigateRole('parent', '/parent/dashboard', '.parent-page');
+  await clickText('.parent-primary-nav [role="tab"]', 'Schoolwork');
+  await clickText('.parent-secondary-tabs [role="tab"]', 'Homework and exams');
+  await waitFor(`document.body.innerText.includes('No upcoming homework or exams. You are up to date.')`, 'empty upcoming parent homework');
+  await clickText('.parent-schoolwork-filter button', 'Past (0)');
+  await waitFor(`document.body.innerText.includes('No past homework or exams.')`, 'empty past parent homework');
+  await clickText('.parent-secondary-tabs [role="tab"]', 'Scheduled exams');
+  await waitFor(`document.body.innerText.includes('No upcoming exams.')`, 'empty upcoming parent exams');
+  await clickText('.parent-schoolwork-filter button', 'Past (0)');
+  await waitFor(`document.body.innerText.includes('No past exams.')`, 'empty past parent exams');
+  console.log('parent filter-specific empty states passed');
 
   await setViewport(1280, 900, false);
   await navigateRole('principal', '/director', '.director-page');

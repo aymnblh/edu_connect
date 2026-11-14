@@ -120,13 +120,14 @@ interface ChildContext {
   className: string;
 }
 
-type ParentTab = 'overview' | 'grades' | 'homework' | 'schedule' | 'attendance' | 'reports' | 'meetings' | 'health' | 'fees' | 'announcements' | 'message';
+type ParentTab = 'overview' | 'grades' | 'homework' | 'exams' | 'schedule' | 'attendance' | 'reports' | 'meetings' | 'health' | 'fees' | 'announcements' | 'message';
 type ParentSection = 'overview' | 'schoolwork' | 'attendance' | 'finance' | 'communication';
+type SchoolworkFilter = 'upcoming' | 'past' | 'all';
 
 const parentSectionOrder: ParentSection[] = ['overview', 'schoolwork', 'attendance', 'finance', 'communication'];
 const parentTabsBySection: Record<ParentSection, ParentTab[]> = {
   overview: ['overview'],
-  schoolwork: ['grades', 'homework'],
+  schoolwork: ['grades', 'homework', 'exams'],
   attendance: ['attendance', 'schedule', 'health'],
   finance: ['reports', 'fees'],
   communication: ['message', 'announcements', 'meetings'],
@@ -210,7 +211,8 @@ export default function ParentDashboard() {
   const { t, locale } = useLocale();
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<ParentTab>('overview');
-  const [scheduleSubView, setScheduleSubView] = useState<'weekly' | 'exams'>('weekly');
+  const [homeworkFilter, setHomeworkFilter] = useState<SchoolworkFilter>('upcoming');
+  const [examFilter, setExamFilter] = useState<SchoolworkFilter>('upcoming');
 
   const childrenQuery = useQuery<Student[]>({
     queryKey: ['parent', 'children'],
@@ -295,11 +297,33 @@ export default function ParentDashboard() {
   const exams = examsQuery.data ?? [];
   const average = weightedAverage(grades);
   const todayIso = new Date().toISOString().slice(0, 10);
-  const upcomingExamsCount = exams.filter((item) => item.exam_date >= todayIso).length;
   const upcomingHomework = homework
     .filter((item) => item.due_date.slice(0, 10) >= todayIso)
     .slice()
     .sort((a, b) => a.due_date.localeCompare(b.due_date));
+  const pastHomework = homework
+    .filter((item) => item.due_date.slice(0, 10) < todayIso)
+    .slice()
+    .sort((a, b) => b.due_date.localeCompare(a.due_date));
+  const visibleHomework = homeworkFilter === 'upcoming'
+    ? upcomingHomework
+    : homeworkFilter === 'past'
+      ? pastHomework
+      : [...upcomingHomework, ...pastHomework];
+  const upcomingExams = exams
+    .filter((item) => item.exam_date >= todayIso)
+    .slice()
+    .sort((a, b) => a.exam_date.localeCompare(b.exam_date) || a.start_time.localeCompare(b.start_time));
+  const pastExams = exams
+    .filter((item) => item.exam_date < todayIso)
+    .slice()
+    .sort((a, b) => b.exam_date.localeCompare(a.exam_date) || b.start_time.localeCompare(a.start_time));
+  const visibleExams = examFilter === 'upcoming'
+    ? upcomingExams
+    : examFilter === 'past'
+      ? pastExams
+      : [...upcomingExams, ...pastExams];
+  const upcomingExamsCount = upcomingExams.length;
   const attendanceIssueCount = attendance.filter((item) => item.status !== 'present').length;
   const recentGrades = grades.slice(0, 3);
   const activeSection = parentTabSections[activeSubTab];
@@ -314,6 +338,7 @@ export default function ParentDashboard() {
     overview: t('parent.nav.overview'),
     grades: t('parent.tabGrades'),
     homework: t('parent.tabHomework'),
+    exams: t('parent.scheduleExamsTab'),
     schedule: t('parent.tabSchedule'),
     attendance: t('parent.tabAttendance'),
     reports: t('reportCards.tab'),
@@ -327,6 +352,7 @@ export default function ParentDashboard() {
     overview: LayoutDashboard,
     grades: NotebookText,
     homework: ClipboardList,
+    exams: CalendarClock,
     schedule: Calendar,
     attendance: CalendarCheck,
     reports: FileText,
@@ -383,7 +409,8 @@ export default function ParentDashboard() {
       : null) ||
     (activeSubTab === 'grades' ? gradesQuery.error : null) ||
     (activeSubTab === 'homework' ? homeworkQuery.error : null) ||
-    (activeSubTab === 'schedule' ? examsQuery.error : null) ||
+    (activeSubTab === 'exams' ? examsQuery.error : null) ||
+    (activeSubTab === 'schedule' ? scheduleSlotsQuery.error : null) ||
     (activeSubTab === 'attendance' ? attendanceQuery.error : null);
 
   return (
@@ -544,12 +571,11 @@ export default function ParentDashboard() {
                       id: 'exams',
                       label: t('parent.overview.exams'),
                       value: upcomingExamsCount,
-                      detail: t('parent.overview.examsDetail'),
+                      detail: upcomingExams[0]
+                        ? t('parent.overview.nextExam', { date: formatDate(upcomingExams[0].exam_date, locale) })
+                        : t('parent.overview.noUpcomingExams'),
                       icon: Calendar,
-                      onClick: () => {
-                        setScheduleSubView('exams');
-                        setActiveSubTab('schedule');
-                      },
+                      onClick: () => setActiveSubTab('exams'),
                     },
                   ]}
                 />
@@ -666,19 +692,45 @@ export default function ParentDashboard() {
                     </p>
                   </div>
                   <span className="badge badge-success">
-                    {t('parent.homeworkCount', { count: homework.length })}
+                    {t('parent.homeworkCount', { count: visibleHomework.length })}
                   </span>
+                </div>
+
+                <div className="parent-schoolwork-filter" role="group" aria-label={t('parent.schoolworkFilter.label')}>
+                  {(['upcoming', 'past', 'all'] as SchoolworkFilter[]).map((filter) => {
+                    const count = filter === 'upcoming' ? upcomingHomework.length : filter === 'past' ? pastHomework.length : homework.length;
+                    return (
+                      <button
+                        key={filter}
+                        type="button"
+                        className={homeworkFilter === filter ? 'parent-schoolwork-filter-option--active' : ''}
+                        aria-pressed={homeworkFilter === filter}
+                        onClick={() => setHomeworkFilter(filter)}
+                      >
+                        {t(`parent.schoolworkFilter.${filter}`, { count })}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="dashboard-list homework-parent-list">
                   {homeworkQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
-                  {!homeworkQuery.isLoading && homework.length === 0 && (
-                    <p className="empty-list-copy">{t('parent.emptyHomework')}</p>
+                  {!homeworkQuery.isLoading && visibleHomework.length === 0 && (
+                    <div className="parent-schoolwork-empty">
+                      <ClipboardList size={24} />
+                      <p>
+                        {homeworkFilter === 'upcoming'
+                          ? t('parent.emptyUpcomingHomework')
+                          : homeworkFilter === 'past'
+                            ? t('parent.emptyPastHomework')
+                            : t('parent.emptyHomework')}
+                      </p>
+                    </div>
                   )}
-                  {homework.map((item) => {
+                  {visibleHomework.map((item) => {
                     const kind = normalizeHomeworkKind(item.kind);
                     return (
-                      <div key={item.id} className="homework-announcement-card homework-announcement-card--parent">
+                      <article key={item.id} className="homework-announcement-card homework-announcement-card--parent">
                         <div className="homework-announcement-header">
                           <span className="badge badge-compact badge-success">{t(`parent.homeworkKind.${kind}`)}</span>
                           <span className="homework-due-date">
@@ -692,9 +744,80 @@ export default function ParentDashboard() {
                             {t('parent.homeworkPreparation')}: {item.lesson_content}
                           </div>
                         )}
-                      </div>
+                      </article>
                     );
                   })}
+                </div>
+              </div>
+            )}
+
+            {activeChild.classId && activeSubTab === 'exams' && (
+              <div className="animate-fade-in" role="tabpanel">
+                <div className="dashboard-toolbar">
+                  <div>
+                    <h3 className="dashboard-section-title dashboard-section-title--plain">{t('parent.scheduleExamsTab')}</h3>
+                    <p className="dashboard-section-copy">
+                      {t('parent.examsCopy', { className: activeChild.className })}
+                    </p>
+                  </div>
+                  <span className="badge badge-success">
+                    {t('parent.examCount', { count: visibleExams.length })}
+                  </span>
+                </div>
+
+                <div className="parent-schoolwork-filter" role="group" aria-label={t('parent.schoolworkFilter.label')}>
+                  {(['upcoming', 'past', 'all'] as SchoolworkFilter[]).map((filter) => {
+                    const count = filter === 'upcoming' ? upcomingExams.length : filter === 'past' ? pastExams.length : exams.length;
+                    return (
+                      <button
+                        key={filter}
+                        type="button"
+                        className={examFilter === filter ? 'parent-schoolwork-filter-option--active' : ''}
+                        aria-pressed={examFilter === filter}
+                        onClick={() => setExamFilter(filter)}
+                      >
+                        {t(`parent.schoolworkFilter.${filter}`, { count })}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="dashboard-list homework-parent-list">
+                  {examsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                  {!examsQuery.isLoading && visibleExams.length === 0 && (
+                    <div className="parent-schoolwork-empty">
+                      <CalendarClock size={24} />
+                      <p>
+                        {examFilter === 'upcoming'
+                          ? t('parent.emptyUpcomingExams')
+                          : examFilter === 'past'
+                            ? t('parent.emptyPastExams')
+                            : t('parent.emptyScheduleExams')}
+                      </p>
+                    </div>
+                  )}
+                  {visibleExams.map((exam) => (
+                    <article key={exam.id} className="homework-announcement-card homework-announcement-card--parent exam-schedule-card">
+                      <div className="homework-announcement-header">
+                        <span className="badge badge-compact badge-success">{formatDate(exam.exam_date, locale)}</span>
+                        <span className="homework-due-date">
+                          {formatClock(exam.start_time, locale)} - {formatClock(exam.end_time, locale)}
+                        </span>
+                      </div>
+                      <h4>{exam.course_name}</h4>
+                      <p>{t('parent.scheduleExamFor', { className: activeChild.className })}</p>
+                      {exam.room && (
+                        <div className="homework-preparation-note">
+                          {t('parent.scheduleRoom')}: {exam.room}
+                        </div>
+                      )}
+                      {exam.description && (
+                        <div className="homework-preparation-note">
+                          {t('parent.scheduleInstructions')}: {exam.description}
+                        </div>
+                      )}
+                    </article>
+                  ))}
                 </div>
               </div>
             )}
@@ -708,121 +831,69 @@ export default function ParentDashboard() {
                       {t('parent.scheduleCopy', { className: activeChild.className })}
                     </p>
                   </div>
-                  <div className="schedule-summary-badges">
-                    <span className="badge badge-primary">
-                      {t('parent.scheduleSlotsCount', { count: sortedSlots.length })}
-                    </span>
-                    <span className="badge badge-success">
-                      {t('parent.scheduleExamCount', { count: upcomingExamsCount })}
-                    </span>
-                  </div>
+                  <span className="badge badge-primary">
+                    {t('parent.scheduleSlotsCount', { count: sortedSlots.length })}
+                  </span>
                 </div>
 
-                <div className="tab-bar parent-schedule-tabs">
-                  <button
-                    type="button"
-                    onClick={() => setScheduleSubView('weekly')}
-                    className={`tab-button ${scheduleSubView === 'weekly' ? 'tab-button--active' : ''}`}
-                  >
-                    <Calendar size={14} /> {t('parent.scheduleWeeklyTab')} ({sortedSlots.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setScheduleSubView('exams')}
-                    className={`tab-button ${scheduleSubView === 'exams' ? 'tab-button--active' : ''}`}
-                  >
-                    <NotebookText size={14} /> {t('parent.scheduleExamsTab')} ({exams.length})
-                  </button>
-                </div>
-
-                {scheduleSubView === 'weekly' && (
-                  <div>
-                    {scheduleSlotsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
-                    {!scheduleSlotsQuery.isLoading && sortedSlots.length === 0 && (
-                      <p className="empty-list-copy">{t('parent.emptyScheduleWeekly')}</p>
-                    )}
-                    {!scheduleSlotsQuery.isLoading && sortedSlots.length > 0 && (
-                      <div className="premium-table-wrapper">
-                        <table className="premium-table">
-                          <thead>
-                            <tr>
-                              <th>{t('parent.scheduleDay')}</th>
-                              <th>{t('parent.scheduleTime')}</th>
-                              <th>{t('parent.scheduleCourse')}</th>
-                              <th>{t('parent.scheduleTeacher')}</th>
-                              <th>{t('parent.scheduleRoomCol')}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {sortedSlots.map((slot) => {
-                              const dayLabel = formatDayOfWeek(slot.day_of_week, locale);
-                              const isCancelledToday = slot.cancellations?.some(
-                                (c) => c.cancelled_date === todayIso,
-                              );
-                              return (
-                                <tr key={slot.id}>
-                                  <td className="table-cell-primary">
-                                    <span className="badge badge-compact badge-primary schedule-day-badge">
-                                      {dayLabel}
+                <div>
+                  {scheduleSlotsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
+                  {!scheduleSlotsQuery.isLoading && sortedSlots.length === 0 && (
+                    <div className="parent-schoolwork-empty">
+                      <Calendar size={24} />
+                      <p>{t('parent.emptyScheduleWeekly')}</p>
+                    </div>
+                  )}
+                  {!scheduleSlotsQuery.isLoading && sortedSlots.length > 0 && (
+                    <div className="premium-table-wrapper parent-schedule-table">
+                      <table className="premium-table">
+                        <thead>
+                          <tr>
+                            <th>{t('parent.scheduleDay')}</th>
+                            <th>{t('parent.scheduleTime')}</th>
+                            <th>{t('parent.scheduleCourse')}</th>
+                            <th>{t('parent.scheduleTeacher')}</th>
+                            <th>{t('parent.scheduleRoomCol')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sortedSlots.map((slot) => {
+                            const dayLabel = formatDayOfWeek(slot.day_of_week, locale);
+                            const isCancelledToday = slot.cancellations?.some(
+                              (c) => c.cancelled_date === todayIso,
+                            );
+                            return (
+                              <tr key={slot.id}>
+                                <td className="table-cell-primary" data-label={t('parent.scheduleDay')}>
+                                  <span className="badge badge-compact badge-primary schedule-day-badge">
+                                    {dayLabel}
+                                  </span>
+                                </td>
+                                <td className="schedule-time-cell" data-label={t('parent.scheduleTime')}>
+                                  {formatClock(slot.start_time, locale)} - {formatClock(slot.end_time, locale)}
+                                </td>
+                                <td className="table-cell-strong" data-label={t('parent.scheduleCourse')}>
+                                  {slot.course_name}
+                                  {isCancelledToday && (
+                                    <span className="badge badge-danger schedule-cancelled-badge">
+                                      {t('parent.scheduleCancelled')}
                                     </span>
-                                  </td>
-                                  <td className="schedule-time-cell">
-                                    {formatClock(slot.start_time, locale)} - {formatClock(slot.end_time, locale)}
-                                  </td>
-                                  <td className="table-cell-strong">
-                                    {slot.course_name}
-                                    {isCancelledToday && (
-                                      <span className="badge badge-danger schedule-cancelled-badge">
-                                        {t('parent.scheduleCancelled')}
-                                      </span>
-                                    )}
-                                  </td>
-                                  <td className="schedule-teacher-cell">
-                                    {slot.teacher_name || '-'}
-                                  </td>
-                                  <td>
-                                    <span className="badge badge-compact">{slot.room || '-'}</span>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {scheduleSubView === 'exams' && (
-                  <div className="dashboard-list homework-parent-list">
-                    {examsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
-                    {!examsQuery.isLoading && exams.length === 0 && (
-                      <p className="empty-list-copy">{t('parent.emptyScheduleExams')}</p>
-                    )}
-                    {exams.map((exam) => (
-                      <div key={exam.id} className="homework-announcement-card homework-announcement-card--parent exam-schedule-card">
-                        <div className="homework-announcement-header">
-                          <span className="badge badge-compact badge-success">{formatDate(exam.exam_date, locale)}</span>
-                          <span className="homework-due-date">
-                            {formatClock(exam.start_time, locale)} - {formatClock(exam.end_time, locale)}
-                          </span>
-                        </div>
-                        <h4>{exam.course_name}</h4>
-                        <p>{t('parent.scheduleExamFor', { className: activeChild.className })}</p>
-                        {exam.room && (
-                          <div className="homework-preparation-note">
-                            {t('parent.scheduleRoom')}: {exam.room}
-                          </div>
-                        )}
-                        {exam.description && (
-                          <div className="homework-preparation-note">
-                            {t('parent.scheduleInstructions')}: {exam.description}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                                  )}
+                                </td>
+                                <td className="schedule-teacher-cell" data-label={t('parent.scheduleTeacher')}>
+                                  {slot.teacher_name || '-'}
+                                </td>
+                                <td data-label={t('parent.scheduleRoomCol')}>
+                                  <span className="badge badge-compact">{slot.room || '-'}</span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
