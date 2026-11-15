@@ -206,6 +206,37 @@ async def _filter_blocked_contacts(current_user: User, contacts: list[User], db:
     return [user for user in contacts if user.id not in blocked_ids]
 
 
+async def _notify_dm_recipients(
+    db: AsyncSession,
+    *,
+    school_id: str | None,
+    sender: User,
+    recipient_ids: list[str],
+    content: str,
+) -> None:
+    if not isinstance(db, AsyncSession) or not school_id:
+        return
+    from app.utils.notifications import create_notification
+
+    preview = content.strip()
+    if not preview:
+        return
+    if len(preview) > 140:
+        preview = f"{preview[:137]}..."
+    title = f"Nouveau message de {sender.full_name}"
+    for recipient_id in dict.fromkeys(recipient_ids):
+        if not recipient_id or recipient_id == sender.id:
+            continue
+        await create_notification(
+            db,
+            user_id=recipient_id,
+            title=title,
+            content=preview,
+            type="INFO",
+            school_id=school_id,
+        )
+
+
 async def _assert_can_dm(current_user: User, recipient_id: str, db: AsyncSession):
     """
     Validate that current_user is allowed to start a DM with recipient.
@@ -819,6 +850,13 @@ async def create_direct_conversation(
             content=req.initial_message,
         )
         db.add(msg)
+        await _notify_dm_recipients(
+            db,
+            school_id=conv.school_id,
+            sender=current_user,
+            recipient_ids=[recipient.id],
+            content=req.initial_message,
+        )
 
     await db.commit()
     await db.refresh(conv)
@@ -900,6 +938,13 @@ async def create_bulk_direct_conversations(
             "recipient_ids": recipient_ids,
             "conversation_ids": [conv.id for conv in conversations],
         },
+    )
+    await _notify_dm_recipients(
+        db,
+        school_id=current_user.school_id or (conversations[0].school_id if conversations else None),
+        sender=current_user,
+        recipient_ids=recipient_ids,
+        content=content,
     )
     await db.commit()
 
@@ -995,6 +1040,13 @@ async def broadcast_to_class_parents(
         content=req.initial_message,
     )
     db.add(msg)
+    await _notify_dm_recipients(
+        db,
+        school_id=conv.school_id,
+        sender=current_user,
+        recipient_ids=[parent.id for parent in parents],
+        content=req.initial_message,
+    )
     await db.commit()
 
     # Reload
@@ -1080,6 +1132,21 @@ async def send_message(
         content=req.content,
     )
     db.add(msg)
+    if isinstance(db, AsyncSession):
+        part_ids_res = await db.execute(
+            select(ConversationParticipant.user_id).where(
+                ConversationParticipant.school_id == conv.school_id,
+                ConversationParticipant.conversation_id == conversation_id,
+                ConversationParticipant.user_id != current_user.id,
+            )
+        )
+        await _notify_dm_recipients(
+            db,
+            school_id=conv.school_id,
+            sender=current_user,
+            recipient_ids=list(part_ids_res.scalars().all()),
+            content=req.content,
+        )
     await db.commit()
     await db.refresh(msg)
 
@@ -1270,6 +1337,21 @@ async def dm_websocket(
                 content=content,
             )
             db.add(msg)
+            if isinstance(db, AsyncSession):
+                part_ids_res = await db.execute(
+                    select(ConversationParticipant.user_id).where(
+                        ConversationParticipant.school_id == conv.school_id,
+                        ConversationParticipant.conversation_id == conversation_id,
+                        ConversationParticipant.user_id != sender.id,
+                    )
+                )
+                await _notify_dm_recipients(
+                    db,
+                    school_id=conv.school_id,
+                    sender=sender,
+                    recipient_ids=list(part_ids_res.scalars().all()),
+                    content=content,
+                )
             await db.commit()
             await db.refresh(msg)
 
