@@ -831,6 +831,7 @@ async def create_direct_conversation(
             selectinload(Conversation.participants).selectinload(ConversationParticipant.user),
             selectinload(Conversation.messages)
         )
+        .execution_options(populate_existing=True)
     )
     conv = conv_res.scalar_one()
     return _build_conv_out(conv, current_user.id)
@@ -910,6 +911,7 @@ async def create_bulk_direct_conversations(
             selectinload(Conversation.participants).selectinload(ConversationParticipant.user),
             selectinload(Conversation.messages),
         )
+        .execution_options(populate_existing=True)
     )
     loaded = {conv.id: conv for conv in conv_res.scalars().unique().all()}
     return [_build_conv_out(loaded[conv_id], current_user.id) for conv_id in conv_ids if conv_id in loaded]
@@ -1003,6 +1005,7 @@ async def broadcast_to_class_parents(
             selectinload(Conversation.participants).selectinload(ConversationParticipant.user),
             selectinload(Conversation.messages)
         )
+        .execution_options(populate_existing=True)
     )
     conv = conv_res.scalar_one()
     return _build_conv_out(conv, current_user.id)

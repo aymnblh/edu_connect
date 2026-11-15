@@ -214,9 +214,7 @@ async def rotate_refresh_token(
     # 1. Look for this token's hash
     token_hash = await set_refresh_token_lookup(db, old_refresh_token_str)
     result = await db.execute(
-        select(RefreshToken)
-        .where(RefreshToken.token_hash == token_hash)
-        .with_for_update()
+        select(RefreshToken).where(RefreshToken.token_hash == token_hash)
     )
     db_token = result.scalar_one_or_none()
 

@@ -5,8 +5,29 @@ from app.core.config import settings
 from app.core.context import system_admin_context, tenant_id_context
 from app.core.rls import set_request_rls_context
 
+class RLSAsyncSession(AsyncSession):
+    """AsyncSession that restores transaction-local RLS context after commit."""
+
+    async def commit(self) -> None:
+        await super().commit()
+        school_id = self.info.get("rls_school_id") or tenant_id_context.get()
+        is_system_admin = bool(
+            self.info.get("rls_is_system_admin") or system_admin_context.get()
+        )
+        if school_id or is_system_admin:
+            await set_request_rls_context(
+                self,
+                school_id=school_id,
+                is_system_admin=is_system_admin,
+            )
+
+
 engine = create_async_engine(settings.database_url, echo=False)
-AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+AsyncSessionLocal = async_sessionmaker(
+    engine,
+    class_=RLSAsyncSession,
+    expire_on_commit=False,
+)
 
 class Base(DeclarativeBase):
     pass
