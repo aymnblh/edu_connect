@@ -10,6 +10,12 @@ async def set_request_rls_context(
     school_id: str | None = None,
     is_system_admin: bool = False,
 ) -> None:
+    info = getattr(db, "info", None)
+    if isinstance(info, dict):
+        if is_system_admin:
+            info["rls_is_system_admin"] = True
+        if school_id:
+            info["rls_school_id"] = str(school_id)
     if is_system_admin:
         await db.execute(text("SELECT set_config('app.is_system_admin', 'true', true)"))
     if school_id:

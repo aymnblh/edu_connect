@@ -359,13 +359,11 @@ async def set_password(
 
     await set_auth_invite_code(db, req.invite_code)
     result = await db.execute(
-        select(User)
-        .where(
+        select(User).where(
             User.email == req.email,
             User.invite_code == req.invite_code,
             User.password_hash.is_(None),
         )
-        .with_for_update()
     )
     user = result.scalar_one_or_none()
 
@@ -667,13 +665,11 @@ async def register_parent_code(
     if req.code: # QR Flow
         await set_pending_link_token(db, req.code)
         link_res = await db.execute(
-            select(PendingLink)
-            .where(
+            select(PendingLink).where(
                 PendingLink.token == req.code,
                 PendingLink.status == "pending",
                 PendingLink.revoked_at.is_(None),
             )
-            .with_for_update()
         )
         pending_link = link_res.scalar_one_or_none()
         if not pending_link or pending_link.expires_at < datetime.now(timezone.utc):
@@ -698,7 +694,6 @@ async def register_parent_code(
                 Student.linking_pin == req.pin,
                 Student.archived_at.is_(None),
             )
-            .with_for_update()
         )
         student = student_res.scalar_one_or_none()
         if not student:
@@ -805,7 +800,6 @@ async def _complete_staff_invite_code(
             User.invite_code == req.invite_code,
             User.role.in_(ACCESS_CODE_ROLES),
         )
-        .with_for_update()
     )
     user = user_res.scalar_one_or_none()
     
