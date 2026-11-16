@@ -16,3 +16,5 @@ from app.modules.announcements.models import *
 from app.modules.reports.models import *
 from app.modules.meetings.models import *
 from app.modules.health.models import *
+from app.modules.canteen.models import *
+from app.modules.transport.models import *

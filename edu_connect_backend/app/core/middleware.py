@@ -241,7 +241,10 @@ class DemoReadOnlyMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-_NURSE_PREFIXES = ("/auth/", "/users/me", "/infirmary/", "/notifications", "/schools/branding")
+_ROLE_COMMON_PREFIXES = ("/auth/", "/users/me", "/notifications", "/schools/branding")
+_NURSE_PREFIXES = (*_ROLE_COMMON_PREFIXES, "/infirmary/")
+_CANTEEN_PREFIXES = (*_ROLE_COMMON_PREFIXES, "/canteen/")
+_DRIVER_PREFIXES = (*_ROLE_COMMON_PREFIXES, "/transport/driver/")
 
 
 def nurse_may_call(path: str) -> bool:
@@ -254,15 +257,42 @@ def nurse_may_call(path: str) -> bool:
     )
 
 
-class NurseScopeMiddleware(BaseHTTPMiddleware):
-    """A school nurse sees health records and nothing else (grades, messages, fees...)."""
+def canteen_may_call(path: str) -> bool:
+    return path.startswith(_CANTEEN_PREFIXES)
+
+
+def driver_may_call(path: str) -> bool:
+    return path.startswith(_DRIVER_PREFIXES)
+
+
+# Single-purpose accounts: each role reaches its own area and nothing else
+# (grades, messages, fees...). Every other role is unaffected.
+ROLE_SCOPES = {
+    "nurse": (nurse_may_call, "Reserve aux fiches sante pour le compte infirmerie."),
+    "canteen": (canteen_may_call, "Reserve a la cantine pour le compte cantine."),
+    "driver": (driver_may_call, "Reserve aux trajets du transport scolaire pour le compte chauffeur."),
+}
+
+
+def role_may_call(role: str | None, path: str) -> bool:
+    scope = ROLE_SCOPES.get(role or "")
+    return scope is None or scope[0](path)
+
+
+class RoleScopeMiddleware(BaseHTTPMiddleware):
+    """Nurse, canteen and driver accounts only reach their own area of the API."""
 
     async def dispatch(self, request: Request, call_next):
         payload = _try_decode_jwt(request)
-        if payload and payload.get("role") == "nurse" and not nurse_may_call(request.url.path):
-            return JSONResponse({"detail": "Reserve aux fiches sante pour le compte infirmerie."}, status_code=403)
+        role = payload.get("role") if payload else None
+        scope = ROLE_SCOPES.get(role or "")
+        if scope is not None and not scope[0](request.url.path):
+            return JSONResponse({"detail": scope[1]}, status_code=403)
         return await call_next(request)
 
+
+# Backwards-compatible name (the nurse was the first single-purpose account).
+NurseScopeMiddleware = RoleScopeMiddleware
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

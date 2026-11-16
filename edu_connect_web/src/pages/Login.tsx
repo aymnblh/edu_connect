@@ -5,18 +5,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert, GraduationCap, BookOpen, HeartHandshake, ShieldCheck, Eye, Building2, Presentation, Users } from 'lucide-react';
 import LocaleSwitcher from '../components/LocaleSwitcher';
 import { useWorkspace } from '../contexts/useWorkspace';
-import { api, storeSessionTokens } from '../lib/api';
+import { api } from '../lib/api';
+import { establishUserSession } from '../lib/authSession';
 import type { DemoRole } from '../lib/demo';
 import { useLocale } from '../lib/i18n';
-import {
-  clearWorkspaceStorage,
-  getInitialActiveRole,
-  readRememberDevicePreference,
-  removeWorkspaceSessionItem,
-  routeForRole,
-  storeWorkspaceSessionItem,
-  workspaceRolesFromSession,
-} from '../lib/workspace';
+import { readRememberDevicePreference } from '../lib/workspace';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -47,26 +40,9 @@ export default function Login() {
   };
 
   const completeSignIn = async (tokens: { access_token: string; refresh_token: string }, remember: boolean) => {
-    clearWorkspaceStorage();
-    storeSessionTokens(tokens.access_token, tokens.refresh_token, remember);
-
-    const profileRes = await api.get('/users/me');
-    const user = profileRes.data;
-    storeWorkspaceSessionItem('user', JSON.stringify(user), remember);
-
-    const roles = workspaceRolesFromSession(user, tokens.access_token);
-    const activeRole = getInitialActiveRole(roles, null);
-    if (activeRole) {
-      storeWorkspaceSessionItem('active_workspace_role', activeRole, remember);
-    } else {
-      removeWorkspaceSessionItem('active_workspace_role');
-    }
-    refreshWorkspace();
-
-    if (roles.length > 1) {
-      navigate('/workspace/select');
-    } else if (roles.length === 1) {
-      navigate(routeForRole(roles[0]));
+    const targetRoute = await establishUserSession(tokens, remember, refreshWorkspace);
+    if (targetRoute) {
+      navigate(targetRoute);
     } else {
       setError(t('auth.unauthorized'));
     }
@@ -240,6 +216,9 @@ export default function Login() {
             </Link>
           </div>
           <div className="login-footer" style={{ marginTop: '1rem', justifyContent: 'center' }}>
+            <Link to="/accueil" className="link-hover-primary">
+              {t('login.discoverLanding')}
+            </Link>
             <Link to="/register-school" className="link-hover-primary">
               {t('login.registerSchool')}
             </Link>

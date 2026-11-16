@@ -17,6 +17,10 @@ class UserRole(str, enum.Enum):
     system_admin = "system_admin"
     # School nurse: health records only (see NurseScopeMiddleware).
     nurse = "nurse"
+    # Canteen staff: menus, daily headcount and short dietary/health alerts only.
+    canteen = "canteen"
+    # School bus driver or escort: their own trips only (see RoleScopeMiddleware).
+    driver = "driver"
 
 
 class User(Base):

@@ -1,6 +1,15 @@
 import 'package:equatable/equatable.dart';
 
-enum UserRole { teacher, parent, principal, secretary, nurse, systemAdmin }
+enum UserRole {
+  teacher,
+  parent,
+  principal,
+  secretary,
+  nurse,
+  canteen,
+  driver,
+  systemAdmin,
+}
 
 class UserModel extends Equatable {
   final String id;
@@ -46,6 +55,12 @@ class UserModel extends Equatable {
         break;
       case 'nurse':
         parsedRole = UserRole.nurse;
+        break;
+      case 'canteen':
+        parsedRole = UserRole.canteen;
+        break;
+      case 'driver':
+        parsedRole = UserRole.driver;
         break;
       case 'parent':
       default:
@@ -99,6 +114,8 @@ class UserModel extends Equatable {
       role == UserRole.systemAdmin;
   bool get isSystemAdmin => role == UserRole.systemAdmin;
   bool get isNurse => role == UserRole.nurse;
+  bool get isCanteen => role == UserRole.canteen;
+  bool get isDriver => role == UserRole.driver;
 
   @override
   List<Object?> get props => [

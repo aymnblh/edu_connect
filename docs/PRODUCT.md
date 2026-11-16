@@ -5,11 +5,13 @@
 | Role | Who | What they can do |
 | --- | --- | --- |
 | **Platform administrator** (`system_admin`) | The company running Wasel Edu | Create and activate schools, record subscription payments, see platform health. Not tied to a school. |
-| **Director** (`principal`) | Head of a school | Everything for their school: team, classes, students, parents, fees, report cards, announcements, analytics, activity log, logo, referral. |
-| **Secretary** (`secretary`) | Administration staff | Same as the director except inviting/managing secretaries and nurses, changing the logo, and the automatic-reminder setting. |
+| **Director** (`principal`) | Head of a school | Everything for their school: team, classes, students, parents, fees, report cards, announcements, analytics, activity log, logo, referral, optional canteen and transport switches. |
+| **Secretary** (`secretary`) | Administration staff | Same as the director except inviting/managing secretaries, nurses, canteen and driver accounts, changing the logo/modules, and the automatic-reminder setting. |
 | **Teacher** (`teacher`) | Teaching staff | Only the classes and **subjects** they are assigned: grades, attendance, homework, lessons, remarks, meeting slots, messages. |
 | **School nurse** (`nurse`) | Infirmary | Health sheets only (read and edit). Every other area is refused by the server. |
-| **Parent** (`parent`) | Parent or guardian | Only their own children: grades, attendance, homework, schedule, report cards, meetings, health sheet, fees and receipts, messages. |
+| **Canteen staff** (`canteen`) | Kitchen / canteen | Weekly menus and daily meal headcount (with diets and short health alerts only). Every other area is refused by the server. |
+| **Bus driver / escort** (`driver`) | School transport | Assigned bus runs only (morning/evening manifest, boarding/drop-off check-in, delay notices, first emergency contact). Every other area is refused by the server. |
+| **Parent** (`parent`) | Parent or guardian | Only their own children: grades, attendance, homework, schedule, report cards, meetings, health sheet, fees and receipts, canteen and transport (when enabled), messages. |
 
 A person can hold the web workspace of one role at a time; the app shows a role
 picker when an account has several.
@@ -53,6 +55,21 @@ picker when an account has several.
 - Visibility: the full sheet to administration, the school nurse and the child's parents; **teachers see only the short alert**. Every staff view is audited; fields are encrypted in the database.
 - The **infirmary** workspace lists students with their alerts so the nurse can find and open a sheet quickly.
 
+### Optional modules: Canteen & School transport
+Each school's director can enable or disable **Canteen** and **School transport** independently in Team / School settings (turning a module off hides it everywhere without deleting its records).
+
+- **Canteen**:
+  - **Weekly menus** (Sunday to Thursday) with allergen tags; parents see menus once published and are notified.
+  - **Student registrations**: monthly flat rate or selected school weekdays, with dietary flags (`vegetarian`, `gluten_free`, `diabetic`, `other`).
+  - **Daily kitchen headcount**: registered eaters for that weekday minus students marked `absent` in class attendance, with class roll status and only the short `teacher_alert` from the health sheet (never the full health record; every view is audited).
+  - **Monthly billing**: creates fees in the Fees module (`Cantine <month> <year>`), excluding holidays on selected-days plans and never double-billing.
+- **School transport**:
+  - **Routes and ordered stops** with morning/evening times, assigned driver/escort and monthly price.
+  - **Driver check-in**: 1-tap `boarded`, `dropped`, or `no_show` (with an offline queue and idempotent `client_event_id` sync) that notifies parents with Algeria local times; **+15 min delay** button to notify riders' parents.
+  - **Parent absence notices**: parents can declare "no bus" up to 30 minutes before the stop's scheduled time; the driver's manifest automatically excludes those riders.
+  - **Forgotten-child safety lock**: completing a trip is blocked (`409`) if any student was marked `boarded` without a `dropped` check-in; forcing completion raises an immediate `SECURITY` alert to school administrators and writes an audit entry.
+  - **Privacy by design**: drivers see only the short health alert and the **first** emergency contact. **Live GPS tracking is deliberately excluded** in this version.
+
 ### Management and insight
 - **Student file** and **teacher history** (30-day activity) for the director.
 - **Early warning**: students at risk are flagged when the trimester average is below 10/20, has dropped by 2 points or more against the previous trimester, or when there are 3+ unjustified absences or 5+ late arrivals in 30 days.
@@ -73,4 +90,5 @@ Arabic (right-to-left), French and English. Dates and amounts follow the languag
 ## What the product deliberately does not do
 - Online payment, and sending codes by email or SMS (codes are handed over by the school).
 - Grades or attendance for teachers across subjects they do not teach.
+- Live GPS location tracking of students or buses.
 - Selling or profiling data; data is used for school purposes only (see the privacy policy).

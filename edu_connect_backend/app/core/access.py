@@ -22,6 +22,10 @@ from app.models import (
 
 ADMIN_ROLES = {UserRole.principal, UserRole.secretary}
 STAFF_ROLES = {UserRole.teacher, UserRole.principal, UserRole.secretary}
+# Staff accounts the administration invites with a one-time code.
+INVITABLE_STAFF_ROLES = (UserRole.teacher, UserRole.secretary, UserRole.nurse, UserRole.canteen, UserRole.driver)
+# Of those, the ones only the director may invite or manage.
+DIRECTOR_MANAGED_ROLES = (UserRole.secretary, UserRole.nurse, UserRole.canteen, UserRole.driver)
 
 
 def assert_school_is_active(current_user: User) -> None:

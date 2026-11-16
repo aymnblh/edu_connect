@@ -17,6 +17,8 @@ from app.modules.meetings.routers import meetings
 from app.modules.health.routers import health
 from app.modules.schools.routers import branding, director_views, setup
 from app.modules.reports.routers import monthly
+from app.modules.canteen.routers import canteen
+from app.modules.transport.routers import transport
 
 api_router = APIRouter()
 
@@ -64,6 +66,10 @@ api_router.include_router(schedule.router)
 
 # Finance
 api_router.include_router(finance.router)
+
+# Optional modules (switched on per school)
+api_router.include_router(canteen.router)
+api_router.include_router(transport.router)
 
 # Security & Audit
 api_router.include_router(security.router)

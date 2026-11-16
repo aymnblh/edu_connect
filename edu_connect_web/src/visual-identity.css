@@ -12,7 +12,7 @@
   --text-primary: #18302e;
   --text-muted: #63716d;
   --text-secondary: #63716d;
-  --accent: #8a5a1b;
+  --accent: #a96f24;
   --success: #247a59;
   --warning: #9a681c;
   --danger: #b64b43;
@@ -20,7 +20,7 @@
   --radius-md: 8px;
   --radius-lg: 11px;
   --radius-xl: 14px;
-  --sidebar-bg: #173432;
+  --sidebar-bg: #123b36;
   --sidebar-text: #b8c8c3;
   --sidebar-text-hover: #f4f6f2;
   --sidebar-active-bg: #274844;
@@ -198,7 +198,7 @@ html[dir='rtl'] body {
 
 .sidebar-brand-text {
   background: none;
-  color: #f8f6ef;
+  color: #f7f4eb;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -249,7 +249,7 @@ html[dir='rtl'] body {
 .sidebar-user-avatar {
   background: #c99a58;
   border-radius: 6px;
-  color: #173432;
+  color: #123b36;
 }
 
 .sidebar-user-card .sidebar-user-name,
@@ -951,14 +951,14 @@ html[dir='rtl'] .dashboard-action-arrow {
 
 .child-card--active .child-avatar {
   background: #d8b778;
-  color: #173432;
+  color: #123b36;
 }
 
 .workspace-modal {
   background: var(--surface-color);
   border-color: var(--surface-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 20px 60px rgba(20, 43, 39, 0.18);
+  box-shadow: 0 20px 60px rgba(24, 48, 46, 0.18);
 }
 
 .toast {
@@ -966,7 +966,7 @@ html[dir='rtl'] .dashboard-action-arrow {
   border-color: var(--surface-border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  box-shadow: 0 8px 24px rgba(20, 43, 39, 0.12);
+  box-shadow: 0 8px 24px rgba(24, 48, 46, 0.12);
 }
 
 .login-splitscreen {
@@ -988,7 +988,7 @@ html[dir='rtl'] .dashboard-action-arrow {
 .login-brand-side {
   flex: 1.12;
   padding: 38px clamp(36px, 5vw, 76px);
-  background: #173432;
+  background: #123b36;
   border: 0;
   color: #f7f4eb;
 }
@@ -1065,7 +1065,7 @@ html[dir='rtl'] .dashboard-action-arrow {
 
 .login-hero-gradient {
   background: none;
-  color: #e0ba7d;
+  color: #d7b174;
   -webkit-text-fill-color: currentColor;
 }
 
@@ -1780,7 +1780,7 @@ html[dir='rtl'] .dashboard-action-arrow {
   }
 
   .teacher-attendance-table tr.teacher-attendance-row--marked {
-    border-color: #afc2b6;
+    border-color: #b7c4bc;
   }
 
   .teacher-attendance-table td {

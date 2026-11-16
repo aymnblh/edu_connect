@@ -23,6 +23,7 @@ from app.models import (
 )
 from app.modules.finance.fees import (
     PAYMENT_METHODS,
+    bill_students,
     dec,
     new_receipt_number,
     days_overdue,
@@ -159,37 +160,15 @@ async def create_invoices_for_class(
         )
     student_ids = (await db.execute(students)).scalars().all()
     label = payload.label.strip()
-    already_billed = set(
-        (
-            await db.execute(
-                select(TuitionInvoice.student_id).where(
-                    TuitionInvoice.school_id == school_id,
-                    func.lower(TuitionInvoice.label) == label.lower(),
-                )
-            )
-        ).scalars().all()
+    amount = dec(payload.amount_due)
+    created, skipped = await bill_students(
+        db, school_id, {student_id: amount for student_id in student_ids}, label, _due_at(payload.due_date)
     )
-    created = 0
-    for student_id in student_ids:
-        if student_id in already_billed:
-            continue
-        db.add(
-            TuitionInvoice(
-                school_id=school_id,
-                student_id=student_id,
-                label=label,
-                amount_due=dec(payload.amount_due),
-                amount_paid=Decimal("0"),
-                status=TuitionInvoiceStatus.unpaid,
-                due_date=_due_at(payload.due_date),
-            )
-        )
-        created += 1
     await _audit(db, request, current_user, "fees.invoices_created", payload.class_id or school_id, {
         "label": label, "amount": money(payload.amount_due), "created": created, "class_id": payload.class_id,
     })
     await db.commit()
-    return {"created": created, "skipped": len(student_ids) - created}
+    return {"created": created, "skipped": skipped}
 
 
 @router.get("/invoices", response_model=list[TuitionInvoiceOut])

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Award,
+  Bus,
   Calendar,
   CalendarCheck,
   CalendarClock,
@@ -15,6 +16,7 @@ import {
   MessageSquare,
   NotebookText,
   RefreshCw,
+  Utensils,
   Wallet,
   type LucideIcon,
 } from 'lucide-react';
@@ -25,8 +27,10 @@ import ParentReportCardsPanel from '../components/ParentReportCardsPanel';
 import { ParentMeetingsPanel } from '../components/MeetingsPanel';
 import HealthRecordForm from '../components/HealthRecordForm';
 import ParentFeesPanel from '../components/ParentFeesPanel';
+import { ParentCanteenPanel, ParentTransportPanel } from '../components/ParentServicesPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import { api } from '../lib/api';
+import { useSchoolBranding } from '../lib/branding';
 import { useLocale, type Locale } from '../lib/i18n';
 
 interface Student {
@@ -120,16 +124,17 @@ interface ChildContext {
   className: string;
 }
 
-type ParentTab = 'overview' | 'grades' | 'homework' | 'exams' | 'schedule' | 'attendance' | 'reports' | 'meetings' | 'health' | 'fees' | 'announcements' | 'message';
-type ParentSection = 'overview' | 'schoolwork' | 'attendance' | 'finance' | 'communication';
+type ParentTab = 'overview' | 'grades' | 'homework' | 'exams' | 'schedule' | 'attendance' | 'reports' | 'meetings' | 'health' | 'fees' | 'canteen' | 'transport' | 'announcements' | 'message';
+type ParentSection = 'overview' | 'schoolwork' | 'attendance' | 'finance' | 'services' | 'communication';
 type SchoolworkFilter = 'upcoming' | 'past' | 'all';
 
-const parentSectionOrder: ParentSection[] = ['overview', 'schoolwork', 'attendance', 'finance', 'communication'];
+const parentSectionOrder: ParentSection[] = ['overview', 'schoolwork', 'attendance', 'finance', 'services', 'communication'];
 const parentTabsBySection: Record<ParentSection, ParentTab[]> = {
   overview: ['overview'],
   schoolwork: ['grades', 'homework', 'exams'],
   attendance: ['attendance', 'schedule', 'health'],
   finance: ['reports', 'fees'],
+  services: ['canteen', 'transport'],
   communication: ['message', 'announcements', 'meetings'],
 };
 const parentTabSections = Object.fromEntries(
@@ -209,6 +214,11 @@ function normalizeHomeworkKind(value: string | undefined | null): HomeworkKind {
 
 export default function ParentDashboard() {
   const { t, locale } = useLocale();
+  const branding = useSchoolBranding().data;
+  const enabledServices: ParentTab[] = [
+    ...(branding?.modules?.canteen ? (['canteen'] as ParentTab[]) : []),
+    ...(branding?.modules?.transport ? (['transport'] as ParentTab[]) : []),
+  ];
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<ParentTab>('overview');
   const [homeworkFilter, setHomeworkFilter] = useState<SchoolworkFilter>('upcoming');
@@ -332,6 +342,7 @@ export default function ParentDashboard() {
     schoolwork: t('parent.nav.schoolwork'),
     attendance: t('parent.nav.attendance'),
     finance: t('parent.nav.finance'),
+    services: t('parent.nav.services'),
     communication: t('parent.nav.communication'),
   };
   const tabLabels: Record<ParentTab, string> = {
@@ -345,6 +356,8 @@ export default function ParentDashboard() {
     meetings: t('meetings.tab'),
     health: t('health.tab'),
     fees: t('fees.tab'),
+    canteen: t('nav.canteen'),
+    transport: t('nav.transport'),
     announcements: t('announcements.tab'),
     message: t('parent.tabMessage'),
   };
@@ -359,6 +372,8 @@ export default function ParentDashboard() {
     meetings: CalendarClock,
     health: HeartPulse,
     fees: Wallet,
+    canteen: Utensils,
+    transport: Bus,
     announcements: Megaphone,
     message: MessageSquare,
   };
@@ -367,6 +382,7 @@ export default function ParentDashboard() {
     schoolwork: NotebookText,
     attendance: CalendarCheck,
     finance: FolderOpen,
+    services: Bus,
     communication: MessageSquare,
   };
 
@@ -487,28 +503,31 @@ export default function ParentDashboard() {
 
           <div className="glass-card dashboard-card-pad">
             <div className="parent-primary-nav" role="tablist" aria-label={t('parent.tabsAria')}>
-              {parentSectionOrder.map((section) => {
-                const Icon = sectionIcons[section];
-                const isActive = activeSection === section;
-                return (
-                  <button
-                    key={section}
-                    type="button"
-                    className={`parent-section-button ${isActive ? 'parent-section-button--active' : ''}`}
-                    onClick={() => setActiveSubTab(parentTabsBySection[section][0])}
-                    role="tab"
-                    aria-selected={isActive}
-                  >
-                    <Icon size={17} aria-hidden="true" />
-                    <span>{sectionLabels[section]}</span>
-                  </button>
-                );
-              })}
+              {parentSectionOrder
+                .filter((section) => section !== 'services' || enabledServices.length > 0)
+                .map((section) => {
+                  const Icon = sectionIcons[section];
+                  const isActive = activeSection === section;
+                  const firstTab = section === 'services' ? enabledServices[0] : parentTabsBySection[section][0];
+                  return (
+                    <button
+                      key={section}
+                      type="button"
+                      className={`parent-section-button ${isActive ? 'parent-section-button--active' : ''}`}
+                      onClick={() => setActiveSubTab(firstTab)}
+                      role="tab"
+                      aria-selected={isActive}
+                    >
+                      <Icon size={17} aria-hidden="true" />
+                      <span>{sectionLabels[section]}</span>
+                    </button>
+                  );
+                })}
             </div>
 
             {activeSection !== 'overview' && (
               <div className="tab-bar parent-secondary-tabs" role="tablist" aria-label={t('parent.subtabsAria')}>
-                {parentTabsBySection[activeSection].map((tab) => {
+                {(activeSection === 'services' ? enabledServices : parentTabsBySection[activeSection]).map((tab) => {
                   const Icon = tabIcons[tab];
                   const isActive = activeSubTab === tab;
                   return (
@@ -527,7 +546,7 @@ export default function ParentDashboard() {
               </div>
             )}
 
-            {!activeChild.classId && !['message', 'announcements', 'reports', 'meetings', 'health', 'fees'].includes(activeSubTab) && (
+            {!activeChild.classId && !['message', 'announcements', 'reports', 'meetings', 'health', 'fees', 'canteen', 'transport'].includes(activeSubTab) && (
               <p className="empty-list-copy">{t('parent.unassignedChildClass')}</p>
             )}
 
@@ -960,6 +979,8 @@ export default function ParentDashboard() {
               </div>
             )}
             {activeSubTab === 'fees' && <ParentFeesPanel key={activeChild.student.id} studentId={activeChild.student.id} />}
+            {activeSubTab === 'canteen' && <ParentCanteenPanel key={`canteen-${activeChild.student.id}`} studentId={activeChild.student.id} />}
+            {activeSubTab === 'transport' && <ParentTransportPanel key={`transport-${activeChild.student.id}`} studentId={activeChild.student.id} />}
             {activeSubTab === 'announcements' && (
               <AnnouncementsPanel
                 scopeKey="parent"

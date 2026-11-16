@@ -7,6 +7,8 @@ import AuditLogPanel from '../components/AuditLogPanel';
 import { StudentFileModal, TeacherHistoryModal } from '../components/DirectorRecordsPanels';
 import DirectorInsightsPanel from '../components/DirectorInsightsPanel';
 import FeesPanel from '../components/FeesPanel';
+import CanteenAdminPanel from '../components/CanteenAdminPanel';
+import TransportAdminPanel from '../components/TransportAdminPanel';
 import MonthlyReportPanel from '../components/MonthlyReportPanel';
 import SetupChecklist, { ParentCodesSheet } from '../components/SetupChecklist';
 import TeacherImport from '../components/TeacherImport';
@@ -16,6 +18,7 @@ import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
 import DashboardActionGrid from '../components/DashboardActionGrid';
 import { api } from '../lib/api';
+import { useSchoolBranding } from '../lib/branding';
 import { downloadStudentTemplate } from '../lib/downloads';
 import { t as translate, useLocale, type Locale } from '../lib/i18n';
 import { readWorkspaceSessionItem } from '../lib/workspace';
@@ -24,6 +27,7 @@ import {
   Activity,
   Award,
   BookOpen,
+  Bus,
   CalendarDays,
   CalendarRange,
   CheckCircle2,
@@ -51,6 +55,7 @@ import {
   TrendingUp,
   UserPlus,
   Users,
+  Utensils,
   Wallet,
   X,
 } from 'lucide-react';
@@ -163,7 +168,7 @@ interface CreateTeacherResponse extends Teacher {
   invite_code?: string | null;
 }
 
-type StaffInviteRole = 'teacher' | 'secretary' | 'nurse';
+type StaffInviteRole = 'teacher' | 'secretary' | 'nurse' | 'canteen' | 'driver';
 
 interface StaffMember extends Teacher {
   role: string;
@@ -187,7 +192,7 @@ interface ClassCourseAssignment {
 }
 
 type ToastType = 'success' | 'error' | 'warning';
-type DirectorTab = 'overview' | 'monthly' | 'fees' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
+type DirectorTab = 'overview' | 'monthly' | 'fees' | 'canteen' | 'transport' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
 
 interface Toast {
   id: number;
@@ -217,6 +222,8 @@ const directorTabs: Array<{
   { id: 'students', labelKey: 'director.tab.students', route: '/director/students', icon: Users },
   { id: 'classes', labelKey: 'director.tab.classes', route: '/director/classes', icon: BookOpen },
   { id: 'fees', labelKey: 'director.tab.fees', route: '/director/fees', icon: Wallet },
+  { id: 'canteen', labelKey: 'nav.canteen', route: '/director/canteen', icon: Utensils },
+  { id: 'transport', labelKey: 'nav.transport', route: '/director/transport', icon: Bus },
   { id: 'team', labelKey: 'director.tab.team', route: '/director/team', icon: UserPlus },
   { id: 'reports', labelKey: 'director.tab.reports', route: '/director/report-cards', icon: FileText },
   { id: 'announcements', labelKey: 'director.tab.announcements', route: '/director/announcements', icon: Megaphone },
@@ -260,6 +267,8 @@ function readCurrentUserRole(): string {
 function tabFromPath(pathname: string): DirectorTab {
   if (pathname.includes('/director/monthly-report')) return 'monthly';
   if (pathname.includes('/director/fees')) return 'fees';
+  if (pathname.includes('/director/canteen')) return 'canteen';
+  if (pathname.includes('/director/transport')) return 'transport';
   if (pathname.includes('/director/students')) return 'students';
   if (pathname.includes('/director/classes')) return 'classes';
   if (pathname.includes('/director/team')) return 'team';
@@ -368,6 +377,7 @@ export default function DirectorDashboard() {
   const activeTab = tabFromPath(location.pathname);
   const schoolId = useMemo(() => readCurrentSchoolId(), []);
   const currentUserRole = useMemo(() => readCurrentUserRole(), []);
+  const schoolBranding = useSchoolBranding().data;
 
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [studentSearch, setStudentSearch] = useState('');
@@ -944,22 +954,28 @@ export default function DirectorDashboard() {
 
   const renderPageTabs = () => (
     <nav className="management-tabs" aria-label={t('director.sectionsAria')}>
-      {directorTabs.map((tab) => {
-        const Icon = tab.icon;
-        const active = activeTab === tab.id;
-        return (
-          <button
-            type="button"
-            key={tab.id}
-            className={`management-tab ${active ? 'management-tab--active' : ''}`}
-            aria-current={active ? 'page' : undefined}
-            onClick={() => navigate(tab.route)}
-          >
-            <Icon size={17} />
-            <span>{t(tab.labelKey)}</span>
-          </button>
-        );
-      })}
+      {directorTabs
+        .filter((tab) => {
+          if (tab.id === 'canteen') return Boolean(schoolBranding?.modules?.canteen);
+          if (tab.id === 'transport') return Boolean(schoolBranding?.modules?.transport);
+          return true;
+        })
+        .map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              type="button"
+              key={tab.id}
+              className={`management-tab ${active ? 'management-tab--active' : ''}`}
+              aria-current={active ? 'page' : undefined}
+              onClick={() => navigate(tab.route)}
+            >
+              <Icon size={17} />
+              <span>{t(tab.labelKey)}</span>
+            </button>
+          );
+        })}
     </nav>
   );
 
@@ -1872,6 +1888,12 @@ export default function DirectorDashboard() {
               {currentUserRole === 'principal' && (
                 <option value="nurse">{t('role.nurse')}</option>
               )}
+              {currentUserRole === 'principal' && (
+                <option value="canteen">{t('role.canteen')}</option>
+              )}
+              {currentUserRole === 'principal' && (
+                <option value="driver">{t('role.driver')}</option>
+              )}
             </select>
           </div>
           <div className="form-group">
@@ -1953,7 +1975,7 @@ export default function DirectorDashboard() {
                     )}
                   </td>
                   <td>
-                    {(member.role === 'teacher' || ((member.role === 'secretary' || member.role === 'nurse') && currentUserRole === 'principal')) && (
+                    {(member.role === 'teacher' || (['secretary', 'nurse', 'canteen', 'driver'].includes(member.role) && currentUserRole === 'principal')) && (
                       <div className="table-actions">
                         {member.role === 'teacher' && (
                           <button
@@ -2028,6 +2050,8 @@ export default function DirectorDashboard() {
       {activeTab === 'overview' && renderOverview()}
       {activeTab === 'monthly' && <MonthlyReportPanel />}
       {activeTab === 'fees' && <FeesPanel canChangeSettings={currentUserRole === 'principal'} />}
+      {activeTab === 'canteen' && <CanteenAdminPanel canManageAdmin canEditSettings={currentUserRole === 'principal'} />}
+      {activeTab === 'transport' && <TransportAdminPanel />}
       {activeTab === 'overview' && <DirectorInsightsPanel />}
       {activeTab === 'overview' && <ReferralCard />}
       {activeTab === 'students' && renderStudents()}

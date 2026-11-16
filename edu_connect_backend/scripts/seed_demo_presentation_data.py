@@ -26,6 +26,8 @@ from app.models import (
     Attendance,
     AttendanceStatus,
     AuditEvent,
+    CanteenEnrollment,
+    CanteenMenu,
     Class,
     ClassCourse,
     ClassMember,
@@ -49,6 +51,9 @@ from app.models import (
     Student,
     StudentHealthRecord,
     StudentParent,
+    TransportAssignment,
+    TransportRoute,
+    TransportStop,
     TuitionInvoice,
     TuitionInvoiceStatus,
     TuitionPayment,
@@ -56,6 +61,7 @@ from app.models import (
     UserRole,
 )
 from app.modules.auth.routers.auth import TERMS_VERSION
+from app.modules.canteen.logic import week_days
 from app.modules.demo.access import DEMO_DOMAIN, DEMO_SCHOOL_NAME
 from app.modules.schools.calendar import ALGERIA_TZ, algerian_trimesters
 
@@ -267,6 +273,8 @@ async def seed_demo_data(*, reset_demo: bool, accounts_output: Path | None, forc
                 "seeded_on": datetime.now(ALGERIA_TZ).date().isoformat(),
                 # The demo school is already set up; never show it the setup checklist.
                 "setup_dismissed": True,
+                "modules": {"canteen": True, "transport": True},
+                "canteen": {"monthly_price": "4500.00", "daily_price": "250.00"},
             },
         )
         db.add(school)
@@ -747,6 +755,89 @@ async def seed_demo_data(*, reset_demo: bool, accounts_output: Path | None, forc
                 is_read=False,
             )
         )
+
+        # Canteen: one published school week and half the students registered.
+        canteen_sample_menus = [
+            ("Salade verte", "Couscous aux legumes et poulet", "Orange", ["gluten"]),
+            ("Chorba frik", "Gratin de pommes de terre", "Yaourt", ["milk", "gluten"]),
+            ("Salade de tomates", "Poisson grille et riz", "Pomme", ["fish"]),
+            ("Soupe de lentilles", "Escalope grillee et haricots", "Banane", []),
+            ("Carottes rapees", "Tajine zitoune", "Clementine", []),
+        ]
+        for day_date, (starter, main, dessert, allergens) in zip(week_days(today.date()), canteen_sample_menus):
+            db.add(
+                CanteenMenu(
+                    school_id=school.id,
+                    day=day_date,
+                    starter=starter,
+                    main=main,
+                    dessert=dessert,
+                    allergens=allergens,
+                    published_at=utc_now(),
+                    created_by=principal.id,
+                )
+            )
+        for idx, student in enumerate(students[:6]):
+            db.add(
+                CanteenEnrollment(
+                    school_id=school.id,
+                    student_id=student.id,
+                    plan="monthly" if idx % 2 == 0 else "days",
+                    weekdays=[0, 1, 2, 3, 4] if idx % 2 == 0 else [0, 2, 4],
+                    diet="none" if idx != 1 else "gluten_free",
+                    start_date=today.date() - timedelta(days=30),
+                    created_by=principal.id,
+                )
+            )
+
+        # Transport: two bus lines with ordered stops and assignments.
+        demo_driver = add_user(
+            db,
+            email=f"chauffeur@{DEMO_DOMAIN}",
+            full_name="Karim Mansouri",
+            role=UserRole.driver,
+            school_id=school.id,
+            phone="+213555000099",
+        )
+        route_a = TransportRoute(
+            school_id=school.id,
+            name="Ligne Nord - Hydra / El Biar",
+            vehicle_plate="16-45210-16",
+            capacity=32,
+            driver_id=demo_driver.id,
+            monthly_price=3500,
+            active=True,
+        )
+        route_b = TransportRoute(
+            school_id=school.id,
+            name="Ligne Est - Bab Ezzouar / Kouba",
+            vehicle_plate="16-88312-16",
+            capacity=28,
+            driver_id=demo_driver.id,
+            monthly_price=3800,
+            active=True,
+        )
+        db.add_all([route_a, route_b])
+        await db.flush()
+        stop_a1 = TransportStop(school_id=school.id, route_id=route_a.id, name="Place El Biar", position=1, morning_time="07:10", evening_time="16:40")
+        stop_a2 = TransportStop(school_id=school.id, route_id=route_a.id, name="Hydra Val d'Hydra", position=2, morning_time="07:25", evening_time="16:25")
+        stop_b1 = TransportStop(school_id=school.id, route_id=route_b.id, name="Kouba Jolie Vue", position=1, morning_time="07:05", evening_time="16:45")
+        stop_b2 = TransportStop(school_id=school.id, route_id=route_b.id, name="Bab Ezzouar Universite", position=2, morning_time="07:20", evening_time="16:30")
+        db.add_all([stop_a1, stop_a2, stop_b1, stop_b2])
+        await db.flush()
+        demo_stops = [(route_a.id, stop_a1.id), (route_a.id, stop_a2.id), (route_b.id, stop_b1.id), (route_b.id, stop_b2.id)]
+        for idx, student in enumerate(students[:6]):
+            r_id, s_id = demo_stops[idx % len(demo_stops)]
+            db.add(
+                TransportAssignment(
+                    school_id=school.id,
+                    student_id=student.id,
+                    route_id=r_id,
+                    stop_id=s_id,
+                    direction="both",
+                    start_date=today.date() - timedelta(days=30),
+                )
+            )
 
         await set_audit_event_write_context(db)
         # Everyday use, so the activity log and the monthly report have something to show.

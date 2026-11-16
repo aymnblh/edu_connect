@@ -35,6 +35,14 @@ interface MonthlyReport {
   snapshot: { students: number; students_with_parent: number; linked_parents: number; teachers: number };
   parent_coverage: number | null;
   active_parent_rate: number | null;
+  services?: {
+    canteen_enrolled: number;
+    canteen_menus_published: number;
+    transport_assigned: number;
+    transport_trips: number;
+    transport_delayed_trips: number;
+    transport_unaccounted_alerts: number;
+  };
   class_attendance: Array<{ class_id: string; class_name: string; attendance_rate: number | null }>;
   available_months: string[];
 }
@@ -208,6 +216,26 @@ export default function MonthlyReportPanel() {
               </li>
             ))}
           </ul>
+
+          {report.services &&
+            (report.services.canteen_enrolled > 0 ||
+              report.services.canteen_menus_published > 0 ||
+              report.services.transport_assigned > 0 ||
+              report.services.transport_trips > 0) && (
+              <>
+                <h3 className="monthly-subtitle" style={{ marginTop: '1.25rem' }}>{t('monthly.services')}</h3>
+                <ul className="monthly-coverage">
+                  <li>
+                    <strong>{number(report.services.canteen_enrolled)}</strong>
+                    <span>{t('monthly.canteenEnrolled', { menus: number(report.services.canteen_menus_published) })}</span>
+                  </li>
+                  <li>
+                    <strong>{number(report.services.transport_assigned)}</strong>
+                    <span>{t('monthly.transportAssigned', { trips: number(report.services.transport_trips), delayed: number(report.services.transport_delayed_trips) })}</span>
+                  </li>
+                </ul>
+              </>
+            )}
         </div>
       </div>
       <p className="report-card-muted">{t('monthly.method')}</p>

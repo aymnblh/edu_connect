@@ -36,6 +36,18 @@ export default function SchoolBrandingCard({ canEdit }: { canEdit: boolean }) {
     onSuccess: onDone,
     onError,
   });
+  const modulesMutation = useMutation({
+    mutationFn: async (next: { canteen: boolean; transport: boolean }) => api.put('/schools/modules', next),
+    onSuccess: onDone,
+    onError,
+  });
+  const currentModules = {
+    canteen: Boolean(branding?.modules?.canteen),
+    transport: Boolean(branding?.modules?.transport),
+  };
+  const toggleModule = (key: 'canteen' | 'transport') => {
+    modulesMutation.mutate({ ...currentModules, [key]: !currentModules[key] });
+  };
   const onFile = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) uploadMutation.mutate(file);
@@ -73,6 +85,33 @@ export default function SchoolBrandingCard({ canEdit }: { canEdit: boolean }) {
         <p className="report-card-muted">{t('branding.directorOnly')}</p>
       )}
       {error && <p className="dashboard-section-copy" role="alert">{error}</p>}
+
+      <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle, rgba(148,163,184,0.25))' }}>
+        <h3 className="dashboard-section-title dashboard-section-title--plain" style={{ fontSize: '0.95rem', marginBottom: '0.5rem' }}>
+          {t('modules.title')}
+        </h3>
+        <p className="dashboard-section-copy" style={{ marginBottom: '0.75rem' }}>{t('modules.copy')}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={currentModules.canteen}
+              disabled={!canEdit || modulesMutation.isPending}
+              onChange={() => toggleModule('canteen')}
+            />
+            <span>{t('modules.canteen')}</span>
+          </label>
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={currentModules.transport}
+              disabled={!canEdit || modulesMutation.isPending}
+              onChange={() => toggleModule('transport')}
+            />
+            <span>{t('modules.transport')}</span>
+          </label>
+        </div>
+      </div>
     </section>
   );
 }
