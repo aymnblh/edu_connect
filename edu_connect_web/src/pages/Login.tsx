@@ -31,7 +31,8 @@ export default function Login() {
     queryKey: ['public-demo'],
     queryFn: async () => (await api.get('/auth/demo')).data,
     staleTime: 5 * 60 * 1000,
-    retry: false,
+    retry: 1,
+    retryDelay: 2500,
   });
 
   const showError = (err: unknown) => {

@@ -6544,6 +6544,16 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'الحضور والنقاط والرسائل والمبالغ المحصلة في ملف PDF',
     en: 'Attendance, grades, activity & collected fees in PDF',
   },
+  'landing.hero.demoChecking': {
+    fr: 'Connexion à la démo en ligne…',
+    ar: 'جارٍ الاتصال بالعرض التجريبي…',
+    en: 'Connecting to live demo…',
+  },
+  'landing.hero.demoOfflineHint': {
+    fr: 'Démo interactive ci-dessous · la démo serveur en ligne est en attente d\'activation.',
+    ar: 'العرض التفاعلي متاح أدناه · العرض عبر الخادم غير مفعل حاليا.',
+    en: 'Interactive preview below · live server demo is currently offline.',
+  },
   'landing.preview.eyebrow': {
     fr: 'VISITE INTERACTIVE',
     ar: 'جولة تفاعلية',

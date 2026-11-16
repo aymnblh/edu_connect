@@ -67,7 +67,8 @@ export default function Landing() {
     queryKey: ['public-demo'],
     queryFn: async () => (await api.get('/auth/demo')).data,
     staleTime: 5 * 60 * 1000,
-    retry: false,
+    retry: 1,
+    retryDelay: 2500,
   });
 
   const openDemo = async (role: DemoRole) => {
@@ -159,9 +160,9 @@ export default function Landing() {
                   <ArrowRight size={16} aria-hidden="true" />
                 </Link>
                 {!demoQuery.data?.enabled && (
-                  <Link to="/login" className="btn btn-secondary landing-cta-ghost">
+                  <a href="#apercu" className="btn btn-secondary landing-cta-ghost">
                     {t('landing.hero.ctaDemo')}
-                  </Link>
+                  </a>
                 )}
                 <a
                   href="/brochure-wasel-edu.html"
@@ -173,6 +174,24 @@ export default function Landing() {
                   {t('pricing.brochure')}
                 </a>
               </div>
+
+              {demoQuery.isPending && (
+                <div className="landing-hero-demo">
+                  <span className="landing-hero-demo-label">
+                    <Eye size={15} aria-hidden="true" />
+                    {t('landing.hero.demoChecking')}
+                  </span>
+                </div>
+              )}
+
+              {!demoQuery.isPending && !demoQuery.data?.enabled && (
+                <div className="landing-hero-demo">
+                  <span className="landing-hero-demo-label">
+                    <Eye size={15} aria-hidden="true" />
+                    {t('landing.hero.demoOfflineHint')}
+                  </span>
+                </div>
+              )}
 
               {demoQuery.data?.enabled && (
                 <div className="landing-hero-demo">

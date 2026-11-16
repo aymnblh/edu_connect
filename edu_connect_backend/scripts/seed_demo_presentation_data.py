@@ -135,6 +135,14 @@ async def reset_demo_school(db, school_id: str) -> None:
     await set_request_rls_context(db, school_id=school_id, is_system_admin=True)
     # Delete child tables explicitly so the reset is deterministic across DBs.
     for table in (
+        "transport_exceptions",
+        "transport_trip_events",
+        "transport_trips",
+        "transport_assignments",
+        "transport_stops",
+        "transport_routes",
+        "canteen_enrollments",
+        "canteen_menus",
         "student_health_records",
         "report_cards",
         "meeting_slots",

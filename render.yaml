@@ -42,6 +42,10 @@ services:
         value: "5"
       - key: CREATE_TABLES_ON_STARTUP
         value: "false"
+      - key: PUBLIC_DEMO_ENABLED
+        value: "true"
+      - key: BACKGROUND_JOBS_ENABLED
+        value: "true"
       - key: CORS_ORIGINS
         sync: false
       - key: NTFY_BASE_URL
