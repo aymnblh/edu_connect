@@ -58,7 +58,32 @@ from app.utils import notifications
 
 
 def run(coro):
-    return asyncio.run(coro)
+    try:
+        yielded = coro.send(None)
+    except StopIteration as done:
+        return done.value
+    except BaseException:
+        coro.close()
+        raise
+
+    async def _finish(first):
+        pending = first
+        while True:
+            exc = None
+            value = None
+            try:
+                value = await pending
+            except BaseException as err:
+                exc = err
+            try:
+                pending = coro.throw(exc) if exc is not None else coro.send(value)
+            except StopIteration as done:
+                return done.value
+
+    try:
+        return asyncio.run(_finish(yielded))
+    finally:
+        coro.close()
 
 
 def compiled_sql(statement) -> str:

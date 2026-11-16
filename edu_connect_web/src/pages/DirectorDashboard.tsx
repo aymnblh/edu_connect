@@ -7,6 +7,8 @@ import AuditLogPanel from '../components/AuditLogPanel';
 import { StudentFileModal, TeacherHistoryModal } from '../components/DirectorRecordsPanels';
 import DirectorInsightsPanel from '../components/DirectorInsightsPanel';
 import FeesPanel from '../components/FeesPanel';
+import CanteenAdminPanel from '../components/CanteenAdminPanel';
+import TransportAdminPanel from '../components/TransportAdminPanel';
 import MonthlyReportPanel from '../components/MonthlyReportPanel';
 import SetupChecklist, { ParentCodesSheet } from '../components/SetupChecklist';
 import TeacherImport from '../components/TeacherImport';
@@ -14,7 +16,9 @@ import ReferralCard from '../components/ReferralCard';
 import SchoolBrandingCard from '../components/SchoolBrandingCard';
 import ReportCardsAdminPanel from '../components/ReportCardsAdminPanel';
 import DirectMessagingPanel from '../components/DirectMessagingPanel';
+import DashboardActionGrid from '../components/DashboardActionGrid';
 import { api } from '../lib/api';
+import { useSchoolBranding } from '../lib/branding';
 import { downloadStudentTemplate } from '../lib/downloads';
 import { t as translate, useLocale, type Locale } from '../lib/i18n';
 import { readWorkspaceSessionItem } from '../lib/workspace';
@@ -23,6 +27,7 @@ import {
   Activity,
   Award,
   BookOpen,
+  Bus,
   CalendarDays,
   CalendarRange,
   CheckCircle2,
@@ -50,6 +55,7 @@ import {
   TrendingUp,
   UserPlus,
   Users,
+  Utensils,
   Wallet,
   X,
 } from 'lucide-react';
@@ -162,7 +168,7 @@ interface CreateTeacherResponse extends Teacher {
   invite_code?: string | null;
 }
 
-type StaffInviteRole = 'teacher' | 'secretary' | 'nurse';
+type StaffInviteRole = 'teacher' | 'secretary' | 'nurse' | 'canteen' | 'driver';
 
 interface StaffMember extends Teacher {
   role: string;
@@ -186,7 +192,7 @@ interface ClassCourseAssignment {
 }
 
 type ToastType = 'success' | 'error' | 'warning';
-type DirectorTab = 'overview' | 'monthly' | 'fees' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
+type DirectorTab = 'overview' | 'monthly' | 'fees' | 'canteen' | 'transport' | 'students' | 'classes' | 'team' | 'reports' | 'announcements' | 'journal' | 'messages';
 
 interface Toast {
   id: number;
@@ -216,6 +222,8 @@ const directorTabs: Array<{
   { id: 'students', labelKey: 'director.tab.students', route: '/director/students', icon: Users },
   { id: 'classes', labelKey: 'director.tab.classes', route: '/director/classes', icon: BookOpen },
   { id: 'fees', labelKey: 'director.tab.fees', route: '/director/fees', icon: Wallet },
+  { id: 'canteen', labelKey: 'nav.canteen', route: '/director/canteen', icon: Utensils },
+  { id: 'transport', labelKey: 'nav.transport', route: '/director/transport', icon: Bus },
   { id: 'team', labelKey: 'director.tab.team', route: '/director/team', icon: UserPlus },
   { id: 'reports', labelKey: 'director.tab.reports', route: '/director/report-cards', icon: FileText },
   { id: 'announcements', labelKey: 'director.tab.announcements', route: '/director/announcements', icon: Megaphone },
@@ -224,6 +232,7 @@ const directorTabs: Array<{
 ];
 
 const emptyStudents: Student[] = [];
+const emptyPendingAttendances: PendingAttendance[] = [];
 const emptyClasses: SchoolClass[] = [];
 const emptyTeachers: Teacher[] = [];
 const emptyStaffMembers: StaffMember[] = [];
@@ -258,6 +267,8 @@ function readCurrentUserRole(): string {
 function tabFromPath(pathname: string): DirectorTab {
   if (pathname.includes('/director/monthly-report')) return 'monthly';
   if (pathname.includes('/director/fees')) return 'fees';
+  if (pathname.includes('/director/canteen')) return 'canteen';
+  if (pathname.includes('/director/transport')) return 'transport';
   if (pathname.includes('/director/students')) return 'students';
   if (pathname.includes('/director/classes')) return 'classes';
   if (pathname.includes('/director/team')) return 'team';
@@ -366,9 +377,13 @@ export default function DirectorDashboard() {
   const activeTab = tabFromPath(location.pathname);
   const schoolId = useMemo(() => readCurrentSchoolId(), []);
   const currentUserRole = useMemo(() => readCurrentUserRole(), []);
+  const schoolBranding = useSchoolBranding().data;
 
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [studentSearch, setStudentSearch] = useState('');
+  const [pendingSearch, setPendingSearch] = useState('');
+  const [pendingStatus, setPendingStatus] = useState<'all' | PendingAttendance['status']>('all');
+  const [pendingLimit, setPendingLimit] = useState(8);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [linkLabel, setLinkLabel] = useState('parent');
   const [qrModal, setQrModal] = useState<{ student: Student; token: ParentLinkToken } | null>(null);
@@ -397,6 +412,12 @@ export default function DirectorDashboard() {
         setToasts((current) => current.filter((toast) => toast.id !== id));
       }, 250);
     }, 3500);
+  };
+
+  const focusSection = (id: string) => {
+    const section = document.getElementById(id);
+    section?.scrollIntoView({ block: 'start' });
+    section?.focus({ preventScroll: true });
   };
 
   const analyticsQuery = useQuery<DirectorAnalytics>({
@@ -477,7 +498,16 @@ export default function DirectorDashboard() {
   const staffMembers = staffQuery.data ?? emptyStaffMembers;
   const courses = coursesQuery.data ?? emptyCourses;
   const semesters = semestersQuery.data ?? emptySemesters;
-  const pendingAttendances = pendingAttendanceQuery.data ?? [];
+  const pendingAttendances = pendingAttendanceQuery.data ?? emptyPendingAttendances;
+  const filteredPendingAttendances = useMemo(() => {
+    const search = pendingSearch.trim().toLowerCase();
+    return pendingAttendances.filter((item) => {
+      if (pendingStatus !== 'all' && item.status !== pendingStatus) return false;
+      if (!search) return true;
+      return `${item.student_name} ${item.class_name}`.toLowerCase().includes(search);
+    });
+  }, [pendingAttendances, pendingSearch, pendingStatus]);
+  const visiblePendingAttendances = filteredPendingAttendances.slice(0, pendingLimit);
   const resolvedSelectedStudentId =
     selectedStudentId ?? (activeTab === 'students' ? students[0]?.id ?? null : null);
   const resolvedSelectedClassId =
@@ -924,27 +954,33 @@ export default function DirectorDashboard() {
 
   const renderPageTabs = () => (
     <nav className="management-tabs" aria-label={t('director.sectionsAria')}>
-      {directorTabs.map((tab) => {
-        const Icon = tab.icon;
-        const active = activeTab === tab.id;
-        return (
-          <button
-            type="button"
-            key={tab.id}
-            className={`management-tab ${active ? 'management-tab--active' : ''}`}
-            aria-current={active ? 'page' : undefined}
-            onClick={() => navigate(tab.route)}
-          >
-            <Icon size={17} />
-            <span>{t(tab.labelKey)}</span>
-          </button>
-        );
-      })}
+      {directorTabs
+        .filter((tab) => {
+          if (tab.id === 'canteen') return Boolean(schoolBranding?.modules?.canteen);
+          if (tab.id === 'transport') return Boolean(schoolBranding?.modules?.transport);
+          return true;
+        })
+        .map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              type="button"
+              key={tab.id}
+              className={`management-tab ${active ? 'management-tab--active' : ''}`}
+              aria-current={active ? 'page' : undefined}
+              onClick={() => navigate(tab.route)}
+            >
+              <Icon size={17} />
+              <span>{t(tab.labelKey)}</span>
+            </button>
+          );
+        })}
     </nav>
   );
 
   const renderPendingAttendance = () => (
-    <section className="glass-card animate-fade-in delay-2 pending-attendance-panel">
+    <section id="director-pending-attendance" className="glass-card animate-fade-in delay-2 pending-attendance-panel" tabIndex={-1}>
       <div className="dashboard-toolbar dashboard-toolbar--spacious">
         <div>
           <h3 className="dashboard-section-title dashboard-section-title--plain">{t('director.pending.title')}</h3>
@@ -956,6 +992,38 @@ export default function DirectorDashboard() {
           {t('director.pending.count', { count: pendingAttendances.length })}
         </span>
       </div>
+
+      {!pendingAttendanceQuery.isLoading && !pendingAttendanceQuery.error && pendingAttendances.length > 0 && (
+        <div className="pending-attendance-filters">
+          <label className="student-filter-bar pending-attendance-search">
+            <Search size={17} />
+            <span className="sr-only">{t('director.pending.search')}</span>
+            <input
+              value={pendingSearch}
+              onChange={(event) => {
+                setPendingSearch(event.target.value);
+                setPendingLimit(8);
+              }}
+              placeholder={t('director.pending.search')}
+            />
+          </label>
+          <label className="pending-attendance-status">
+            <span className="sr-only">{t('director.pending.statusFilter')}</span>
+            <select
+              className="form-input"
+              value={pendingStatus}
+              onChange={(event) => {
+                setPendingStatus(event.target.value as 'all' | PendingAttendance['status']);
+                setPendingLimit(8);
+              }}
+            >
+              <option value="all">{t('director.pending.allStatuses')}</option>
+              <option value="absent">{attendanceStatusLabel('absent', locale)}</option>
+              <option value="late">{attendanceStatusLabel('late', locale)}</option>
+            </select>
+          </label>
+        </div>
+      )}
 
       {pendingAttendanceQuery.isLoading && (
         <div className="pending-attendance-empty">
@@ -977,55 +1045,75 @@ export default function DirectorDashboard() {
         </div>
       )}
 
-      {!pendingAttendanceQuery.isLoading && !pendingAttendanceQuery.error && pendingAttendances.length > 0 && (
-        <div className="pending-attendance-list">
-          {pendingAttendances.map((item) => {
-            const draft = approvalDrafts[item.id] ?? item.justification_text ?? '';
-            const canApprove = draft.trim().length > 0;
-            const isSaving = acceptAttendanceMutation.isPending;
-            return (
-              <article className="pending-attendance-row" key={item.id}>
-                <div className="pending-attendance-main">
-                  <div className="pending-attendance-title">
-                    <strong>{item.student_name}</strong>
-                    <span className={`status-badge ${item.status === 'absent' ? 'status-badge--danger' : 'status-badge--warning'}`}>
-                      {attendanceStatusLabel(item.status, locale)}
-                    </span>
-                  </div>
-                  <div className="pending-attendance-meta">
-                    <span>{item.class_name}</span>
-                    <span>{formatAttendanceDate(item.date, locale)}</span>
-                  </div>
-                  {item.note && <p className="pending-attendance-note">{item.note}</p>}
-                </div>
-
-                <label className="pending-attendance-approval">
-                  <span>
-                    {item.justification_text ? t('director.pending.justificationReceived') : t('director.pending.adminJustification')}
-                  </span>
-                  <textarea
-                    value={draft}
-                    onChange={(event) =>
-                      setApprovalDrafts((current) => ({ ...current, [item.id]: event.target.value }))
-                    }
-                    placeholder={t('director.pending.placeholder')}
-                    rows={2}
-                  />
-                </label>
-
-                <button
-                  type="button"
-                  className="btn btn-primary btn-compact pending-attendance-action"
-                  disabled={!canApprove || isSaving}
-                  onClick={() => acceptAttendance(item)}
-                >
-                  {isSaving ? <Loader2 size={15} className="spin-icon" /> : <CheckCircle2 size={15} />}
-                  {t('director.pending.validate')}
-                </button>
-              </article>
-            );
-          })}
+      {!pendingAttendanceQuery.isLoading && !pendingAttendanceQuery.error && pendingAttendances.length > 0 && filteredPendingAttendances.length === 0 && (
+        <div className="pending-attendance-empty">
+          <Search size={18} />
+          {t('director.pending.noResults')}
         </div>
+      )}
+
+      {!pendingAttendanceQuery.isLoading && !pendingAttendanceQuery.error && filteredPendingAttendances.length > 0 && (
+        <>
+          <div className="pending-attendance-list">
+            {visiblePendingAttendances.map((item) => {
+              const draft = approvalDrafts[item.id] ?? item.justification_text ?? '';
+              const canApprove = draft.trim().length > 0;
+              const isSaving = acceptAttendanceMutation.isPending;
+              return (
+                <article className="pending-attendance-row" key={item.id}>
+                  <div className="pending-attendance-main">
+                    <div className="pending-attendance-title">
+                      <strong>{item.student_name}</strong>
+                      <span className={`status-badge ${item.status === 'absent' ? 'status-badge--danger' : 'status-badge--warning'}`}>
+                        {attendanceStatusLabel(item.status, locale)}
+                      </span>
+                    </div>
+                    <div className="pending-attendance-meta">
+                      <span>{item.class_name}</span>
+                      <span>{formatAttendanceDate(item.date, locale)}</span>
+                    </div>
+                    {item.note && <p className="pending-attendance-note">{item.note}</p>}
+                  </div>
+
+                  <label className="pending-attendance-approval">
+                    <span>
+                      {item.justification_text ? t('director.pending.justificationReceived') : t('director.pending.adminJustification')}
+                    </span>
+                    <textarea
+                      value={draft}
+                      onChange={(event) =>
+                        setApprovalDrafts((current) => ({ ...current, [item.id]: event.target.value }))
+                      }
+                      placeholder={t('director.pending.placeholder')}
+                      rows={2}
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-compact pending-attendance-action"
+                    disabled={!canApprove || isSaving}
+                    onClick={() => acceptAttendance(item)}
+                  >
+                    {isSaving ? <Loader2 size={15} className="spin-icon" /> : <CheckCircle2 size={15} />}
+                    {t('director.pending.validate')}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+          {visiblePendingAttendances.length < filteredPendingAttendances.length && (
+            <div className="pending-attendance-more">
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setPendingLimit((current) => current + 8)}
+              >
+                {t('director.pending.showMore', { count: filteredPendingAttendances.length - visiblePendingAttendances.length })}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </section>
   );
@@ -1050,9 +1138,45 @@ export default function DirectorDashboard() {
     }
 
     const data = analyticsQuery.data;
+    const lowPerformingClassCount = (data?.class_performance ?? []).filter((item) => item.average_score < 10).length;
+    const strugglingStudentCount = data?.struggling_students?.length ?? 0;
 
     return (
       <>
+        <DashboardActionGrid
+          title={t('director.actions.title')}
+          copy={t('director.actions.copy')}
+          items={[
+            {
+              id: 'pending-attendance',
+              label: t('director.actions.pending'),
+              value: pendingAttendanceQuery.isLoading ? '…' : pendingAttendances.length,
+              detail: t('director.actions.pendingDetail', { count: pendingAttendances.length }),
+              icon: CheckCircle2,
+              onClick: () => focusSection('director-pending-attendance'),
+              tone: pendingAttendances.length > 0 ? 'warning' : 'success',
+            },
+            {
+              id: 'struggling-students',
+              label: t('director.actions.support'),
+              value: strugglingStudentCount,
+              detail: t('director.actions.supportDetail'),
+              icon: TrendingDown,
+              onClick: () => focusSection('director-struggling-students'),
+              tone: strugglingStudentCount > 0 ? 'danger' : 'success',
+            },
+            {
+              id: 'class-performance',
+              label: t('director.actions.classes'),
+              value: lowPerformingClassCount,
+              detail: t('director.actions.classesDetail'),
+              icon: Activity,
+              onClick: () => focusSection('director-class-performance'),
+              tone: lowPerformingClassCount > 0 ? 'warning' : 'success',
+            },
+          ]}
+        />
+
         <div className="grid-2 director-grid-section">
           <div className="glass-card animate-fade-in delay-1 director-kpi-card">
             <div className="director-icon-box director-icon-box--primary">
@@ -1080,7 +1204,7 @@ export default function DirectorDashboard() {
 
         {renderPendingAttendance()}
 
-        <div className="glass-card animate-fade-in delay-2 analytics-card">
+        <div id="director-class-performance" className="glass-card animate-fade-in delay-2 analytics-card" tabIndex={-1}>
           <div className="dashboard-toolbar dashboard-toolbar--spacious">
             <div>
               <h3 className="dashboard-section-title dashboard-section-title--plain">{t('director.performanceTitle')}</h3>
@@ -1094,17 +1218,11 @@ export default function DirectorDashboard() {
           <div className="chart-panel chart-panel--large" role="img" aria-label={t('director.chartAria')}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.class_performance}>
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--primary)" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.2} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
                 <XAxis dataKey="class_name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} dy={10} />
                 <YAxis domain={[0, 20]} stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} dx={-10} />
-                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} content={<CustomTooltip />} />
-                <Bar dataKey="average_score" fill="url(#barGradient)" radius={[8, 8, 0, 0]} barSize={48} />
+                <Tooltip cursor={{ fill: 'rgba(13,101,93,0.04)' }} content={<CustomTooltip />} />
+                <Bar dataKey="average_score" fill="var(--primary)" radius={[3, 3, 0, 0]} barSize={36} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -1137,7 +1255,7 @@ export default function DirectorDashboard() {
             </div>
           </div>
 
-          <div className="glass-card animate-fade-in delay-3 dashboard-card-pad">
+          <div id="director-struggling-students" className="glass-card animate-fade-in delay-3 dashboard-card-pad" tabIndex={-1}>
             <div className="student-list-header">
               <div className="director-icon-box--danger-sm">
                 <TrendingDown size={20} />
@@ -1770,6 +1888,12 @@ export default function DirectorDashboard() {
               {currentUserRole === 'principal' && (
                 <option value="nurse">{t('role.nurse')}</option>
               )}
+              {currentUserRole === 'principal' && (
+                <option value="canteen">{t('role.canteen')}</option>
+              )}
+              {currentUserRole === 'principal' && (
+                <option value="driver">{t('role.driver')}</option>
+              )}
             </select>
           </div>
           <div className="form-group">
@@ -1851,7 +1975,7 @@ export default function DirectorDashboard() {
                     )}
                   </td>
                   <td>
-                    {(member.role === 'teacher' || ((member.role === 'secretary' || member.role === 'nurse') && currentUserRole === 'principal')) && (
+                    {(member.role === 'teacher' || (['secretary', 'nurse', 'canteen', 'driver'].includes(member.role) && currentUserRole === 'principal')) && (
                       <div className="table-actions">
                         {member.role === 'teacher' && (
                           <button
@@ -1907,7 +2031,7 @@ export default function DirectorDashboard() {
   );
 
   return (
-    <div className="container animate-fade-in">
+    <div className="container dashboard-page director-page animate-fade-in">
       {renderToasts()}
 
       <header className="dashboard-header">
@@ -1926,6 +2050,8 @@ export default function DirectorDashboard() {
       {activeTab === 'overview' && renderOverview()}
       {activeTab === 'monthly' && <MonthlyReportPanel />}
       {activeTab === 'fees' && <FeesPanel canChangeSettings={currentUserRole === 'principal'} />}
+      {activeTab === 'canteen' && <CanteenAdminPanel canManageAdmin canEditSettings={currentUserRole === 'principal'} />}
+      {activeTab === 'transport' && <TransportAdminPanel />}
       {activeTab === 'overview' && <DirectorInsightsPanel />}
       {activeTab === 'overview' && <ReferralCard />}
       {activeTab === 'students' && renderStudents()}

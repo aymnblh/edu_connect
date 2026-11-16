@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/services/app_secure_storage.dart';
 import '../../../../core/services/ntfy_service.dart';
+import '../../../../core/services/push_service.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
@@ -258,6 +259,10 @@ class AuthRepository {
   Future<void> signOut() async {
     _signedOut = true;
     final refresh = await _storage.read(key: _refreshTokenKey);
+    // This phone must stop receiving the account's alerts (needs the session, so first).
+    try {
+      await PushService.instance.stop().timeout(const Duration(seconds: 4));
+    } catch (_) {}
     NtfyService.instance.dispose();
     // Clear local storage immediately so the app doesn't block
     await _clearTokensLocally();

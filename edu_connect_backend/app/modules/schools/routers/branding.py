@@ -2,9 +2,11 @@
 import base64
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit_event
+from app.core.modules import enabled_modules, with_modules
 from app.core.security import get_current_user
 from app.db.database import get_db
 from app.models import School, User, UserRole
@@ -38,7 +40,39 @@ async def school_branding(
     school = await db.get(School, current_user.school_id)
     if school is None:
         raise HTTPException(status_code=404, detail="No school")
-    return {"name": school.name, "logo": school.logo_data}
+    return {"name": school.name, "logo": school.logo_data, "modules": enabled_modules(school)}
+
+
+class ModulesUpdate(BaseModel):
+    canteen: bool = False
+    transport: bool = False
+
+
+@router.put("/modules")
+async def update_modules(
+    payload: ModulesUpdate,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Switch the optional canteen and school-transport modules on or off (director only).
+
+    Switching a module off hides it everywhere; its data is kept and comes back
+    when it is switched on again.
+    """
+    if current_user.role != UserRole.principal or not current_user.school_id:
+        raise HTTPException(status_code=403, detail="Reserve au directeur.")
+    school = await db.get(School, current_user.school_id)
+    if school is None:
+        raise HTTPException(status_code=404, detail="No school")
+    school.tenant_config = with_modules(school.tenant_config, payload.model_dump())
+    modules = enabled_modules(school)
+    await record_audit_event(
+        db, action="school.modules_updated", actor=current_user, school_id=school.id, resource_type="school",
+        resource_id=school.id, method=request.method, path=request.url.path, metadata=modules,
+    )
+    await db.commit()
+    return {"modules": modules}
 
 
 @router.put("/branding/logo")

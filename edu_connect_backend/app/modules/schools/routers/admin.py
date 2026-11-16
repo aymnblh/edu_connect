@@ -20,6 +20,7 @@ from app.modules.academics.averages import (
     weighted_averages_by_group,
 )
 from app.core.audit import record_audit_event
+from app.core.access import DIRECTOR_MANAGED_ROLES, INVITABLE_STAFF_ROLES
 from app.core.rls import set_auth_lookup_email
 from app.modules.schools.calendar import ALGERIA_TZ, algerian_trimesters
 from app.modules.schools.insights import (
@@ -100,11 +101,11 @@ async def _create_invited_staff_user(
     if current_user.role not in [UserRole.principal, UserRole.secretary]:
         raise HTTPException(status_code=403, detail="Only school administration can invite staff accounts.")
 
-    if payload.role not in [UserRole.teacher, UserRole.secretary, UserRole.nurse]:
-        raise HTTPException(status_code=400, detail="Only teacher, secretary and nurse invitations are supported.")
+    if payload.role not in INVITABLE_STAFF_ROLES:
+        raise HTTPException(status_code=400, detail="Only teacher, secretary, nurse, canteen and driver invitations are supported.")
 
-    if payload.role in [UserRole.secretary, UserRole.nurse] and current_user.role != UserRole.principal:
-        raise HTTPException(status_code=403, detail="Only the director can invite secretary and nurse accounts.")
+    if payload.role in DIRECTOR_MANAGED_ROLES and current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Only the director can invite secretary, nurse, canteen and driver accounts.")
 
     if not current_user.school_id:
         raise HTTPException(status_code=400, detail="You are not assigned to a school.")
@@ -228,11 +229,11 @@ async def _get_manageable_staff(user_id: str, current_user: User, db: AsyncSessi
     if (
         not staff
         or staff.school_id != current_user.school_id
-        or staff.role not in [UserRole.teacher, UserRole.secretary, UserRole.nurse]
+        or staff.role not in INVITABLE_STAFF_ROLES
     ):
         raise HTTPException(status_code=404, detail="Staff member not found.")
-    if staff.role in [UserRole.secretary, UserRole.nurse] and current_user.role != UserRole.principal:
-        raise HTTPException(status_code=403, detail="Only the director can manage secretary and nurse accounts.")
+    if staff.role in DIRECTOR_MANAGED_ROLES and current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Only the director can manage secretary, nurse, canteen and driver accounts.")
     return staff
 
 
@@ -339,7 +340,7 @@ async def sign_out_user(
     target = await db.get(User, user_id)
     if not target or target.school_id != current_user.school_id:
         raise HTTPException(status_code=404, detail="User not found.")
-    if target.role in [UserRole.teacher, UserRole.secretary, UserRole.nurse]:
+    if target.role in INVITABLE_STAFF_ROLES:
         target = await _get_manageable_staff(user_id, current_user, db)
     elif target.role != UserRole.parent:
         raise HTTPException(status_code=403, detail="This account cannot be signed out here.")
@@ -415,7 +416,7 @@ async def list_staff(
         select(User)
         .where(
             User.school_id == current_user.school_id,
-            User.role.in_([UserRole.principal, UserRole.secretary, UserRole.teacher, UserRole.nurse]),
+            User.role.in_([UserRole.principal, *INVITABLE_STAFF_ROLES]),
         )
         .order_by(User.role.asc(), User.full_name.asc())
     )

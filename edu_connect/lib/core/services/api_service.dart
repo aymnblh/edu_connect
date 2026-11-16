@@ -149,8 +149,8 @@ class ApiService {
     return res.data;
   }
 
-  Future<dynamic> delete(String path) async {
-    final res = await _dio.delete(path);
+  Future<dynamic> delete(String path, {dynamic data}) async {
+    final res = await _dio.delete(path, data: data);
     return res.data;
   }
 }

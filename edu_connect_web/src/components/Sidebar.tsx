@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, 
@@ -18,10 +18,14 @@ import {
   Megaphone,
   CalendarRange,
   HeartPulse,
-  Wallet
+  Bus,
+  Utensils,
+  Wallet,
+  X
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { logoutSession } from '../lib/api';
+import { useSchoolBranding } from '../lib/branding';
 import { useLocale } from '../lib/i18n';
 import { readWorkspaceSessionItem } from '../lib/workspace';
 import ChangePasswordModal from './ChangePasswordModal';
@@ -38,10 +42,22 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [devicesModalOpen, setDevicesModalOpen] = useState(false);
+
+  useEffect(() => {
+    const mobile = window.matchMedia('(max-width: 768px)');
+    const expandOnMobile = () => {
+      if (mobile.matches) setCollapsed(false);
+    };
+    expandOnMobile();
+    mobile.addEventListener('change', expandOnMobile);
+    return () => mobile.removeEventListener('change', expandOnMobile);
+  }, []);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { activeRole } = useWorkspace();
   const { t } = useLocale();
+  const branding = useSchoolBranding(activeRole === 'principal' || activeRole === 'secretary').data;
   const user = (() => {
     const raw = readWorkspaceSessionItem('user');
     if (!raw) return null;
@@ -65,19 +81,23 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
           { to: '/policies', label: t('nav.legal'), icon: FileText },
         ];
       case 'principal':
-      case 'secretary':
-        return [
+      case 'secretary': {
+        const items = [
           { to: '/director', label: t('nav.directorOverview'), icon: LayoutDashboard },
           { to: '/director/monthly-report', label: t('nav.monthlyReport'), icon: CalendarRange },
           { to: '/director/students', label: t('nav.studentsParents'), icon: Users },
           { to: '/director/classes', label: t('nav.classesCourses'), icon: GraduationCap },
           { to: '/director/fees', label: t('nav.fees'), icon: Wallet },
+          ...(branding?.modules?.canteen ? [{ to: '/director/canteen', label: t('nav.canteen'), icon: Utensils }] : []),
+          ...(branding?.modules?.transport ? [{ to: '/director/transport', label: t('nav.transport'), icon: Bus }] : []),
           { to: '/director/team', label: t('nav.teamTeachers'), icon: UserPlus },
           { to: '/director/report-cards', label: t('nav.reportCards'), icon: FileText },
           { to: '/director/announcements', label: t('nav.announcements'), icon: Megaphone },
           { to: '/director/audit-log', label: t('nav.auditLog'), icon: ScrollText },
           { to: '/policies', label: t('nav.legal'), icon: FileText },
         ];
+        return items;
+      }
       case 'teacher':
         return [
           { to: '/teacher/dashboard', label: t('nav.teacherClass'), icon: BookOpen },
@@ -86,6 +106,16 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
       case 'nurse':
         return [
           { to: '/infirmary', label: t('nav.infirmary'), icon: HeartPulse },
+          { to: '/policies', label: t('nav.legal'), icon: FileText },
+        ];
+      case 'canteen':
+        return [
+          { to: '/canteen', label: t('nav.canteen'), icon: Utensils },
+          { to: '/policies', label: t('nav.legal'), icon: FileText },
+        ];
+      case 'driver':
+        return [
+          { to: '/transport/driver', label: t('nav.transport'), icon: Bus },
           { to: '/policies', label: t('nav.legal'), icon: FileText },
         ];
       case 'parent':
@@ -120,6 +150,15 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             </span>
           )}
         </div>
+        <button
+          type="button"
+          className="sidebar-close-btn"
+          data-sidebar-close
+          onClick={() => setSidebarOpen?.(false)}
+          aria-label={t('layout.closeMenu')}
+        >
+          <X size={19} />
+        </button>
         {!collapsed && (
           <button 
             type="button"
@@ -172,7 +211,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             <span className="sidebar-section-label">
               {t('sidebar.activeRole')}
             </span>
-            <WorkspaceSwitcher />
+            <WorkspaceSwitcher onNavigate={() => setSidebarOpen?.(false)} />
             <LocaleSwitcher />
           </div>
         )}

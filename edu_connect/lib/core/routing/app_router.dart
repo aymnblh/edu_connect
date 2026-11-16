@@ -28,6 +28,8 @@ import '../../features/meetings/presentation/meetings_screen.dart';
 import '../../features/fees/fees_screen.dart';
 import '../../features/health/health_screen.dart';
 import '../../features/infirmary/infirmary_screen.dart';
+import '../../features/canteen/canteen_screen.dart';
+import '../../features/transport/transport_screen.dart';
 import '../../features/director/fees_admin_screen.dart';
 import '../../features/director/monthly_report_screen.dart';
 import '../../features/class/presentation/screens/admin_tools_screen.dart';
@@ -86,6 +88,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final user = authState.valueOrNull;
           if (user?.isSystemAdmin ?? false) return '/superadmin';
           if (user?.isNurse ?? false) return '/infirmary';
+          if (user?.isCanteen ?? false) return '/canteen';
+          if (user?.isDriver ?? false) return '/transport';
           if (user?.isAdmin ?? false) return '/dashboard';
           return '/classes';
         }
@@ -104,17 +108,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         final user = authState.valueOrNull;
         if (user?.isSystemAdmin ?? false) return '/superadmin';
         if (user?.isNurse ?? false) return '/infirmary';
+        if (user?.isCanteen ?? false) return '/canteen';
+        if (user?.isDriver ?? false) return '/transport';
         if (user?.isAdmin ?? false) return '/dashboard';
         return '/classes';
       }
 
-      // The nurse account only reaches health sheets (the API refuses the rest).
+      // Single-purpose accounts only reach their own area (the API refuses the rest).
       if (!isLoading &&
           (authState.valueOrNull?.isNurse ?? false) &&
           !isAuthRoute &&
           !const {'/infirmary', '/notifications', '/profile'}
               .contains(location)) {
         return '/infirmary';
+      }
+      if (!isLoading &&
+          (authState.valueOrNull?.isCanteen ?? false) &&
+          !isAuthRoute &&
+          !const {'/canteen', '/notifications', '/profile'}.contains(location)) {
+        return '/canteen';
+      }
+      if (!isLoading &&
+          (authState.valueOrNull?.isDriver ?? false) &&
+          !isAuthRoute &&
+          !const {'/transport', '/notifications', '/profile'}
+              .contains(location)) {
+        return '/transport';
       }
 
       if (!isLoading &&
@@ -341,6 +360,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/infirmary',
         name: 'infirmary',
         builder: (ctx, state) => const InfirmaryScreen(),
+      ),
+      GoRoute(
+        path: '/canteen',
+        name: 'canteen',
+        builder: (ctx, state) => const CanteenScreen(),
+      ),
+      GoRoute(
+        path: '/transport',
+        name: 'transport',
+        builder: (ctx, state) => const TransportScreen(),
       ),
       GoRoute(
         path: '/fees',

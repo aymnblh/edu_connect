@@ -83,3 +83,16 @@ This file is the implementation contract for access control, audit, retention, c
 - File storage keys must not be exposed as public permanent URLs.
 - Downloads should use short-lived signed URLs or streaming endpoints that re-check the parent record authorization.
 - Deletes should be soft deletes (`deleted_at`) unless a system-admin retention job is performing approved hard deletion.
+
+## Canteen And School Transport Modules
+
+- Canteen (`canteen_menus`, `canteen_enrollments`) and transport (`transport_routes`, `transport_stops`, `transport_assignments`, `transport_trips`, `transport_trip_events`, `transport_exceptions`) tables are tenant-scoped (`school_id NOT NULL`) with forced PostgreSQL RLS isolation.
+- Optional module access is enforced server-side (`require_module`) and may be toggled only by the school director (`principal`).
+- Single-purpose role isolation (`RoleScopeMiddleware`):
+  - `canteen` accounts may reach `/canteen/*`, `/auth/*`, `/users/me`, `/notifications`, and `/schools/branding` only.
+  - `driver` accounts may reach `/transport/driver/*`, `/auth/*`, `/users/me`, `/notifications`, and `/schools/branding` only.
+  - Only `principal` may invite or manage `canteen` and `driver` accounts.
+- Minimal health & contact disclosure:
+  - Canteen staff (`GET /canteen/headcount`) and drivers (`GET /transport/driver/today`) never read full `student_health_records` (allergies, conditions, medications, doctor details); they receive only the short `teacher_alert` (when parent consent exists) and, for drivers only, the single first emergency contact (`name`, `relationship`, `phone`). Every view is written to `audit_events`.
+- No continuous GPS geolocation of minors or vehicles is collected, transmitted, or stored.
+- Trip logs (`transport_trips`, `transport_trip_events`, `transport_exceptions`) contain operational boarding/drop-off timestamps and parent absence notices and should be purged on a 1-year retention cycle alongside operational logs.

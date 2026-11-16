@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brochure Commerciale — Wasel Edu (Algérie)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --deep: #123b36;
+      --primary: #0d655d;
+      --primary-soft: #e5eeea;
+      --gold: #d7b174;
+      --gold-dark: #a96f24;
+      --paper: #f3f1eb;
+      --surface: #fffdf8;
+      --border: #d8ddd6;
+      --ink: #18302e;
+      --muted: #556661;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background: #e4e2da;
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .arabic {
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+    }
+
+    /* Screen toolbar */
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 24px;
+      background: var(--deep);
+      color: #f7f4eb;
+      border-bottom: 1px solid rgba(215, 177, 116, 0.35);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .toolbar-left img {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #fff;
+      padding: 2px;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .t-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      font-family: inherit;
+    }
+
+    .t-btn-primary {
+      background: var(--gold);
+      color: var(--deep);
+    }
+
+    .t-btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.22);
+      color: #f7f4eb;
+    }
+
+    .pages-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 24px 16px 48px;
+    }
+
+    /* Exact A4 Sheet */
+    .sheet {
+      width: 210mm;
+      height: 297mm;
+      background: var(--paper);
+      box-shadow: 0 18px 48px rgba(18, 59, 54, 0.16);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* PAGE 1: RECTO */
+    .hero-banner {
+      background: var(--deep);
+      color: #f7f4eb;
+      padding: 8.5mm 14mm 7.5mm;
+      border-bottom: 3px solid var(--gold);
+      flex-shrink: 0;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 3.5mm;
+      margin-bottom: 3.5mm;
+      border-bottom: 1px solid rgba(247, 244, 235, 0.16);
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-lockup img {
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      background: #fff;
+      padding: 3px;
+    }
+
+    .brand-name {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+
+    .brand-tag {
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--gold);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .header-ar {
+      text-align: right;
+      color: #e6efe9;
+      font-size: 12.5px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .header-ar span {
+      display: block;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--gold);
+    }
+
+    .hero-kicker {
+      display: inline-block;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.8mm;
+    }
+
+    .hero-title {
+      font-size: 21.5px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      color: #ffffff;
+      margin-bottom: 2.5mm;
+    }
+
+    .hero-title em {
+      font-style: normal;
+      color: var(--gold);
+    }
+
+    .hero-sub {
+      font-size: 10.8px;
+      line-height: 1.46;
+      color: #d0ded8;
+      max-width: 175mm;
+      margin-bottom: 3.2mm;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .pill {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(215, 177, 116, 0.4);
+      color: #f7f4eb;
+      font-size: 9.3px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .sheet-body {
+      padding: 5.5mm 14mm 5mm;
+      display: flex;
+      flex-direction: column;
+      gap: 4mm;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .section-eyebrow {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold-dark);
+      margin-bottom: 1mm;
+    }
+
+    .section-heading {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--deep);
+      letter-spacing: -0.02em;
+      margin-bottom: 2.8mm;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3.2mm;
+    }
+
+    .pillar-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 2.5px solid var(--primary);
+      border-radius: 6px;
+      padding: 3.1mm 3.8mm;
+    }
+
+    .pillar-card.gold-top {
+      border-top-color: var(--gold-dark);
+    }
+
+    .pillar-num {
+      display: inline-block;
+      font-size: 8.8px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-soft);
+      padding: 1.5px 5.5px;
+      border-radius: 4px;
+      margin-bottom: 1.3mm;
+    }
+
+    .pillar-card h3 {
+      font-size: 11.4px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 1.2mm;
+    }
+
+    .pillar-card p {
+      font-size: 9.4px;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .pillar-card ul {
+      margin-top: 1.4mm;
+      padding-left: 13px;
+      font-size: 9.1px;
+      line-height: 1.38;
+      color: var(--ink);
+    }
+
+    .offer-strip {
+      margin-top: auto;
+      background: var(--deep);
+      color: #f7f4eb;
+      border-radius: 7px;
+      padding: 3.8mm 5mm;
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 4mm;
+      align-items: center;
+      border-left: 4px solid var(--gold);
+    }
+
+    .offer-strip h4 {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 1mm;
+    }
+
+    .offer-strip p {
+      font-size: 9.6px;
+      line-height: 1.4;
+      color: #dce7e2;
+    }
+
+    .offer-referral {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(215, 177, 116, 0.35);
+      border-radius: 6px;
+      padding: 2.8mm 3.5mm;
+    }
+
+    .offer-referral strong {
+      display: block;
+      font-size: 10.2px;
+      color: #ffffff;
+      margin-bottom: 0.8mm;
+    }
+
+    .offer-referral span {
+      font-size: 9.1px;
+      line-height: 1.35;
+      color: #c8d8d2;
+    }
+
+    .sheet-footer {
+      padding: 2.8mm 14mm;
+      background: #e9e6dc;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    /* PAGE 2: VERSO */
+    .verso-top {
+      background: var(--deep);
+      color: #f7f4eb;
+      padding: 5.5mm 14mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--gold);
+      flex-shrink: 0;
+    }
+
+    .verso-top h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .verso-top span {
+      font-size: 10px;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      overflow: hidden;
+      font-size: 9.6px;
+    }
+
+    .compare-table th {
+      text-align: left;
+      padding: 2.6mm 3.5mm;
+      font-size: 10px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .compare-table th.col-topic {
+      background: #ebe9e1;
+      color: var(--ink);
+      width: 24%;
+    }
+
+    .compare-table th.col-old {
+      background: #f6e8e4;
+      color: #7d322c;
+      width: 38%;
+    }
+
+    .compare-table th.col-new {
+      background: var(--primary);
+      color: #ffffff;
+      width: 38%;
+    }
+
+    .compare-table td {
+      padding: 2.4mm 3.5mm;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.38;
+    }
+
+    .compare-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .compare-table td:first-child {
+      font-weight: 700;
+      color: var(--deep);
+      background: #faf8f2;
+    }
+
+    .compare-table td.cell-old {
+      color: #6b5250;
+    }
+
+    .compare-table td.cell-new {
+      color: var(--ink);
+      font-weight: 500;
+      background: #f5faf7;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3.5mm;
+    }
+
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 3.2mm 3.6mm;
+      position: relative;
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      margin-bottom: 1.5mm;
+    }
+
+    .step-card h4 {
+      font-size: 10.8px;
+      font-weight: 700;
+      color: var(--deep);
+      margin-bottom: 1.2mm;
+    }
+
+    .step-card p {
+      font-size: 9.3px;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .security-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 7px;
+      padding: 3.5mm 4.5mm;
+    }
+
+    .security-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5mm 5mm;
+      margin-top: 2mm;
+    }
+
+    .security-item strong {
+      display: block;
+      font-size: 10.2px;
+      color: var(--deep);
+      margin-bottom: 0.5mm;
+    }
+
+    .security-item span {
+      display: block;
+      font-size: 9.2px;
+      line-height: 1.38;
+      color: var(--muted);
+    }
+
+    .cta-panel {
+      margin-top: auto;
+      background: var(--deep);
+      color: #f7f4eb;
+      border-radius: 7px;
+      padding: 4.5mm 5.5mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5mm;
+    }
+
+    .cta-panel h3 {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 1.2mm;
+    }
+
+    .cta-panel p {
+      font-size: 9.8px;
+      color: #cad9d3;
+      line-height: 1.42;
+      max-width: 112mm;
+    }
+
+    .cta-contact {
+      background: #ffffff;
+      color: var(--deep);
+      border-radius: 6px;
+      padding: 3mm 4mm;
+      min-width: 60mm;
+      font-size: 9.5px;
+      line-height: 1.5;
+    }
+
+    .cta-contact strong {
+      display: block;
+      font-size: 10.5px;
+      color: var(--primary);
+      margin-bottom: 0.8mm;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    @media print {
+      html, body {
+        background: #ffffff;
+      }
+
+      .toolbar {
+        display: none !important;
+      }
+
+      .pages-wrap {
+        padding: 0;
+        gap: 0;
+      }
+
+      .sheet {
+        box-shadow: none;
+        margin: 0;
+        page-break-after: always;
+        break-after: page;
+      }
+
+      .sheet:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+    }
+
+    @media screen and (max-width: 820px) {
+      .sheet {
+        width: 100%;
+        height: auto;
+      }
+
+      .pillars-grid,
+      .offer-strip,
+      .steps-grid,
+      .security-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <img src="./wasel-edu-logo.svg" alt="Wasel Edu" />
+      <span>Brochure Commerciale A4 (Recto-Verso) — Wasel Edu</span>
+    </div>
+    <div class="toolbar-actions">
+      <a class="t-btn t-btn-secondary" href="/pricing">Retour aux tarifs</a>
+      <a class="t-btn t-btn-secondary" href="/register-school">Inscrire une école</a>
+      <button type="button" class="t-btn t-btn-primary" onclick="window.print()">
+        Imprimer / Enregistrer en PDF (A4)
+      </button>
+    </div>
+  </div>
+
+  <div class="pages-wrap">
+    <!-- PAGE 1 : RECTO -->
+    <section class="sheet" aria-label="Page 1 - Présentation Wasel Edu">
+      <header class="hero-banner">
+        <div class="header-top">
+          <div class="brand-lockup">
+            <img src="./wasel-edu-logo.svg" alt="Wasel Edu" />
+            <div>
+              <div class="brand-name">Wasel Edu</div>
+              <div class="brand-tag">Plateforme Scolaire Algérie</div>
+            </div>
+          </div>
+          <div class="header-ar arabic">
+            المنصة الشاملة لتسيير المدارس الخاصة في الجزائر
+            <span>تطبيق ويب وهاتف · عربي · فرنسي · إنجليزي</span>
+          </div>
+        </div>
+
+        <span class="hero-kicker">Primaire · CEM · Lycée · Préscolaire</span>
+        <h1 class="hero-title">
+          Toute votre école privée dans <em>une seule application</em> sécurisée.
+        </h1>
+        <p class="hero-sub">
+          Reliez la direction, le secrétariat, les enseignants, les parents, la cantine, l'infirmerie et le transport scolaire — sur le web et sur mobile (Android &amp; iOS), parfaitement adapté au système algérien (semaine dimanche–jeudi, 3 trimestres, barème /20 et paiements au guichet en DA).
+        </p>
+        <div class="pill-row">
+          <span class="pill">Arabe (RTL) · Français · Anglais</span>
+          <span class="pill">Web + App Mobile iOS &amp; Android</span>
+          <span class="pill">Bulletins avec QR anti-falsification</span>
+          <span class="pill">Logo de votre école sur tous les documents</span>
+        </div>
+      </header>
+
+      <div class="sheet-body">
+        <div>
+          <div class="section-eyebrow">6 modules intégrés</div>
+          <h2 class="section-heading">Une plateforme pensée pour le terrain algérien</h2>
+          <div class="pillars-grid">
+            <article class="pillar-card">
+              <span class="pillar-num">01 · Pédagogie</span>
+              <h3>Notes, Appel &amp; Bulletins certifiés QR</h3>
+              <p>Moyennes pondérées par coefficients, validation des notes par la direction avant publication et alerte immédiate aux parents en cas d'absence.</p>
+              <ul>
+                <li>Mentions algériennes (Tableau d'honneur ≥ 12, Encouragements ≥ 14, Félicitations ≥ 16).</li>
+                <li>QR Code unique sur chaque bulletin imprimé pour vérifier l'authenticité en ligne.</li>
+              </ul>
+            </article>
+
+            <article class="pillar-card gold-top">
+              <span class="pillar-num">02 · Trésorerie</span>
+              <h3>Écolage, Reçus PDF &amp; Relances Auto</h3>
+              <p>Facturez une classe ou toute l'école sans doublon et suivez les encaissements effectués au secrétariat en temps réel.</p>
+              <ul>
+                <li>Modes acceptés : Espèces, CCP / BaridiMob, Chèque, Virement (0 % commission).</li>
+                <li>Rappels automatiques programmés (3 jours avant échéance puis hebdomadaire, 8h–20h).</li>
+              </ul>
+            </article>
+
+            <article class="pillar-card gold-top">
+              <span class="pillar-num">03 · Sécurité Transport</span>
+              <h3>Bus Scolaire &amp; Verrou Anti-Oubli</h3>
+              <p>Le chauffeur pointe la montée et la descente à chaque arrêt en un geste, même sans connexion Internet (synchronisation automatique).</p>
+              <ul>
+                <li>Bouton « Retard +15 min » et notification immédiate aux parents à chaque étape.</li>
+                <li>Clôture du trajet bloquée s'il reste un élève pointé à bord sans descente.</li>
+              </ul>
+            </article>
+
+            <article class="pillar-card">
+              <span class="pillar-num">04 · Cantine Scolaire</span>
+              <h3>Effectif Exact &amp; Allergies Maîtrisées</h3>
+              <p>Publiez les menus de la semaine (dimanche–jeudi) avec allergènes. Les parents sont notifiés automatiquement.</p>
+              <ul>
+                <li>Les élèves marqués absents à l'appel du matin sont déduits du nombre de repas du jour.</li>
+                <li>Suivi des régimes (diabétique, sans gluten, végétarien) et facturation mensuelle.</li>
+              </ul>
+            </article>
+
+            <article class="pillar-card">
+              <span class="pillar-num">05 · Santé &amp; Infirmerie</span>
+              <h3>Fiches Santé Chiffrées &amp; Consentement</h3>
+              <p>L'infirmerie dispose d'un espace isolé pour consulter les allergies, traitements, groupes sanguins et numéros d'urgence dans l'ordre d'appel.</p>
+              <ul>
+                <li>Création uniquement avec le consentement enregistré du parent.</li>
+                <li>Les enseignants et chauffeurs ne voient qu'une alerte courte de sécurité.</li>
+              </ul>
+            </article>
+
+            <article class="pillar-card gold-top">
+              <span class="pillar-num">06 · Pilotage Direction</span>
+              <h3>Bilan Mensuel PDF &amp; Vigilance Élèves</h3>
+              <p>Recevez le 1er de chaque mois un bilan complet comparable au mois précédent (présences, notes, frais encaissés, activité équipe).</p>
+              <ul>
+                <li>Détection précoce des élèves à risque (moyenne &lt; 10, chute de 2 pts, ≥ 3 absences).</li>
+                <li>Prise de rendez-vous parents–professeurs encadrée sans exposer les numéros privés.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+
+        <aside class="offer-strip">
+          <div>
+            <h4>Offre de lancement : 1er Trimestre 100 % Offert</h4>
+            <p>
+              À l'activation de votre établissement, vous utilisez toute la plateforme gratuitement jusqu'à la fin du trimestre en cours (ou du trimestre suivant complet s'il reste moins de 30 jours).
+            </p>
+          </div>
+          <div class="offer-referral">
+            <strong>Programme Parrainage Écoles</strong>
+            <span>Recommandez Wasel Edu à un confrère : dès son activation, <strong>2 mois gratuits</strong> sont offerts à votre école et à la sienne.</span>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="sheet-footer">
+        <span>Wasel Edu — Gestion scolaire privée en Algérie</span>
+        <span>Page 1 / 2 · Présentation &amp; Modules</span>
+      </footer>
+    </section>
+
+    <!-- PAGE 2 : VERSO -->
+    <section class="sheet" aria-label="Page 2 - Comparatif, Démarrage et Sécurité">
+      <header class="verso-top">
+        <div>
+          <h2>Pourquoi quitter WhatsApp et Excel pour Wasel Edu ?</h2>
+        </div>
+        <span>Déploiement en 24 heures · Zéro risque</span>
+      </header>
+
+      <div class="sheet-body">
+        <div>
+          <div class="section-eyebrow">Comparatif opérationnel</div>
+          <h2 class="section-heading">Avant vs Avec Wasel Edu</h2>
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th class="col-topic">Domaine</th>
+                <th class="col-old">Gestion classique (WhatsApp + Excel)</th>
+                <th class="col-new">Avec Wasel Edu</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Communication &amp; Vie privée</td>
+                <td class="cell-old">Numéros personnels des profs exposés, messages tardifs, parents qui s'écrivent entre eux.</td>
+                <td class="cell-new">Messagerie encadrée avec accusés de lecture ; les parents ne se voient jamais entre eux.</td>
+              </tr>
+              <tr>
+                <td>Bulletins &amp; Crédibilité</td>
+                <td class="cell-old">Saisie manuelle sujette aux erreurs, recalculs Excel et risque de falsification papier.</td>
+                <td class="cell-new">Validation direction en 1 clic, document figé à la publication avec logo et QR code vérifiable.</td>
+              </tr>
+              <tr>
+                <td>Frais scolaires &amp; Relances</td>
+                <td class="cell-old">Carnets papier, oublis d'échéances et relances téléphoniques gênantes pour le secrétariat.</td>
+                <td class="cell-new">Reçus PDF instantanés sur mobile (espèces, CCP/BaridiMob, chèque) et rappels automatiques polis.</td>
+              </tr>
+              <tr>
+                <td>Cantine &amp; Transport</td>
+                <td class="cell-old">Gaspillage de repas faute de liste d'absents à jour ; aucune preuve de descente du bus.</td>
+                <td class="cell-new">Effectif cuisine recalculé à l'appel ; pointage bus hors-ligne et alerte sécurité anti-oubli d'enfant.</td>
+              </tr>
+              <tr>
+                <td>Contrôle des accès</td>
+                <td class="cell-old">Un enseignant parti reste dans les groupes ou garde les fichiers sur son ordinateur.</td>
+                <td class="cell-new">Cloisonnement par classe/matière et déconnexion mondiale instantanée de tous les appareils.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div class="section-eyebrow">Mise en route express</div>
+          <h2 class="section-heading">Votre école opérationnelle en 24 heures</h2>
+          <div class="steps-grid">
+            <div class="step-card">
+              <span class="step-badge">1</span>
+              <h4>Création &amp; Import Excel</h4>
+              <p>Inscrivez votre école en 2 minutes, déposez votre logo et importez vos listes élèves (<code>prenom;nom;classe</code>) et enseignants (<code>prenom;nom;email</code>) depuis Excel/CSV.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-badge">2</span>
+              <h4>Cartes QR Parents imprimées</h4>
+              <p>Imprimez en un clic les fiches d'invitation par classe (ID + Code PIN / QR). Chaque parent scanne la carte de son enfant sur l'application et active son compte seul.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-badge">3</span>
+              <h4>Pilotage en temps réel</h4>
+              <p>Dès le lendemain matin : appel en classe, devoirs, cantine, transport, encaissements d'écolage et premier bilan mensuel PDF automatique.</p>
+            </div>
+          </div>
+        </div>
+
+        <section class="security-box">
+          <div class="section-eyebrow" style="margin-bottom: 1mm;">Architecture &amp; Confiance</div>
+          <h3 style="font-size: 13.5px; color: var(--deep); margin-bottom: 1mm;">Souveraineté et protection stricte des données de votre établissement</h3>
+          <div class="security-grid">
+            <div class="security-item">
+              <strong>Isolation totale par établissement</strong>
+              <span>Base de données cloisonnée (Row-Level Security) : aucune donnée n'est jamais accessible à une autre école.</span>
+            </div>
+            <div class="security-item">
+              <strong>Accès strictement fermés</strong>
+              <span>Ni les parents ni les enseignants ne peuvent s'inscrire seuls : tout accès démarre d'un code remis par votre administration.</span>
+            </div>
+            <div class="security-item">
+              <strong>Fiches santé chiffrées &amp; tracées</strong>
+              <span>Données médicales chiffrées en base, modifiables sous consentement et chaque consultation est inscrite au journal d'audit.</span>
+            </div>
+            <div class="security-item">
+              <strong>Zéro publicité, zéro revente</strong>
+              <span>Les informations des familles et la comptabilité de l'école restent votre propriété exclusive à 100 %.</span>
+            </div>
+          </div>
+        </section>
+
+        <aside class="cta-panel">
+          <div>
+            <h3>Testez Wasel Edu maintenant — sans créer de compte</h3>
+            <p>
+              Rendez-vous sur la page de connexion et cliquez sur <strong>« Découvrir sans compte »</strong> pour explorer l'application en tant que Directeur, Enseignant ou Parent, puis inscrivez votre établissement pour profiter de votre 1er trimestre offert.
+            </p>
+          </div>
+          <div class="cta-contact">
+            <strong>Demander une démo sur site</strong>
+            Portail Web : <b>/pricing</b> &amp; <b>/login</b><br />
+            Disponibilité : Dimanche – Jeudi<br />
+            Accompagnement import CSV inclus
+          </div>
+        </aside>
+      </div>
+
+      <footer class="sheet-footer">
+        <span>Wasel Edu · Web (Directeur, Secrétariat, Profs, Parents) &amp; Mobile (Android / iOS)</span>
+        <span>Page 2 / 2 · Déploiement &amp; Sécurité</span>
+      </footer>
+    </section>
+  </div>
+</body>
+</html>

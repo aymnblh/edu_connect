@@ -24,6 +24,8 @@ services:
         sync: false
       - key: PUBLIC_KEY
         sync: false
+      - key: HEALTH_DATA_KEY
+        sync: false
       - key: PREVIOUS_PUBLIC_KEY
         value: ""
       - key: SERVER_FINGERPRINT_SALT

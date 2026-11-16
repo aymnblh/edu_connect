@@ -183,6 +183,18 @@ Suggested alert thresholds:
 - One access line per request (`educonnect.access`): method, path **without query string**, status, duration, user id, client IP. Health checks log at DEBUG only. Uvicorn's own access log is disabled (`--no-access-log`) because it prints full URLs.
 - Passwords, tokens, `Bearer` headers, JWTs, invite codes and PINs are masked (`[REDACTED]`) before any line is written, including exception tracebacks. Never add a log line that prints a request body wholesale.
 
+### Push notifications to phones (Firebase)
+
+Without these settings nothing changes: notifications stay in the app's list (and ntfy, if configured). To alert phones even when the app is closed:
+
+1. Create a project in the Firebase console (free). Add an **Android app** (package name = the app's `applicationId`) and an **iOS app** (bundle id). Note the project id, the sender id (Project settings > Cloud Messaging), the Web/API key and each app id (Project settings > General). You do **not** need `google-services.json` or `GoogleService-Info.plist`.
+2. **Server:** Project settings > Service accounts > *Generate new private key*. Put the file on the server, outside the code, and set `FCM_SERVICE_ACCOUNT_FILE=/path/key.json` (and `FCM_PROJECT_ID`). Keep the file secret; restart the API. Run `alembic upgrade head` (migration 0026).
+3. **App:** build with these values in the `--dart-define-from-file` JSON: `FIREBASE_API_KEY`, `FIREBASE_APP_ID_ANDROID`, `FIREBASE_APP_ID_IOS`, `FIREBASE_SENDER_ID`, `FIREBASE_PROJECT_ID`.
+4. **iPhone only (needs a Mac and an Apple developer account):** create an APNs key (Apple developer site > Keys > Apple Push Notifications service), upload it in Firebase (Project settings > Cloud Messaging > Apple app configuration), and in Xcode add the **Push Notifications** capability to the Runner target.
+5. Test: sign in on a phone, accept the permission, close the app, then record an absence or a payment for that child: the phone should ring within seconds. A sign-out removes the phone from the account.
+
+Tokens of removed apps are deleted automatically when Firebase reports them as unregistered. Security and account alerts are always pushed; other types follow the user's notification preferences.
+
 ### Health data encryption key
 
 - Health records are encrypted in the database with `HEALTH_DATA_KEY` (required in production; the API refuses to start without a valid one). Generate it once with `python manage.py generate-health-key`.

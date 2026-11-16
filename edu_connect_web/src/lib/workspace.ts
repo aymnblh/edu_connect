@@ -1,4 +1,4 @@
-export type WorkspaceRole = 'system_admin' | 'principal' | 'secretary' | 'teacher' | 'nurse' | 'parent';
+export type WorkspaceRole = 'system_admin' | 'principal' | 'secretary' | 'teacher' | 'nurse' | 'canteen' | 'driver' | 'parent';
 
 export const workspaceRoutes: Record<WorkspaceRole, string> = {
   system_admin: '/superadmin',
@@ -6,10 +6,12 @@ export const workspaceRoutes: Record<WorkspaceRole, string> = {
   secretary: '/director',
   teacher: '/teacher/dashboard',
   nurse: '/infirmary',
+  canteen: '/canteen',
+  driver: '/transport/driver',
   parent: '/parent/dashboard',
 };
 
-const rolePriority: WorkspaceRole[] = ['system_admin', 'principal', 'secretary', 'teacher', 'nurse', 'parent'];
+const rolePriority: WorkspaceRole[] = ['system_admin', 'principal', 'secretary', 'teacher', 'nurse', 'canteen', 'driver', 'parent'];
 const validRoles = new Set<WorkspaceRole>(rolePriority);
 export const workspaceSessionChangeEvent = 'educonnect_workspace_session_change';
 export const rememberDevicePreferenceKey = 'educonnect_remember_device';

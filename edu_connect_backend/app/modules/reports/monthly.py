@@ -29,9 +29,11 @@ from app.models import (
     UserRole,
 )
 from app.modules.announcements.models import Announcement
+from app.modules.canteen.models import CanteenEnrollment, CanteenMenu
 from app.modules.meetings.models import MeetingSlot
 from app.modules.reports.models import ReportCard
 from app.modules.schools.calendar import ALGERIA_TZ
+from app.modules.transport.models import TransportAssignment, TransportTrip
 from app.utils.notifications import create_notification
 
 logger = logging.getLogger(__name__)
@@ -222,6 +224,65 @@ async def class_attendance(db: AsyncSession, school_id: str, start: datetime, en
     return sorted(result, key=lambda item: (-(item["attendance_rate"] or 0), item["class_name"]))
 
 
+async def optional_services_report(db: AsyncSession, school_id: str, start: datetime, end: datetime) -> dict:
+    """Canteen & school-transport figures for the period (kept separate from period_activity)."""
+    start_day = start.date()
+    end_day = end.date()
+    return {
+        "canteen_enrolled": await _count(
+            db,
+            select(func.count()).select_from(CanteenEnrollment).where(
+                CanteenEnrollment.school_id == school_id,
+                CanteenEnrollment.start_date < end_day,
+                (CanteenEnrollment.end_date.is_(None)) | (CanteenEnrollment.end_date >= start_day),
+            ),
+        ),
+        "canteen_menus_published": await _count(
+            db,
+            select(func.count()).select_from(CanteenMenu).where(
+                CanteenMenu.school_id == school_id,
+                CanteenMenu.day >= start_day,
+                CanteenMenu.day < end_day,
+                CanteenMenu.published_at.is_not(None),
+            ),
+        ),
+        "transport_assigned": await _count(
+            db,
+            select(func.count()).select_from(TransportAssignment).where(
+                TransportAssignment.school_id == school_id,
+                TransportAssignment.start_date < end_day,
+                (TransportAssignment.end_date.is_(None)) | (TransportAssignment.end_date >= start_day),
+            ),
+        ),
+        "transport_trips": await _count(
+            db,
+            select(func.count()).select_from(TransportTrip).where(
+                TransportTrip.school_id == school_id,
+                TransportTrip.day >= start_day,
+                TransportTrip.day < end_day,
+            ),
+        ),
+        "transport_delayed_trips": await _count(
+            db,
+            select(func.count()).select_from(TransportTrip).where(
+                TransportTrip.school_id == school_id,
+                TransportTrip.day >= start_day,
+                TransportTrip.day < end_day,
+                TransportTrip.delay_minutes > 0,
+            ),
+        ),
+        "transport_unaccounted_alerts": await _count(
+            db,
+            select(func.count()).select_from(AuditEvent).where(
+                AuditEvent.school_id == school_id,
+                AuditEvent.action == "transport.unaccounted_student_alert",
+                AuditEvent.created_at >= start,
+                AuditEvent.created_at < end,
+            ),
+        ),
+    }
+
+
 async def compute_monthly_report(db: AsyncSession, school_id: str, year: int, month: int, *, now: datetime | None = None) -> dict:
     now = now or datetime.now(ALGERIA_TZ)
     start, end = month_bounds(year, month)
@@ -229,6 +290,7 @@ async def compute_monthly_report(db: AsyncSession, school_id: str, year: int, mo
     current = await period_activity(db, school_id, start, end)
     previous = await period_activity(db, school_id, prev_start, prev_end)
     snapshot = await school_snapshot(db, school_id)
+    services = await optional_services_report(db, school_id, start, end)
     return {
         "month": f"{year:04d}-{month:02d}",
         "previous_month": prev_start.strftime("%Y-%m"),
@@ -236,6 +298,7 @@ async def compute_monthly_report(db: AsyncSession, school_id: str, year: int, mo
         "current": current,
         "previous": previous,
         "snapshot": snapshot,
+        "services": services,
         "parent_coverage": rate(snapshot["students_with_parent"], snapshot["students"]),
         "active_parent_rate": rate(current["active_parents"], snapshot["linked_parents"]),
         "class_attendance": await class_attendance(db, school_id, start, end),

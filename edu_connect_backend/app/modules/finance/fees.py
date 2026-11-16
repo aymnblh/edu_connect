@@ -4,12 +4,12 @@ import secrets
 from datetime import date, datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rls import set_request_rls_context
 from app.db.database import AsyncSessionLocal
-from app.models import School, Student, StudentParent, TuitionInvoice
+from app.models import School, Student, StudentParent, TuitionInvoice, TuitionInvoiceStatus
 from app.modules.schools.calendar import ALGERIA_TZ
 from app.utils.notifications import create_notification
 
@@ -56,6 +56,50 @@ def remaining_dec(invoice: TuitionInvoice) -> Decimal:
 
 def remaining(invoice: TuitionInvoice) -> float:
     return float(remaining_dec(invoice))
+
+
+async def bill_students(
+    db: AsyncSession,
+    school_id: str,
+    amounts: dict[str, Decimal],
+    label: str,
+    due_date: datetime | None,
+) -> tuple[int, int]:
+    """Create one unpaid fee per student (amount may differ per student).
+
+    Students who already have a fee with the same label (case-insensitive) or a
+    zero amount are skipped, so running it twice never bills anyone twice.
+    Returns (created, skipped).
+    """
+    label = label.strip()
+    already_billed = set(
+        (
+            await db.execute(
+                select(TuitionInvoice.student_id).where(
+                    TuitionInvoice.school_id == school_id,
+                    func.lower(TuitionInvoice.label) == label.lower(),
+                )
+            )
+        ).scalars().all()
+    )
+    created = 0
+    for student_id, amount in amounts.items():
+        amount = dec(amount)
+        if student_id in already_billed or amount <= 0:
+            continue
+        db.add(
+            TuitionInvoice(
+                school_id=school_id,
+                student_id=student_id,
+                label=label,
+                amount_due=amount,
+                amount_paid=Decimal("0"),
+                status=TuitionInvoiceStatus.unpaid,
+                due_date=due_date,
+            )
+        )
+        created += 1
+    return created, len(amounts) - created
 
 
 def format_da(value) -> str:

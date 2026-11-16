@@ -9,6 +9,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../constants/app_constants.dart';
 import 'app_secure_storage.dart';
 import 'api_service.dart';
+import 'push_service.dart';
 
 class NtfyService {
   NtfyService._();
@@ -52,6 +53,7 @@ class NtfyService {
       }
       await _primeBackendNotifications();
       _startBackendPolling();
+      unawaited(PushService.instance.start());
 
       if (!AppConstants.hasNtfyTransport ||
           (_activeTopic == topic && _channel != null)) {
@@ -83,6 +85,17 @@ class NtfyService {
     } catch (e) {
       if (kDebugMode) debugPrint('[Ntfy] init error: $e');
       _scheduleReconnect();
+    }
+  }
+
+  /// Shows a notification that arrived through Firebase while the app is open.
+  Future<void> showRemote({String? title, required String body}) async {
+    try {
+      await _ensureLocalNotificationsReady();
+      if (_wasRecentlyShown(title, body)) return;
+      await _showLocalNotificationFromParts(title: title, body: body);
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Ntfy] remote notification error: $e');
     }
   }
 

@@ -10,6 +10,7 @@ import { useLocale } from './lib/i18n';
 const queryClient = new QueryClient();
 
 const Login = lazy(() => import('./pages/Login'));
+const Landing = lazy(() => import('./pages/Landing'));
 const RegisterSchool = lazy(() => import('./pages/RegisterSchool'));
 const ActivateAccount = lazy(() => import('./pages/ActivateAccount'));
 const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
@@ -19,6 +20,8 @@ const WorkspaceSelect = lazy(() => import('./pages/WorkspaceSelect'));
 const TeacherDashboard = lazy(() => import('./pages/TeacherDashboard'));
 const ParentDashboard = lazy(() => import('./pages/ParentDashboard'));
 const NurseDashboard = lazy(() => import('./pages/NurseDashboard'));
+const CanteenDashboard = lazy(() => import('./pages/CanteenDashboard'));
+const DriverDashboard = lazy(() => import('./pages/DriverDashboard'));
 const VerifyReportCard = lazy(() => import('./pages/VerifyReportCard'));
 const Pricing = lazy(() => import('./pages/Pricing'));
 
@@ -48,6 +51,8 @@ function App() {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public Auth Portal */}
+              <Route path="/accueil" element={<PageTransition><Landing /></PageTransition>} />
+              <Route path="/decouvrir" element={<Navigate to="/accueil" replace />} />
               <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
               <Route path="/register-school" element={<PageTransition><RegisterSchool /></PageTransition>} />
               <Route path="/activate" element={<PageTransition><ActivateAccount /></PageTransition>} />
@@ -69,8 +74,12 @@ function App() {
                 <Route path="/director/audit-log" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/announcements" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/messages" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/director/canteen" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/director/transport" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/teacher/dashboard" element={<PageTransition><WorkspaceRoute role="teacher"><TeacherDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/infirmary" element={<PageTransition><WorkspaceRoute role="nurse"><NurseDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/canteen" element={<PageTransition><WorkspaceRoute role="canteen"><CanteenDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/transport/driver" element={<PageTransition><WorkspaceRoute role="driver"><DriverDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/parent/dashboard" element={<PageTransition><WorkspaceRoute role="parent"><ParentDashboard /></WorkspaceRoute></PageTransition>} />
               </Route>
 

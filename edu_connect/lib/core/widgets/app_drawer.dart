@@ -101,6 +101,18 @@ class AppDrawer extends ConsumerWidget {
                       label: text.fees,
                       onTap: () => _go(context, '/fees', replace: false),
                     ),
+                  if (user.isParent || (user.isAdmin && !user.isSystemAdmin)) ...[
+                    _DrawerItem(
+                      icon: Icons.restaurant_outlined,
+                      label: text.canteen,
+                      onTap: () => _go(context, '/canteen', replace: false),
+                    ),
+                    _DrawerItem(
+                      icon: Icons.directions_bus_outlined,
+                      label: text.transport,
+                      onTap: () => _go(context, '/transport', replace: false),
+                    ),
+                  ],
                   if (user.isParent)
                     _DrawerItem(
                       icon: Icons.description_outlined,
@@ -430,6 +442,8 @@ String _roleLabel(BuildContext context, UserModel user) {
   if (user.isSystemAdmin) return text.superAdmin;
   if (user.isAdmin) return text.direction;
   if (user.isTeacher) return text.teacher;
+  if (user.isCanteen) return text.canteen;
+  if (user.isDriver) return text.transport;
   return text.parent;
 }
 
@@ -471,7 +485,10 @@ class _DrawerText {
         'Direction',
       );
   String get health => pick('البطاقة الصحية', 'Fiche sante', 'Health sheet');
-  String get fees => pick('المصاريف المدرسية', 'Frais scolaires', 'School fees');
+  String get fees =>
+      pick('المصاريف المدرسية', 'Frais scolaires', 'School fees');
+  String get canteen => pick('المطعم المدرسي', 'Cantine', 'Canteen');
+  String get transport => pick('النقل المدرسي', 'Transport', 'Transport');
   String get meetings => pick('المواعيد', 'Rendez-vous', 'Meetings');
   String get reportCards => pick('كشوف النقاط', 'Bulletins', 'Report cards');
   String get announcements =>
