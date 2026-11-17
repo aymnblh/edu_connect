@@ -835,6 +835,7 @@ async def seed_demo_data(*, reset_demo: bool, accounts_output: Path | None, forc
             school_id=school.id,
             phone="+213555000099",
         )
+        await db.flush()
         route_a = TransportRoute(
             school_id=school.id,
             name="Ligne Nord - Hydra / El Biar",
