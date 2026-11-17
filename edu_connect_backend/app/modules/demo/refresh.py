@@ -18,8 +18,13 @@ logger = logging.getLogger(__name__)
 # Rebuild after this hour (Algeria time), when nobody is likely to be visiting.
 REFRESH_HOUR = 3
 # Arbitrary constant shared by every worker, so only one rebuilds at a time.
-DEMO_LOCK_KEY = 7_160_423
+DEMO_LOCK_KEY = 7_160_424
 _ensure_locks: WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Lock] = WeakKeyDictionary()
+_last_error: str | None = None
+
+
+def last_refresh_error() -> str | None:
+    return _last_error
 
 
 def _loop_lock() -> asyncio.Lock:
@@ -62,6 +67,7 @@ async def _demo_state() -> tuple[bool, str | None, bool]:
         by_email = {user.email: user for user in users}
         accounts_ready = all(
             (u := by_email.get(email)) is not None
+            and u.school_id == school.id
             and u.deactivated_at is None
             and u.password_hash is not None
             for email in expected_emails
@@ -75,43 +81,54 @@ def _needs_rebuild(exists: bool, seeded_on: str | None, accounts_ready: bool, no
 
 async def refresh_demo_if_stale(now: datetime | None = None) -> bool:
     """Seed or rebuild the demo school when it is missing, incomplete, or out of date."""
+    global _last_error
     if not settings.public_demo_enabled:
         return False
     now = now or datetime.now(ALGERIA_TZ)
-    exists, seeded_on, accounts_ready = await _demo_state()
-    if not _needs_rebuild(exists, seeded_on, accounts_ready, now):
-        return False
-
-    async with engine.connect() as conn:
-        if not await conn.scalar(text("SELECT pg_try_advisory_lock(:key)"), {"key": DEMO_LOCK_KEY}):
+    async with _loop_lock():
+        exists, seeded_on, accounts_ready = await _demo_state()
+        if not _needs_rebuild(exists, seeded_on, accounts_ready, now):
+            _last_error = None
             return False
-        await conn.commit()
-        try:
-            # Another worker may have rebuilt it while we waited.
-            exists, seeded_on, accounts_ready = await _demo_state()
-            if not _needs_rebuild(exists, seeded_on, accounts_ready, now):
-                return False
-            from scripts.seed_demo_presentation_data import seed_demo_data
 
-            await seed_demo_data(reset_demo=True, accounts_output=None, force=False)
-            return True
-        finally:
+        async with engine.connect() as conn:
+            if not await conn.scalar(text("SELECT pg_try_advisory_lock(:key)"), {"key": DEMO_LOCK_KEY}):
+                return False
+            await conn.commit()
             try:
-                await conn.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": DEMO_LOCK_KEY})
-                await conn.commit()
-            except Exception:
-                logger.warning("Failed to release public demo advisory lock", exc_info=True)
+                # Another worker may have rebuilt it while we waited.
+                exists, seeded_on, accounts_ready = await _demo_state()
+                if not _needs_rebuild(exists, seeded_on, accounts_ready, now):
+                    _last_error = None
+                    return False
+                from scripts.seed_demo_presentation_data import seed_demo_data
+
+                await seed_demo_data(reset_demo=True, accounts_output=None, force=False)
+                _last_error = None
+                return True
+            except Exception as exc:
+                _last_error = f"{type(exc).__name__}: {str(exc).splitlines()[0][:200]}"
+                raise
+            finally:
+                try:
+                    await asyncio.shield(
+                        conn.execute(text("SELECT pg_advisory_unlock_all()"))
+                    )
+                    await asyncio.shield(conn.commit())
+                except Exception:
+                    logger.warning("Failed to release public demo advisory lock", exc_info=True)
 
 
 async def ensure_demo_ready(now: datetime | None = None) -> bool:
     """Ensure demo accounts exist when a visitor clicks demo before background seeding finishes."""
+    global _last_error
     if not settings.public_demo_enabled or settings.app_env.lower() in {"test", "testing"}:
         return False
-    async with _loop_lock():
-        try:
-            await refresh_demo_if_stale(now=now)
-        except Exception:
-            logger.exception("On-demand public demo initialization failed")
-            return False
-        exists, _, accounts_ready = await _demo_state()
-        return exists and accounts_ready
+    try:
+        await refresh_demo_if_stale(now=now)
+    except Exception as exc:
+        _last_error = f"{type(exc).__name__}: {str(exc).splitlines()[0][:200]}"
+        logger.exception("On-demand public demo initialization failed")
+        return False
+    exists, _, accounts_ready = await _demo_state()
+    return exists and accounts_ready

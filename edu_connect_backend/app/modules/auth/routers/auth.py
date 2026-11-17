@@ -298,7 +298,13 @@ class DemoLoginRequest(BaseModel):
 @router.get("/demo")
 async def demo_availability():
     """Lets the login page know whether to offer the public demo."""
-    return {"enabled": settings.public_demo_enabled, "roles": list(DEMO_ROLE_ACCOUNTS)}
+    payload: dict[str, object] = {
+        "enabled": settings.public_demo_enabled,
+        "roles": list(DEMO_ROLE_ACCOUNTS),
+    }
+    if settings.public_demo_enabled and demo_refresh.last_refresh_error():
+        payload["error"] = demo_refresh.last_refresh_error()
+    return payload
 
 
 @router.post("/demo-login", response_model=TokenResponse)
@@ -317,14 +323,14 @@ async def demo_login(
     email = DEMO_ROLE_ACCOUNTS[req.role]
     await set_auth_lookup_email(db, email)
     user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
-    if user is None or user.deactivated_at is not None or user.password_hash is None:
+    if user is None or user.deactivated_at is not None or user.password_hash is None or user.school_id is None:
         if await demo_refresh.ensure_demo_ready():
             rollback = getattr(db, "rollback", None)
             if callable(rollback):
                 await rollback()
             await set_auth_lookup_email(db, email)
             user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
-    if user is None or user.deactivated_at is not None or user.password_hash is None:
+    if user is None or user.deactivated_at is not None or user.password_hash is None or user.school_id is None:
         raise HTTPException(status_code=503, detail="La démo est en cours de préparation. Réessayez dans une minute.")
     await set_request_rls_context(db, school_id=user.school_id)
 

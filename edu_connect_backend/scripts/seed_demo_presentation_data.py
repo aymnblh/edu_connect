@@ -270,9 +270,27 @@ async def seed_demo_data(*, reset_demo: bool, accounts_output: Path | None, forc
                 "Use --reset-demo to rebuild it from scratch.\n"
                 f"Accounts file: {accounts_output if accounts_output else 'not written'}"
             )
-        if existing and reset_demo:
-            for existing_school in existing:
-                await reset_demo_school(db, existing_school.id)
+        if reset_demo:
+            school_ids = {s.id for s in existing}
+            extra_ids = (
+                await db.execute(
+                    text(
+                        """
+                        SELECT DISTINCT school_id FROM users WHERE email LIKE :domain AND school_id IS NOT NULL
+                        UNION
+                        SELECT DISTINCT school_id FROM classes WHERE join_code IN ('DEMO1A', 'DEMO2B', 'DEMO3A')
+                        UNION
+                        SELECT DISTINCT school_id FROM students WHERE student_id LIKE 'DEMO-%'
+                        """
+                    ),
+                    {"domain": f"%@{DEMO_DOMAIN}"},
+                )
+            ).scalars().all()
+            for sid in school_ids | {s for s in extra_ids if s}:
+                await reset_demo_school(db, sid)
+            await set_request_rls_context(db, is_system_admin=True)
+            await db.execute(text("DELETE FROM users WHERE email LIKE :domain"), {"domain": f"%@{DEMO_DOMAIN}"})
+            await db.commit()
             await set_request_rls_context(db, is_system_admin=True)
 
         school = School(
