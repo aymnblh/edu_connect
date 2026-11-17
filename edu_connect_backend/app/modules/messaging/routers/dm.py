@@ -70,11 +70,17 @@ class ParticipantOut(BaseModel):
 
     model_config = {"from_attributes": True}
 
+class ContactClassOut(BaseModel):
+    id: str
+    name: str
+
+
 class ContactOut(BaseModel):
     user_id: str
     full_name: str
     role: str
     email: str | None = None
+    classes: list[ContactClassOut] = []
 
     model_config = {"from_attributes": True}
 
@@ -580,15 +586,124 @@ async def list_dm_contacts(
 
     contacts = [user for user in contacts if user.deactivated_at is None]
     contacts = await _filter_blocked_contacts(current_user, contacts, db)
+    classes_by_user = await _load_contact_classes(current_user, contacts, db)
     return [
         ContactOut(
             user_id=user.id,
             full_name=user.full_name,
             role=user.role.value,
             email=user.email,
+            classes=classes_by_user.get(user.id, []),
         )
         for user in contacts
     ]
+
+
+async def _load_contact_classes(
+    current_user: User,
+    contacts: list[User],
+    db: AsyncSession,
+) -> dict[str, list[ContactClassOut]]:
+    """Map each contact user_id to the school classes linking them to current_user."""
+    school_id = current_user.school_id
+    if not contacts or not school_id or not hasattr(db, "execute"):
+        return {}
+
+    try:
+        now = datetime.now(timezone.utc)
+        allowed_class_ids: set[str] | None = None
+        if current_user.role == UserRole.teacher:
+            taught_res = await db.execute(
+                select(ClassTeacher.class_id).where(
+                    ClassTeacher.school_id == school_id,
+                    ClassTeacher.teacher_id == current_user.id,
+                )
+            )
+            temp_res = await db.execute(
+                select(ClassTemporaryAccess.class_id).where(
+                    ClassTemporaryAccess.school_id == school_id,
+                    ClassTemporaryAccess.user_id == current_user.id,
+                    ClassTemporaryAccess.starts_at <= now,
+                    ClassTemporaryAccess.expires_at >= now,
+                )
+            )
+            allowed_class_ids = set(taught_res.scalars().all()) | set(temp_res.scalars().all())
+        elif current_user.role == UserRole.parent:
+            child_cls_res = await db.execute(
+                select(ClassMember.class_id)
+                .join(StudentParent, StudentParent.student_id == ClassMember.student_id)
+                .where(
+                    ClassMember.school_id == school_id,
+                    StudentParent.school_id == school_id,
+                    StudentParent.parent_id == current_user.id,
+                )
+            )
+            allowed_class_ids = set(child_cls_res.scalars().all())
+
+        if allowed_class_ids is not None and not allowed_class_ids:
+            return {}
+
+        by_user: dict[str, dict[str, str]] = {}
+
+        parent_ids = [u.id for u in contacts if u.role == UserRole.parent]
+        if parent_ids:
+            parent_stmt = (
+                select(StudentParent.parent_id, Class.id, Class.name)
+                .join(ClassMember, ClassMember.student_id == StudentParent.student_id)
+                .join(Class, Class.id == ClassMember.class_id)
+                .where(
+                    StudentParent.school_id == school_id,
+                    ClassMember.school_id == school_id,
+                    Class.school_id == school_id,
+                    StudentParent.parent_id.in_(parent_ids),
+                )
+            )
+            if allowed_class_ids is not None:
+                parent_stmt = parent_stmt.where(Class.id.in_(allowed_class_ids))
+            for uid, cid, cname in (await db.execute(parent_stmt)).all():
+                by_user.setdefault(uid, {})[cid] = cname
+
+        teacher_ids = [u.id for u in contacts if u.role == UserRole.teacher]
+        if teacher_ids:
+            teacher_stmt = (
+                select(ClassTeacher.teacher_id, Class.id, Class.name)
+                .join(Class, Class.id == ClassTeacher.class_id)
+                .where(
+                    ClassTeacher.school_id == school_id,
+                    Class.school_id == school_id,
+                    ClassTeacher.teacher_id.in_(teacher_ids),
+                )
+            )
+            if allowed_class_ids is not None:
+                teacher_stmt = teacher_stmt.where(Class.id.in_(allowed_class_ids))
+            for uid, cid, cname in (await db.execute(teacher_stmt)).all():
+                by_user.setdefault(uid, {})[cid] = cname
+
+            temp_teacher_stmt = (
+                select(ClassTemporaryAccess.user_id, Class.id, Class.name)
+                .join(Class, Class.id == ClassTemporaryAccess.class_id)
+                .where(
+                    ClassTemporaryAccess.school_id == school_id,
+                    Class.school_id == school_id,
+                    ClassTemporaryAccess.user_id.in_(teacher_ids),
+                    ClassTemporaryAccess.starts_at <= now,
+                    ClassTemporaryAccess.expires_at >= now,
+                )
+            )
+            if allowed_class_ids is not None:
+                temp_teacher_stmt = temp_teacher_stmt.where(Class.id.in_(allowed_class_ids))
+            for uid, cid, cname in (await db.execute(temp_teacher_stmt)).all():
+                by_user.setdefault(uid, {})[cid] = cname
+
+        return {
+            uid: [
+                ContactClassOut(id=cid, name=cname)
+                for cid, cname in sorted(class_map.items(), key=lambda item: item[1])
+            ]
+            for uid, class_map in by_user.items()
+        }
+    except Exception:
+        return {}
 
 
 @router.get("/blocks", response_model=list[MessageBlockOut])

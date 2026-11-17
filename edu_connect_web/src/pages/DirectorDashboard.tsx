@@ -2078,7 +2078,10 @@ export default function DirectorDashboard() {
       )}
       {activeTab === 'messages' && (
         <section className="glass-card dashboard-card-pad">
-          <DirectMessagingPanel scopeKey="director" />
+          <DirectMessagingPanel
+            scopeKey="director"
+            classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
+          />
         </section>
       )}
 

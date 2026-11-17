@@ -2054,6 +2054,26 @@ export const translations: Record<string, Record<Locale, string>> = {
     ar: 'المستلمون المسموحون',
     en: 'Authorized recipients',
   },
+  'messages.filterByClass': {
+    fr: 'Filtrer par classe',
+    ar: 'تصفية حسب القسم',
+    en: 'Filter by class',
+  },
+  'messages.allClasses': {
+    fr: 'Toutes les classes',
+    ar: 'جميع الأقسام',
+    en: 'All classes',
+  },
+  'messages.administrationGroup': {
+    fr: 'Administration',
+    ar: 'الإدارة',
+    en: 'Administration',
+  },
+  'messages.emptyFilteredContacts': {
+    fr: 'Aucun destinataire dans cette classe.',
+    ar: 'لا يوجد مستلمون في هذا القسم.',
+    en: 'No recipients in this class.',
+  },
   'messages.emptyContacts': {
     fr: 'Aucun destinataire autorisé pour ce compte.',
     ar: 'لا يوجد مستلمون مسموحون لهذا الحساب.',

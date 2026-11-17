@@ -5,11 +5,17 @@ import { api } from '../lib/api';
 import { useLocale, type Locale } from '../lib/i18n';
 import { readWorkspaceSessionItem } from '../lib/workspace';
 
+interface DmContactClass {
+  id: string;
+  name: string;
+}
+
 interface DmContact {
   user_id: string;
   full_name: string;
   role: string;
   email?: string | null;
+  classes?: DmContactClass[];
 }
 
 interface DmParticipant {
@@ -42,6 +48,7 @@ interface DmConversation {
 
 interface DirectMessagingPanelProps {
   scopeKey: string;
+  classes?: DmContactClass[];
 }
 
 const emptyContacts: DmContact[] = [];
@@ -92,12 +99,13 @@ function getErrorMessage(error: unknown): string | null {
   return null;
 }
 
-export default function DirectMessagingPanel({ scopeKey }: DirectMessagingPanelProps) {
+export default function DirectMessagingPanel({ scopeKey, classes }: DirectMessagingPanelProps) {
   const { t, locale } = useLocale();
   const queryClient = useQueryClient();
   const currentUserId = useMemo(() => readCurrentUserId(), []);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [typedMessage, setTypedMessage] = useState('');
 
   const contactsQuery = useQuery<DmContact[]>({
@@ -119,7 +127,40 @@ export default function DirectMessagingPanel({ scopeKey }: DirectMessagingPanelP
   const contacts = contactsQuery.data ?? emptyContacts;
   const conversations = conversationsQuery.data ?? emptyConversations;
 
-  const selectedContact = contacts.find((contact) => contact.user_id === selectedContactId) ?? contacts[0] ?? null;
+  const availableClasses = useMemo(() => {
+    const byId = new Map<string, string>();
+    for (const cls of classes ?? []) {
+      if (cls.id && cls.name) byId.set(cls.id, cls.name);
+    }
+    for (const contact of contacts) {
+      for (const cls of contact.classes ?? []) {
+        if (cls.id && cls.name) byId.set(cls.id, cls.name);
+      }
+    }
+    return Array.from(byId.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [classes, contacts]);
+
+  const hasAdminContacts = useMemo(
+    () => contacts.some((contact) => contact.role === 'principal' || contact.role === 'secretary'),
+    [contacts],
+  );
+
+  const filteredContacts = useMemo(() => {
+    if (selectedClassFilter === 'all') return contacts;
+    if (selectedClassFilter === '__admin__') {
+      return contacts.filter((contact) => contact.role === 'principal' || contact.role === 'secretary');
+    }
+    return contacts.filter((contact) =>
+      (contact.classes ?? []).some((cls) => cls.id === selectedClassFilter),
+    );
+  }, [contacts, selectedClassFilter]);
+
+  const selectedContact =
+    filteredContacts.find((contact) => contact.user_id === selectedContactId) ??
+    filteredContacts[0] ??
+    null;
 
   const selectedConversation = useMemo(() => {
     if (!selectedContact) return null;
@@ -180,18 +221,47 @@ export default function DirectMessagingPanel({ scopeKey }: DirectMessagingPanelP
   return (
     <div className="animate-fade-in dashboard-split dashboard-split--chat" role="tabpanel">
       <div className="dashboard-side">
-        <h3 className="dashboard-section-title">{t('messages.contactsTitle')}</h3>
+        <div className="dm-contacts-header">
+          <h3 className="dashboard-section-title">{t('messages.contactsTitle')}</h3>
+          {availableClasses.length > 0 && (
+            <div className="dm-class-filter">
+              <select
+                className="form-input dm-class-select"
+                value={selectedClassFilter}
+                onChange={(event) => setSelectedClassFilter(event.target.value)}
+                aria-label={t('messages.filterByClass')}
+              >
+                <option value="all">{t('messages.allClasses')}</option>
+                {availableClasses.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </option>
+                ))}
+                {hasAdminContacts && (
+                  <option value="__admin__">{t('messages.administrationGroup')}</option>
+                )}
+              </select>
+            </div>
+          )}
+        </div>
         <div className="dashboard-list">
           {contactsQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
           {!contactsQuery.isLoading && contacts.length === 0 && (
             <p className="empty-list-copy">{t('messages.emptyContacts')}</p>
           )}
-          {contacts.map((contact) => {
+          {!contactsQuery.isLoading && contacts.length > 0 && filteredContacts.length === 0 && (
+            <p className="empty-list-copy">{t('messages.emptyFilteredContacts')}</p>
+          )}
+          {filteredContacts.map((contact) => {
             const active = selectedContact?.user_id === contact.user_id;
             const lastMessage = conversations.find((conversation) =>
               conversation.type === 'direct' &&
               conversation.participants.some((participant) => participant.user_id === contact.user_id),
             )?.last_message?.content;
+            const classNames = (contact.classes ?? []).map((cls) => cls.name).join(', ');
+            const roleLabel = classNames
+              ? `${t(`role.${contact.role}`)} · ${classNames}`
+              : t(`role.${contact.role}`);
             return (
               <button
                 type="button"
@@ -201,13 +271,16 @@ export default function DirectMessagingPanel({ scopeKey }: DirectMessagingPanelP
                 aria-pressed={active}
                 aria-label={t('messages.contactAria', {
                   name: contact.full_name,
-                  role: t(`role.${contact.role}`),
+                  role: roleLabel,
                 })}
               >
                 <div className="contact-avatar">{initials(contact.full_name)}</div>
                 <div className="contact-card-body">
                   <h4 className="contact-name">{contact.full_name}</h4>
-                  <p className="contact-preview">{lastMessage || t(`role.${contact.role}`)}</p>
+                  {lastMessage && classNames && (
+                    <p className="contact-role-meta">{roleLabel}</p>
+                  )}
+                  <p className="contact-preview">{lastMessage || roleLabel}</p>
                 </div>
               </button>
             );

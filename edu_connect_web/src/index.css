@@ -4065,6 +4065,7 @@ body {
 
 .chart-panel,
 .chat-container,
+.chat-sim-container,
 .student-filter-bar,
 .director-stat-strip div,
 .link-audit-item,
@@ -4077,6 +4078,26 @@ body {
   background: #FAFBFC;
   border-color: var(--surface-border);
   border-radius: var(--radius-md);
+}
+
+.chat-sim-bubble-incoming {
+  background: #FFFFFF;
+  color: var(--text-primary);
+  border: 1px solid var(--surface-border);
+}
+
+.chat-sim-bubble-outgoing {
+  background: var(--primary);
+  color: #FFFFFF;
+}
+
+.chat-message-header--outgoing {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.chat-sim-input-bar {
+  background: #FFFFFF;
+  border-top: 1px solid var(--surface-border);
 }
 
 /* ── Tables ── */

@@ -1728,7 +1728,12 @@ export default function TeacherDashboard() {
           </div>
         )}
 
-        {!isLoading && activeTab === 'chat' && <DirectMessagingPanel scopeKey="teacher" />}
+        {!isLoading && activeTab === 'chat' && (
+          <DirectMessagingPanel
+            scopeKey="teacher"
+            classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
+          />
+        )}
         {!isLoading && activeTab === 'meetings' && (
           <TeacherMeetingsPanel
             classes={classes.map((schoolClass) => ({ id: schoolClass.id, name: schoolClass.name }))}
