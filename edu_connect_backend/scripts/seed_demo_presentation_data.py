@@ -18,7 +18,12 @@ PROJECT_ROOT = BACKEND_ROOT.parent
 sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.core.config import settings
-from app.core.rls import set_audit_event_write_context, set_request_rls_context
+from app.core.rls import (
+    set_audit_event_write_context,
+    set_audit_retention_context,
+    set_request_rls_context,
+    set_student_retention_context,
+)
 from app.core.security import get_password_hash
 from app.db.database import AsyncSessionLocal
 from app.models import (
@@ -125,14 +130,17 @@ def assert_safe_environment(force: bool) -> None:
         )
 
 
-async def existing_demo_school(db) -> School | None:
+async def existing_demo_schools(db) -> list[School]:
     result = await db.execute(select(School).where(School.name == DEMO_SCHOOL_NAME))
-    return result.scalar_one_or_none()
+    return list(result.scalars().all())
 
 
 async def reset_demo_school(db, school_id: str) -> None:
     # Newer tables only accept rows of the current school, even for the platform.
     await set_request_rls_context(db, school_id=school_id, is_system_admin=True)
+    # Retention DELETE policies gate students (RESTRICTIVE) and audit_events.
+    await set_audit_retention_context(db)
+    await set_student_retention_context(db)
     # Delete child tables explicitly so the reset is deterministic across DBs.
     for table in (
         "transport_exceptions",
@@ -161,6 +169,7 @@ async def reset_demo_school(db, school_id: str) -> None:
         "message_blocks",
         "messages",
         "media_attachments",
+        "push_devices",
         "notifications",
         "notification_preferences",
         "refresh_tokens",
@@ -251,18 +260,19 @@ async def seed_demo_data(*, reset_demo: bool, accounts_output: Path | None, forc
 
     async with AsyncSessionLocal() as db:
         await set_request_rls_context(db, is_system_admin=True)
-        existing = await existing_demo_school(db)
+        existing = await existing_demo_schools(db)
         if existing and not reset_demo:
             accounts = demo_accounts()
             if accounts_output:
-                accounts_output.write_text(render_accounts(accounts, school_id=existing.id), encoding="utf-8")
+                accounts_output.write_text(render_accounts(accounts, school_id=existing[0].id), encoding="utf-8")
             return (
-                f"Demo school already exists: {existing.id}\n"
+                f"Demo school already exists: {existing[0].id}\n"
                 "Use --reset-demo to rebuild it from scratch.\n"
                 f"Accounts file: {accounts_output if accounts_output else 'not written'}"
             )
         if existing and reset_demo:
-            await reset_demo_school(db, existing.id)
+            for existing_school in existing:
+                await reset_demo_school(db, existing_school.id)
             await set_request_rls_context(db, is_system_admin=True)
 
         school = School(

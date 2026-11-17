@@ -26,6 +26,7 @@ from app.core.rls import (
     set_student_pin_lookup,
 )
 from app.db.database import get_db
+from app.modules.demo import refresh as demo_refresh
 from app.modules.demo.access import DEMO_ROLE_ACCOUNTS, is_read_only_demo_user
 from app.models import User, RefreshToken, UserRole
 from app.core.security import (
@@ -316,6 +317,13 @@ async def demo_login(
     email = DEMO_ROLE_ACCOUNTS[req.role]
     await set_auth_lookup_email(db, email)
     user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    if user is None or user.deactivated_at is not None or user.password_hash is None:
+        if await demo_refresh.ensure_demo_ready():
+            rollback = getattr(db, "rollback", None)
+            if callable(rollback):
+                await rollback()
+            await set_auth_lookup_email(db, email)
+            user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if user is None or user.deactivated_at is not None or user.password_hash is None:
         raise HTTPException(status_code=503, detail="La démo est en cours de préparation. Réessayez dans une minute.")
     await set_request_rls_context(db, school_id=user.school_id)

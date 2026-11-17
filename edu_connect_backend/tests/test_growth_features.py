@@ -282,3 +282,64 @@ def test_monthly_report_is_for_school_administration_only():
     with pytest.raises(HTTPException) as exc:
         run(monthly_router.monthly_report(month="2099-01", current_user=make_user("director-a", UserRole.principal), db=FakeDb()))
     assert exc.value.status_code == 400
+
+
+def test_demo_login_prepares_missing_demo_accounts_on_demand(monkeypatch):
+    from app.modules.demo import refresh as demo_refresh
+
+    monkeypatch.setattr(settings, "public_demo_enabled", True)
+    user = _demo_user()
+    calls = {"ensure": 0}
+
+    async def fake_ensure_demo_ready():
+        calls["ensure"] += 1
+        return True
+
+    monkeypatch.setattr(demo_refresh, "ensure_demo_ready", fake_ensure_demo_ready)
+    db = LenientDb(results=[FakeResult([]), FakeResult([user])])
+    tokens = run(auth.demo_login(auth.DemoLoginRequest(role="principal"), make_request("/auth/demo-login"), db=db))
+    assert calls["ensure"] == 1
+    assert security.decode_token(tokens["access_token"])["sub"] == user.id
+
+
+def test_demo_login_returns_503_when_demo_preparation_is_not_ready(monkeypatch):
+    from app.modules.demo import refresh as demo_refresh
+
+    monkeypatch.setattr(settings, "public_demo_enabled", True)
+
+    async def fake_ensure_demo_ready():
+        return False
+
+    monkeypatch.setattr(demo_refresh, "ensure_demo_ready", fake_ensure_demo_ready)
+    db = LenientDb(results=[FakeResult([])])
+    with pytest.raises(HTTPException) as exc:
+        run(auth.demo_login(auth.DemoLoginRequest(role="principal"), make_request("/auth/demo-login"), db=db))
+    assert exc.value.status_code == 503
+
+
+def test_demo_needs_rebuild_when_accounts_are_missing():
+    from app.modules.demo.refresh import _needs_rebuild
+
+    now = datetime(2026, 10, 23, 12, tzinfo=ALGERIA_TZ)
+    assert not _needs_rebuild(True, "2026-10-23", True, now)
+    assert _needs_rebuild(True, "2026-10-23", False, now)
+    assert _needs_rebuild(False, "2026-10-23", True, now)
+
+
+def test_background_run_every_uses_short_retry_delay_on_failure(monkeypatch):
+    import asyncio
+    from app.core import background
+
+    sleeps: list[float] = []
+
+    async def failing_job():
+        raise RuntimeError("transient error")
+
+    async def fake_sleep(delay: float):
+        sleeps.append(delay)
+        raise asyncio.CancelledError()
+
+    monkeypatch.setattr(background.asyncio, "sleep", fake_sleep)
+    with pytest.raises(asyncio.CancelledError):
+        run(background.run_every(1800, failing_job, "demo_refresh", retry_seconds=30))
+    assert sleeps == [30]

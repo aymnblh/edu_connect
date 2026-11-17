@@ -8,15 +8,24 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
-async def run_every(seconds: float, job: Callable[[], Awaitable[object]], name: str) -> None:
+async def run_every(
+    seconds: float,
+    job: Callable[[], Awaitable[object]],
+    name: str,
+    *,
+    retry_seconds: float | None = None,
+) -> None:
     while True:
+        failed = False
         try:
             await job()
         except asyncio.CancelledError:
             raise
         except Exception:
+            failed = True
             logger.exception("Background job %s failed", name)
-        await asyncio.sleep(seconds)
+        delay = retry_seconds if failed and retry_seconds is not None else seconds
+        await asyncio.sleep(delay)
 
 
 def start_background_jobs() -> list[asyncio.Task]:
@@ -31,7 +40,11 @@ def start_background_jobs() -> list[asyncio.Task]:
         asyncio.create_task(run_every(3600, send_automatic_reminders, "fee_reminders")),
     ]
     if settings.public_demo_enabled:
-        tasks.append(asyncio.create_task(run_every(1800, refresh_demo_if_stale, "demo_refresh")))
+        tasks.append(
+            asyncio.create_task(
+                run_every(1800, refresh_demo_if_stale, "demo_refresh", retry_seconds=30)
+            )
+        )
     return tasks
 
 
