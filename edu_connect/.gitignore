@@ -43,6 +43,8 @@ app.*.map.json
 /config/production.json
 /config/staging.json
 /config/*.local.json
+/apps.json
+/apps_utf8.json
 
 # Android Studio will place build artifacts here
 /android/app/debug

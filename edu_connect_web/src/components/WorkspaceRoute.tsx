@@ -10,8 +10,12 @@ export default function WorkspaceRoute({
   role: WorkspaceRole | WorkspaceRole[];
   children: React.ReactNode;
 }) {
-  const { activeRole, hasMultipleRoles, isAuthenticated, roles, routeForActiveRole } = useWorkspace();
+  const { activeRole, hasMultipleRoles, isAuthenticated, isRestoring, roles, routeForActiveRole } = useWorkspace();
   const allowedRoles = Array.isArray(role) ? role : [role];
+
+  if (isRestoring) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

@@ -400,10 +400,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                       const SizedBox(height: 24),
 
-                      // ── New school registration link ───────────────────────────
+                      // ── School onboarding info (B2B provisioned off-app) ───────
                       Center(
-                        child: GestureDetector(
-                          onTap: () => context.push('/create-school'),
+                        child: TextButton(
+                          onPressed: () {
+                            final lang =
+                                Localizations.localeOf(context).languageCode;
+                            final title = lang == 'ar'
+                                ? 'مساحة المؤسسات المدرسية'
+                                : lang == 'fr'
+                                    ? 'Espace établissement scolaire'
+                                    : 'School Workspace Onboarding';
+                            final body = lang == 'ar'
+                                ? 'يتم تفعيل مساحات المدارس الخاصة من قبل فريق Wasel Edu. للتواصل: privacy@waseledu.dz'
+                                : lang == 'fr'
+                                    ? 'Les espaces établissements sont activés par l’équipe Wasel Edu. Contactez votre conseiller ou écrivez à privacy@waseledu.dz.'
+                                    : 'School workspaces are provisioned by the Wasel Edu onboarding team. Please contact your school representative or email privacy@waseledu.dz.';
+                            showDialog<void>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: Text(title),
+                                content: Text(body),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(ctx).pop(),
+                                    child: Text(
+                                      MaterialLocalizations.of(ctx)
+                                          .okButtonLabel,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                           child: Text(
                             _registerSchoolText(context, l10n),
                             style: TextStyle(

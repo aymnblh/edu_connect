@@ -37,6 +37,8 @@ flutter analyze
 flutter build appbundle \
   --release \
   --no-pub \
+  --obfuscate \
+  --split-debug-info=build/debug-info \
   --dart-define-from-file="$DART_DEFINE_FILE"
 
 [[ -f "$AAB_PATH" ]] || error "AAB not found at $AAB_PATH"

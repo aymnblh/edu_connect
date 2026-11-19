@@ -80,11 +80,12 @@ export default function AuditLogPanel({ people }: AuditLogPanelProps) {
     try {
       const response = await api.get('/security/audit-events/export', { params, responseType: 'blob' });
       const disposition = String(response.headers['content-disposition'] ?? '');
-      const name = /filename=([^;]+)/.exec(disposition)?.[1] ?? 'journal_audit.csv';
+      const rawName = /filename=([^;]+)/.exec(disposition)?.[1]?.trim().replace(/^["']|["']$/g, '') ?? '';
+      const safeName = rawName.replace(/[^A-Za-z0-9._-]/g, '_') || 'journal_audit.csv';
       const url = URL.createObjectURL(response.data as Blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = name;
+      link.download = safeName;
       link.click();
       URL.revokeObjectURL(url);
     } catch {

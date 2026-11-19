@@ -17,6 +17,18 @@ from app.models import Attendance, Class, ClassMember, Grade, Remark, Student, S
 router = APIRouter(prefix="/security", tags=["Security"])
 
 
+_CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe_cell(value: object) -> str:
+    """Neutralize spreadsheet formula triggers (CWE-1236) in exported CSV cells."""
+    text = "" if value is None else str(value)
+    stripped = text.lstrip(" ")
+    if stripped and stripped[0] in _CSV_FORMULA_PREFIXES:
+        return f"'{text}"
+    return text
+
+
 def _dt(value: datetime | None) -> str | None:
     return value.isoformat() if value else None
 
@@ -170,17 +182,18 @@ async def export_audit_events(
     writer = csv.writer(output, delimiter=";")
     writer.writerow(["date_utc", "person", "role", "action", "resource", "resource_id", "status", "ip", "device", "details"])
     for event, name in rows:
+        metadata_text = "; ".join(f"{key}={value}" for key, value in (event.event_metadata or {}).items())
         writer.writerow([
             _dt(event.created_at),
-            name or "",
-            event.actor_role or "",
-            event.action,
-            event.resource_type or "",
-            event.resource_id or "",
+            _csv_safe_cell(name or ""),
+            _csv_safe_cell(event.actor_role or ""),
+            _csv_safe_cell(event.action),
+            _csv_safe_cell(event.resource_type or ""),
+            _csv_safe_cell(event.resource_id or ""),
             event.status_code or "",
-            "" if hide_device else event.ip_address or "",
-            event.device_platform or "",
-            "; ".join(f"{key}={value}" for key, value in (event.event_metadata or {}).items()),
+            "" if hide_device else _csv_safe_cell(event.ip_address or ""),
+            _csv_safe_cell(event.device_platform or ""),
+            _csv_safe_cell(metadata_text),
         ])
 
     await record_audit_event(
@@ -195,8 +208,13 @@ async def export_audit_events(
     )
     await db.commit()
     filename = f"journal_audit_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M')}.csv"
+    payload = output.getvalue().encode("utf-8-sig")
+
+    async def _csv_stream():
+        yield payload
+
     return StreamingResponse(
-        iter([output.getvalue().encode("utf-8-sig")]),
+        _csv_stream(),
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )

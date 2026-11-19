@@ -31,6 +31,9 @@
 	import security_headers
 	encode zstd gzip
 	header X-Robots-Tag "noindex, nofollow"
+	request_body {
+		max_size 12MB
+	}
 	reverse_proxy api:8000
 	log {
 		output stdout

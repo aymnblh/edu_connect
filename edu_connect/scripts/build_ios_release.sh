@@ -53,6 +53,8 @@ BUILD_ARGS=(
   build ipa
   --release
   --no-pub
+  --obfuscate
+  --split-debug-info=build/ios/debug-info
   --dart-define-from-file="$DART_DEFINE_FILE"
 )
 

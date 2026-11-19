@@ -1284,39 +1284,37 @@ export default function TeacherDashboard() {
                   }}
                   aria-busy={publishHomeworkMutation.isPending}
                 >
-                  <div className="teacher-homework-form-row">
-                    <div className="form-group">
-                      <span id="homework-kind-label" className="form-label">{t('teacher.homeworkKind')}</span>
-                      <div className="teacher-homework-kind" role="group" aria-labelledby="homework-kind-label">
-                        {(['homework', 'assignment', 'exam'] as HomeworkKind[]).map((kind) => (
-                          <button
-                            key={kind}
-                            type="button"
-                            className={`teacher-homework-kind-option ${homeworkForm.kind === kind ? 'teacher-homework-kind-option--active' : ''}`}
-                            aria-pressed={homeworkForm.kind === kind}
-                            disabled={publishHomeworkMutation.isPending}
-                            onClick={() => {
-                              publishHomeworkMutation.reset();
-                              setHomeworkForm((current) => ({ ...current, kind }));
-                            }}
-                          >
-                            {t(`teacher.homeworkKind.${kind}`)}
-                          </button>
-                        ))}
-                      </div>
+                  <div className="form-group">
+                    <span id="homework-kind-label" className="form-label">{t('teacher.homeworkKind')}</span>
+                    <div className="teacher-homework-kind" role="group" aria-labelledby="homework-kind-label">
+                      {(['homework', 'assignment', 'exam'] as HomeworkKind[]).map((kind) => (
+                        <button
+                          key={kind}
+                          type="button"
+                          className={`teacher-homework-kind-option ${homeworkForm.kind === kind ? 'teacher-homework-kind-option--active' : ''}`}
+                          aria-pressed={homeworkForm.kind === kind}
+                          disabled={publishHomeworkMutation.isPending}
+                          onClick={() => {
+                            publishHomeworkMutation.reset();
+                            setHomeworkForm((current) => ({ ...current, kind }));
+                          }}
+                        >
+                          {t(`teacher.homeworkKind.${kind}`)}
+                        </button>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="homework-due-date">{t('teacher.homeworkDueDate')}</label>
-                      <input
-                        id="homework-due-date"
-                        className="form-input"
-                        type="date"
-                        value={homeworkForm.dueDate}
-                        onChange={(event) => setHomeworkForm((current) => ({ ...current, dueDate: event.target.value }))}
-                        required
-                      />
-                    </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="homework-due-date">{t('teacher.homeworkDueDate')}</label>
+                    <input
+                      id="homework-due-date"
+                      className="form-input"
+                      type="date"
+                      value={homeworkForm.dueDate}
+                      onChange={(event) => setHomeworkForm((current) => ({ ...current, dueDate: event.target.value }))}
+                      required
+                    />
                   </div>
 
                   <div className="form-group">

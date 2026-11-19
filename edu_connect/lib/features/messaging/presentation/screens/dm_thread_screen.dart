@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/moderation_dialogs.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../providers/dm_provider.dart';
@@ -27,12 +29,147 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
+  Set<String> _blockedUserIds = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBlockedUsers();
+  }
+
+  Future<void> _loadBlockedUsers() async {
+    try {
+      final blocked = await ref.read(dmRepositoryProvider).getBlockedUserIds();
+      if (mounted) {
+        setState(() => _blockedUserIds = blocked);
+      }
+    } catch (_) {
+      // Best-effort preload; block/unblock actions remain available.
+    }
+  }
 
   @override
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleReport({
+    required String reportedUserId,
+    required String reportedUserName,
+    String? messageId,
+  }) async {
+    final modText = ModerationText.of(context);
+    final input = await showModerationReportDialog(
+      context,
+      targetName: reportedUserName,
+    );
+    if (input == null || !mounted) return;
+    try {
+      await ref.read(dmRepositoryProvider).reportMessage(
+            conversationId: widget.conversationId,
+            reportedUserId: reportedUserId,
+            messageId: messageId,
+            reason: input.reason,
+            details: input.details,
+          );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(modText.reportSubmitted)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(extractModerationError(e, modText))),
+      );
+    }
+  }
+
+  Future<void> _handleToggleBlock({
+    required String targetUserId,
+    required String targetUserName,
+  }) async {
+    final modText = ModerationText.of(context);
+    final currentlyBlocked = _blockedUserIds.contains(targetUserId);
+    final confirmed = await showBlockUserConfirmDialog(
+      context,
+      userName: targetUserName,
+      isCurrentlyBlocked: currentlyBlocked,
+    );
+    if (!confirmed || !mounted) return;
+    try {
+      final repo = ref.read(dmRepositoryProvider);
+      if (currentlyBlocked) {
+        await repo.unblockUser(targetUserId);
+      } else {
+        await repo.blockUser(targetUserId);
+      }
+      if (!mounted) return;
+      setState(() {
+        final next = Set<String>.from(_blockedUserIds);
+        if (currentlyBlocked) {
+          next.remove(targetUserId);
+        } else {
+          next.add(targetUserId);
+        }
+        _blockedUserIds = next;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            currentlyBlocked ? modText.userUnblocked : modText.userBlocked,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(extractModerationError(e, modText))),
+      );
+    }
+  }
+
+  void _showMessageModerationSheet(DirectMessageModel msg) {
+    HapticFeedback.mediumImpact();
+    final modText = ModerationText.of(context);
+    final isBlocked = _blockedUserIds.contains(msg.senderId);
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.flag_outlined, color: context.appColors.dangerRed),
+              title: Text(modText.reportMessage),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _handleReport(
+                  reportedUserId: msg.senderId,
+                  reportedUserName: msg.senderName,
+                  messageId: msg.id,
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                isBlocked ? Icons.lock_open_outlined : Icons.block_outlined,
+                color: context.appColors.dangerRed,
+              ),
+              title: Text(isBlocked ? modText.unblockUser : modText.blockUser),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _handleToggleBlock(
+                  targetUserId: msg.senderId,
+                  targetUserName: msg.senderName,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _scrollToBottom() {
@@ -66,6 +203,18 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
 
     final title = conv?.displayName(currentUserId) ?? text.conversation;
     final subtitle = conv?.subtitle(currentUserId) ?? '';
+    final otherParticipant = conv?.participants
+        .where((p) => p.userId != currentUserId)
+        .firstOrNull;
+    final fallbackMessage = threadState.messages
+        .where((m) => m.senderId != currentUserId)
+        .firstOrNull;
+    final modTargetId = otherParticipant?.userId ?? fallbackMessage?.senderId;
+    final modTargetName =
+        otherParticipant?.fullName ?? fallbackMessage?.senderName ?? title;
+    final modText = ModerationText.of(context);
+    final isTargetBlocked =
+        modTargetId != null && _blockedUserIds.contains(modTargetId);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -80,6 +229,57 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
           onPressed: () => context.pop(),
         ),
         titleSpacing: 0,
+        actions: [
+          if (modTargetId != null)
+            PopupMenuButton<String>(
+              tooltip: modText.moreOptions,
+              icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurface),
+              onSelected: (value) {
+                if (value == 'report') {
+                  _handleReport(
+                    reportedUserId: modTargetId,
+                    reportedUserName: modTargetName,
+                  );
+                } else if (value == 'block') {
+                  _handleToggleBlock(
+                    targetUserId: modTargetId,
+                    targetUserName: modTargetName,
+                  );
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem<String>(
+                  value: 'report',
+                  child: Row(
+                    children: [
+                      Icon(Icons.flag_outlined,
+                          size: 18, color: colors.dangerRed),
+                      const SizedBox(width: 8),
+                      Text(modText.reportContent),
+                    ],
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'block',
+                  child: Row(
+                    children: [
+                      Icon(
+                        isTargetBlocked
+                            ? Icons.lock_open_outlined
+                            : Icons.block_outlined,
+                        size: 18,
+                        color: colors.dangerRed,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(isTargetBlocked
+                          ? modText.unblockUser
+                          : modText.blockUser),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
         title: Row(
           children: [
             CircleAvatar(
@@ -175,7 +375,11 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
         return Column(
           children: [
             if (showDate) _DateDivider(date: msg.createdAt),
-            _MessageBubble(message: msg, isMe: isMe),
+            _MessageBubble(
+              message: msg,
+              isMe: isMe,
+              onLongPress: !isMe ? () => _showMessageModerationSheet(msg) : null,
+            ),
           ],
         );
       },
@@ -291,15 +495,22 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
 class _MessageBubble extends StatelessWidget {
   final DirectMessageModel message;
   final bool isMe;
+  final VoidCallback? onLongPress;
 
-  const _MessageBubble({required this.message, required this.isMe});
+  const _MessageBubble({
+    required this.message,
+    required this.isMe,
+    this.onLongPress,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = context.appColors;
 
-    return Padding(
+    return GestureDetector(
+      onLongPress: onLongPress,
+      child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         mainAxisAlignment:
@@ -396,6 +607,7 @@ class _MessageBubble extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -1,13 +1,16 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../../core/theme/app_theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-class SubscriptionExpiredScreen extends StatelessWidget {
+import '../../../../core/theme/app_theme.dart';
+import '../providers/auth_provider.dart';
+
+class SubscriptionExpiredScreen extends ConsumerWidget {
   const SubscriptionExpiredScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final colors = theme.extension<AppColors>()!;
@@ -31,7 +34,7 @@ class SubscriptionExpiredScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Semantics(
-              label: text.paymentIconLabel,
+              label: text.statusIconLabel,
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -39,7 +42,7 @@ class SubscriptionExpiredScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons.payment_outlined,
+                  Icons.school_outlined,
                   size: 64,
                   color: colors.dangerRed,
                 ),
@@ -49,6 +52,7 @@ class SubscriptionExpiredScreen extends StatelessWidget {
             const SizedBox(height: 32),
             Text(
               text.title,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
@@ -72,7 +76,12 @@ class SubscriptionExpiredScreen extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => context.go('/auth'),
+                  onPressed: () async {
+                    await ref.read(authNotifierProvider.notifier).signOut();
+                    if (context.mounted) {
+                      context.go('/login');
+                    }
+                  },
                   icon: const Icon(Icons.logout),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.dangerRed,
@@ -89,7 +98,28 @@ class SubscriptionExpiredScreen extends StatelessWidget {
               label: text.viewContacts,
               child: TextButton(
                 onPressed: () {
-                  // Direction to external regional support
+                  showDialog<void>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text(text.supportDialogTitle),
+                      content: Text(text.supportDialogBody),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            context.push('/policies');
+                          },
+                          child: Text(text.viewPolicies),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          child: Text(
+                            MaterialLocalizations.of(ctx).okButtonLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 },
                 child: Text(
                   text.viewContacts,
@@ -117,28 +147,43 @@ class _SubscriptionExpiredText {
   bool get _fr => languageCode == 'fr';
 
   String get title => _ar
-      ? 'انتهى الاشتراك'
+      ? 'الوصول المدرسي معلّق'
       : _fr
-          ? 'Abonnement expiré'
-          : 'Subscription Expired';
+          ? 'Accès établissement suspendu'
+          : 'School Access Suspended';
   String get description => _ar
-      ? 'تم تعليق وصول مدرستك إلى Wasel Edu من قبل المسؤول. لإعادة تفعيل الخدمة، يرجى الاتصال بمكتب الدعم الإقليمي أو قسم تكنولوجيا المعلومات في مدرستك.'
+      ? 'تم تعليق وصول مدرستك إلى Wasel Edu من قبل المسؤول. لإعادة تفعيل الخدمة، يرجى الاتصال بإدارة مدرستك.'
       : _fr
-          ? 'L\'accès de votre école à Wasel Edu a été suspendu par l\'administrateur. Pour réactiver le service, veuillez contacter le bureau de support régional ou le département informatique de votre école.'
-          : 'Your school\'s access to Wasel Edu has been suspended by the administrator. To reactivate the service, please contact the regional support office or your school\'s IT department.';
+          ? 'L\'accès de votre école à Wasel Edu est actuellement suspendu. Pour réactiver le service, veuillez contacter la direction de votre établissement.'
+          : 'Your school\'s access to Wasel Edu is currently suspended. To reactivate the service, please contact your school administration.';
   String get backToLogin => _ar
       ? 'العودة لتسجيل الدخول'
       : _fr
           ? 'Retour à la connexion'
           : 'Back to Login';
   String get viewContacts => _ar
-      ? 'عرض جهات الاتصال المحلية'
+      ? 'معلومات الدعم والمساعدة'
       : _fr
           ? 'Voir les contacts de support'
-          : 'View Local Support Contacts';
-  String get paymentIconLabel => _ar
-      ? 'أيقونة الدفع'
+          : 'View Support Information';
+  String get supportDialogTitle => _ar
+      ? 'دعم Wasel Edu'
       : _fr
-          ? 'Icône de paiement'
-          : 'Payment icon';
+          ? 'Support Wasel Edu'
+          : 'Wasel Edu Support';
+  String get supportDialogBody => _ar
+      ? 'يرجى التواصل مع إدارة مدرستك أو مراسلة فريق الدعم على: privacy@waseledu.dz'
+      : _fr
+          ? 'Veuillez contacter la direction de votre établissement ou écrire au support Wasel Edu : privacy@waseledu.dz.'
+          : 'Please contact your school administration or email Wasel Edu support at privacy@waseledu.dz.';
+  String get viewPolicies => _ar
+      ? 'الخصوصية والشروط'
+      : _fr
+          ? 'Confidentialité & Conditions'
+          : 'Privacy & Terms';
+  String get statusIconLabel => _ar
+      ? 'أيقونة المدرسة'
+      : _fr
+          ? 'Icône établissement'
+          : 'School status icon';
 }

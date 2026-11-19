@@ -11,7 +11,9 @@ import '../../../class/data/models/class_model.dart';
 import '../../../class/presentation/providers/class_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../../../core/widgets/moderation_dialogs.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
+import '../../../messaging/presentation/providers/dm_provider.dart';
 
 import 'package:edu_connect/l10n/app_localizations.dart';
 
@@ -261,8 +263,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                                   MessageBubble(
                                     message: msg,
                                     isMe: isMe,
-                                    onLongPress: isMe || user.isTeacher
-                                        ? () => _confirmDelete(msg)
+                                    onLongPress: !isMe
+                                        ? () => _showMessageModerationSheet(msg)
                                         : null,
                                   ),
                                 ],
@@ -299,27 +301,73 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  void _confirmDelete(MessageModel msg) {
+  void _showMessageModerationSheet(MessageModel msg) {
     HapticFeedback.mediumImpact();
-    showDialog(
+    final modText = ModerationText.of(context);
+    showModalBottomSheet<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.deleteMessage),
-        content: Text(AppLocalizations.of(context)!.deleteMessageConfirm),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(AppLocalizations.of(context)!.cancel)),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              // TODO: implement delete in backend/repo
-            },
-            style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error),
-            child: Text(AppLocalizations.of(context)!.delete),
-          ),
-        ],
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.flag_outlined,
+                  color: Theme.of(context).colorScheme.error),
+              title: Text(modText.reportMessage),
+              onTap: () async {
+                Navigator.of(ctx).pop();
+                final input = await showModerationReportDialog(
+                  context,
+                  targetName: msg.senderName,
+                );
+                if (input == null || !mounted) return;
+                try {
+                  await ref.read(chatRepositoryProvider).reportMessage(
+                        classId: widget.classId,
+                        messageId: msg.id,
+                        reason: input.reason,
+                        details: input.details,
+                      );
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(modText.reportSubmitted)),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(extractModerationError(e, modText))),
+                  );
+                }
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.block_outlined,
+                  color: Theme.of(context).colorScheme.error),
+              title: Text(modText.blockUser),
+              onTap: () async {
+                Navigator.of(ctx).pop();
+                final confirmed = await showBlockUserConfirmDialog(
+                  context,
+                  userName: msg.senderName,
+                  isCurrentlyBlocked: false,
+                );
+                if (!confirmed || !mounted) return;
+                try {
+                  await ref.read(dmRepositoryProvider).blockUser(msg.senderId);
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(modText.userBlocked)),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(extractModerationError(e, modText))),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

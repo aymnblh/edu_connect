@@ -1,11 +1,12 @@
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from urllib.parse import urlparse
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 from datetime import datetime
 from typing import List, Optional, Any
 from app.models import UserRole, AttendanceStatus, RemarkType, ConversationType
 
 class PushTokenRequest(BaseModel):
-    token: str | None = None
-    push_token: str | None = None
+    token: str | None = Field(default=None, max_length=128)
+    push_token: str | None = Field(default=None, max_length=128)
 
 class PushDeviceRequest(BaseModel):
     token: str = Field(min_length=20, max_length=512)
@@ -26,8 +27,23 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class UserUpdate(BaseModel):
-    phone: str | None = None
-    avatar_url: str | None = None
+    phone: str | None = Field(default=None, max_length=40)
+    avatar_url: str | None = Field(default=None, max_length=2048)
+
+    @field_validator("avatar_url")
+    @classmethod
+    def validate_avatar_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+        if any(ch.isspace() or ord(ch) < 32 for ch in cleaned):
+            raise ValueError("Avatar URL contains invalid characters.")
+        parsed = urlparse(cleaned)
+        if parsed.scheme != "https" or not parsed.netloc:
+            raise ValueError("Avatar URL must use an explicit https:// URL.")
+        return cleaned
 
 # ─── Students ─────────────────────────────────────────────────────────────────
 

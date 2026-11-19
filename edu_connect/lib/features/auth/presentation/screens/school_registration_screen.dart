@@ -396,10 +396,10 @@ class _SchoolRegistrationText {
           ? 'Inscription réussie !'
           : 'Registration successful!';
   String get successDescription => _ar
-      ? 'تم إنشاء مؤسستكم. سيتواصل معكم مسؤول Wasel Edu لتفعيل الحساب بعد التحقق من الدفع.'
+      ? 'تم إنشاء مؤسستكم. سيتواصل معكم فريق Wasel Edu لتفعيل مساحتكم المدرسية.'
       : _fr
-          ? 'Votre établissement a été créé. Un administrateur Wasel Edu va vous contacter pour l’activation de votre compte après validation du paiement.'
-          : 'Your school has been created. An Wasel Edu administrator will contact you to activate your account after payment validation.';
+          ? 'Votre établissement a été créé. L’équipe Wasel Edu va vous contacter pour activer votre espace scolaire.'
+          : 'Your school has been created. The Wasel Edu team will contact you to activate your school workspace.';
   String get backToLogin => _ar
       ? 'العودة إلى تسجيل الدخول'
       : _fr

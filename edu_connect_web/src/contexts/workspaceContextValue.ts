@@ -6,6 +6,7 @@ export interface WorkspaceContextValue {
   activeRole: WorkspaceRole | null;
   hasMultipleRoles: boolean;
   isAuthenticated: boolean;
+  isRestoring: boolean;
   refreshWorkspace: () => void;
   selectRole: (role: WorkspaceRole) => string;
   routeForActiveRole: () => string;

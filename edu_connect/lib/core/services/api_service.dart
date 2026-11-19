@@ -5,6 +5,7 @@ import '../config/runtime_config_validator.dart';
 import '../constants/app_constants.dart';
 import '../utils/device_info.dart';
 import 'app_secure_storage.dart';
+import 'tls_pinning.dart';
 
 /// Singleton Dio client that injects Bearer token and Device Audit headers.
 class ApiService {
@@ -26,6 +27,7 @@ class ApiService {
       sendTimeout: const Duration(seconds: 8),
       headers: {'Content-Type': 'application/json'},
     ));
+    configureTlsPinning(_dio);
 
     // Inject Headers before every request
     _dio.interceptors.add(InterceptorsWrapper(

@@ -33,8 +33,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
     final List<Barcode> barcodes = capture.barcodes;
     if (barcodes.isEmpty) return;
 
-    final String? code = barcodes.first.rawValue;
-    if (code == null || code.isEmpty) return;
+    final String? code = barcodes.first.rawValue?.trim();
+    if (code == null ||
+        code.length < 8 ||
+        code.length > 255 ||
+        !code.codeUnits.every((c) => c >= 0x21 && c <= 0x7E)) {
+      return;
+    }
 
     final colors = context.appColors;
     setState(() => _isProcessing = true);

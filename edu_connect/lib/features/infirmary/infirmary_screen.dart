@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/api_service.dart';
+import '../../core/services/screen_security.dart';
 import '../../core/widgets/shimmer_loading.dart';
 import '../auth/presentation/providers/auth_provider.dart';
 import '../health/health_repository.dart';
@@ -66,6 +67,18 @@ class InfirmaryScreen extends ConsumerStatefulWidget {
 class _InfirmaryScreenState extends ConsumerState<InfirmaryScreen> {
   String _query = '';
   bool _onlyAlerts = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ScreenSecurity.acquire();
+  }
+
+  @override
+  void dispose() {
+    ScreenSecurity.release();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

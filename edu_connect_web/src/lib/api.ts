@@ -48,7 +48,7 @@ function isAuthRefreshPath(url: string | undefined): boolean {
   return Boolean(url?.includes('/auth/login') || url?.includes('/auth/refresh'));
 }
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = readWorkspaceSessionItem('refresh_token');
 
   if (!refreshPromise) {

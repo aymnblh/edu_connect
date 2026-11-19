@@ -96,9 +96,13 @@ class _LoginCodeScreenState extends ConsumerState<LoginCodeScreen> {
             MobileScanner(
               onDetect: (capture) {
                 final barcodes = capture.barcodes;
-                if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
+                final raw = barcodes.isNotEmpty ? barcodes.first.rawValue?.trim() : null;
+                if (raw != null &&
+                    raw.length >= 8 &&
+                    raw.length <= 255 &&
+                    raw.codeUnits.every((c) => c >= 0x21 && c <= 0x7E)) {
                   _toggleScanner();
-                  _verifyCode(scannedToken: barcodes.first.rawValue);
+                  _verifyCode(scannedToken: raw);
                 }
               },
             ),
@@ -285,12 +289,17 @@ class _LoginCodeScreenState extends ConsumerState<LoginCodeScreen> {
                         const SizedBox(height: 16),
                         TextField(
                           controller: _pinCtrl,
+                          obscureText: true,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          maxLength: 6,
                           keyboardType: TextInputType.number,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly
                           ],
                           decoration: InputDecoration(
                             labelText: txt.pinLabel,
+                            counterText: '',
                             prefixIcon: const Icon(Icons.lock_outline_rounded),
                           ),
                         ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.2),

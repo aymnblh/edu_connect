@@ -302,10 +302,10 @@ class _LegalText {
                 : 'Algerian legal framework';
       case 'schoolData':
         return _ar
-            ? 'البيانات المدرسية المعالجة المصاريف المدرسية: عناوين ومبالغ المستحقات لكل تلميذ، الدفعات المستلمة (المبلغ، الطريقة، رقم الوصل)، الآجال والتذكيرات المرسلة للأولياء. يطلع عليها فقط الإدارة والأمانة وأولياء التلميذ؛ وتُسجَّل كل دفعة وإلغاء وتذكير في السجل.'
+            ? 'البيانات المدرسية المعالجة'
             : _fr
-                ? 'Données scolaires traitées Frais scolaires : intitulés et montants dus par élève, paiements reçus (montant, mode, n° de reçu), échéances et rappels envoyés aux parents. Visibles par la direction, le secrétariat et les parents de l\'élève uniquement ; chaque paiement, annulation et rappel est enregistré dans le journal.'
-                : 'Processed school data School fees: fee labels and amounts owed per student, payments received (amount, method, receipt number), due dates and reminders sent to parents. Visible only to the school administration and the student\'s parents; every payment, cancellation and reminder is recorded in the activity log.';
+                ? 'Données scolaires traitées'
+                : 'Processed school data';
       case 'minors':
         return _ar
             ? 'بيانات القاصرين'
@@ -351,10 +351,10 @@ class _LegalText {
                 : 'Wasel Edu processes personal data in accordance with Algerian Law No. 18-07 of June 10, 2018 on the protection of individuals in personal data processing, as amended and supplemented by Law No. 25-11 of July 24, 2025.';
       case 'schoolData':
         return _ar
-            ? 'يمكن للمنصة معالجة الهوية والأدوار والبريد الإلكتروني والأقسام وروابط ولي الأمر بالطالب والحضور والدرجات والواجبات والملاحظات والرسائل والإشعارات والاشتراكات وسجلات الأمان والمعرفات التقنية اللازمة للخدمة المدرسية.'
+            ? 'يمكن للمنصة معالجة الهوية والأدوار والبريد الإلكتروني ورقم الهاتف والأقسام وروابط ولي الأمر بالطالب والحضور والدرجات والواجبات والملاحظات والرسائل والإشعارات وسجلات الأمان والمعرفات التقنية اللازمة للخدمة المدرسية. المصاريف المدرسية: عناوين ومبالغ المستحقات لكل تلميذ، الدفعات المستلمة (المبلغ، الطريقة، رقم الوصل)، الآجال والتذكيرات المرسلة للأولياء، وتطلع عليها فقط الإدارة والأمانة وأولياء التلميذ.'
             : _fr
-                ? 'La plateforme peut traiter les identités, rôles, emails, classes, liens parent-élève, présences, notes, devoirs, remarques, messages, notifications, abonnements, journaux de sécurité et identifiants techniques strictement nécessaires au service scolaire.'
-                : 'The platform may process identities, roles, emails, classes, parent-student links, attendance, grades, homework, remarks, messages, notifications, subscriptions, security logs, and technical identifiers strictly needed for school service.';
+                ? 'La plateforme traite les identités, rôles, emails, numéros de téléphone, classes, liens parent-élève, présences, notes, devoirs, remarques, messages, notifications, journaux de sécurité et identifiants techniques strictement nécessaires au service scolaire. Frais scolaires : intitulés et montants dus par élève, paiements reçus (montant, mode, n° de reçu), échéances et rappels envoyés aux parents, visibles uniquement par la direction, le secrétariat et les parents de l’élève.'
+                : 'The platform processes identities, roles, emails, phone numbers, classes, parent-student links, attendance, grades, homework, remarks, messages, notifications, security logs, and technical identifiers strictly needed for school service. School fees: fee labels and amounts owed per student, payments received (amount, method, receipt number), due dates and reminders, visible only to school administration and the student\'s parents.';
       case 'minors':
         return _ar
             ? 'تقتصر بيانات الطلاب القاصرين على الأغراض المدرسية. لا تُباع هذه البيانات ولا تُستخدم للإعلانات السلوكية أو التنميط التجاري. الصحة والطوارئ (معطيات حساسة واختيارية): جهات الاتصال في الطوارئ، الحساسية، الأمراض، العلاج، فصيلة الدم، الطبيب والتعليمات، فقط بموافقة صريحة من الولي. الاطلاع مقتصر على الإدارة والأمانة وتمريض المدرسة وأولياء التلميذ؛ لا يرى أساتذة القسم سوى تنبيه قصير. يُسجَّل كل اطلاع من الموظفين. يمكن للولي سحب موافقته في أي وقت، فتُمحى البطاقة.'
@@ -375,10 +375,10 @@ class _LegalText {
                 : 'Data subjects may request information, access, correction, objection on legitimate grounds, and, where compatible with school or legal obligations, deletion or restriction of certain data.';
       case 'deletion':
         return _ar
-            ? 'لطلب حذف حساب أو بيانات شخصية، تواصلوا مع privacy@waseledu.dz أو إدارة مؤسستكم. قد يُطلب التحقق من الهوية قبل أي إجراء.'
+            ? 'يمكن لأولياء الأمور حذف حسابهم مباشرة داخل التطبيق (الملف الشخصي ← حذف الحساب)، مما يمحو بياناتهم الشخصية ويفك ارتباطهم. لحسابات الطاقم أو أي طلب إضافي، تواصلوا مع privacy@waseledu.dz أو إدارة مؤسستكم.'
             : _fr
-                ? 'Pour demander la suppression d’un compte ou de données personnelles, contactez privacy@waseledu.dz ou l’administration de votre établissement. Une vérification d’identité peut être demandée avant toute action.'
-                : 'To request deletion of an account or personal data, contact privacy@waseledu.dz or your school administration. Identity verification may be required before any action.';
+                ? 'Les parents peuvent supprimer leur compte directement dans l’application (Profil → Supprimer le compte), ce qui efface leurs données personnelles et révoque leurs accès. Pour les comptes du personnel ou toute demande complémentaire, contactez privacy@waseledu.dz ou la direction de votre établissement.'
+                : 'Parents can delete their account directly in the app (Profile → Delete account), which erases personal data and revokes active sessions. For school staff accounts or additional requests, contact privacy@waseledu.dz or your school administration.';
       case 'terms':
         return _ar
             ? 'يقتصر الوصول على المستخدمين المصرح لهم من طرف مؤسسة أو مدير المنصة. يجب استخدام الخدمة فقط لأغراض تعليمية مشروعة. قد يؤدي أي محتوى غير قانوني أو مسيء أو تمييزي أو غير مرتبط بالدراسة إلى التعليق.'

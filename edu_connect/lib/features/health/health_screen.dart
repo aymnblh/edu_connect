@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/services/screen_security.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/child_switcher_bar.dart';
 import '../../core/widgets/shimmer_loading.dart';
@@ -24,11 +25,28 @@ String _message(Object error) {
 }
 
 /// Parent screen: the selected child's health and emergency sheet.
-class HealthScreen extends ConsumerWidget {
+class HealthScreen extends ConsumerStatefulWidget {
   const HealthScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HealthScreen> createState() => _HealthScreenState();
+}
+
+class _HealthScreenState extends ConsumerState<HealthScreen> {
+  @override
+  void initState() {
+    super.initState();
+    ScreenSecurity.acquire();
+  }
+
+  @override
+  void dispose() {
+    ScreenSecurity.release();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final text = _HText.of(context);
     final child = ref.watch(selectedChildProvider);
     return Scaffold(

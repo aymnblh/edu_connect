@@ -41,7 +41,7 @@ def main() -> int:
     failures: list[str] = []
 
     dockerignore = _read(ROOT / ".dockerignore")
-    for required in ("secrets/", ".env.*", "private_media/", "backups/"):
+    for required in ("secrets/", "render-secrets/", "tests/.test_keys/", ".env.*", "private_media/", "backups/"):
         if required not in dockerignore:
             failures.append(f".dockerignore must exclude {required}")
 

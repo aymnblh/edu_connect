@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 import secrets
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from redis.asyncio import Redis
@@ -10,10 +10,12 @@ from sqlalchemy import text
 from app.db.database import engine, Base
 from app.api.router import api_router
 from app.core.config import settings
+from app.core.rate_limit import check_rate_limit
 from app.core.middleware import (
     TenantMiddleware,
     AuditMiddleware,
     DemoReadOnlyMiddleware,
+    RequestBodySizeLimitMiddleware,
     RoleScopeMiddleware,
     SchoolActivationMiddleware,
     SecurityHeadersMiddleware,
@@ -65,6 +67,7 @@ app.add_middleware(RoleScopeMiddleware)
 app.add_middleware(AuditMiddleware)
 app.add_middleware(SchoolActivationMiddleware)
 app.add_middleware(TenantMiddleware)
+app.add_middleware(RequestBodySizeLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
@@ -111,7 +114,11 @@ def _db_pool_snapshot() -> dict[str, int | None]:
 
 
 @app.get("/health/ready", tags=["Health"])
-async def readiness():
+async def readiness(request: Request):
+    ip_address = getattr(request.state, "ip_address", None) or (
+        request.client.host if request.client else "unknown"
+    )
+    await check_rate_limit(f"health_ready:ip:{ip_address}", limit=60, window_seconds=60)
     checks: dict[str, str] = {}
 
     try:

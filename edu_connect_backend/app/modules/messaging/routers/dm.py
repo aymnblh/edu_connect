@@ -10,6 +10,7 @@ Authorization matrix:
   - Principal/Secretary → can DM any user in their school
   - Conversations are visible only to explicit participants
 """
+import asyncio
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -22,6 +23,7 @@ from pydantic import BaseModel
 
 from app.db.database import get_db
 from app.core.audit import record_audit_event
+from app.core.middleware import role_may_call
 from app.core.rate_limit import check_rate_limit
 from app.core.rls import set_request_rls_context
 from app.models import (
@@ -1322,15 +1324,15 @@ async def dm_websocket(
     """
     await websocket.accept()
     try:
-        auth_frame = await websocket.receive_json()
-        token = auth_frame.get("token") if auth_frame.get("type") == "auth" else None
+        auth_frame = await asyncio.wait_for(websocket.receive_json(), timeout=10.0)
+        token = auth_frame.get("token") if isinstance(auth_frame, dict) and auth_frame.get("type") == "auth" else None
     except Exception:
         token = None
     try:
         payload = decode_token(token or "")
         uid = payload.get("sub")
-        if not uid:
-            raise ValueError("No sub in token")
+        if not uid or not role_may_call(payload.get("role"), websocket.url.path):
+            raise ValueError("Unauthorized WebSocket role or subject")
         await set_request_rls_context(
             db,
             school_id=payload.get("school_id"),
@@ -1435,6 +1437,9 @@ async def dm_websocket(
 
             content = str(data.get("content", "")).strip()
             if not content:
+                continue
+            if len(content) > 4000:
+                await websocket.send_json({"error": "Message trop long."})
                 continue
 
             try:

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { api, refreshAccessToken } from '../lib/api';
 import {
+  clearWorkspaceStorage,
   getInitialActiveRole,
+  hasRememberedSessionHint,
   readWorkspaceSessionItem,
   routeForRole,
   storeWorkspaceSessionItem,
@@ -40,10 +43,46 @@ function readWorkspaceSnapshot() {
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [snapshot, setSnapshot] = useState(readWorkspaceSnapshot);
+  const [isRestoring, setIsRestoring] = useState(
+    () => !readWorkspaceSessionItem('access_token') && hasRememberedSessionHint(),
+  );
 
   const refreshWorkspace = useCallback(() => {
     setSnapshot(readWorkspaceSnapshot());
   }, []);
+
+  useEffect(() => {
+    if (!isRestoring) {
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const token = await refreshAccessToken();
+      if (!token) {
+        if (!cancelled) {
+          clearWorkspaceStorage();
+          setSnapshot(readWorkspaceSnapshot());
+          setIsRestoring(false);
+        }
+        return;
+      }
+      if (!readStoredUser()) {
+        try {
+          const profileRes = await api.get('/users/me');
+          storeWorkspaceSessionItem('user', JSON.stringify(profileRes.data), true);
+        } catch {
+          // Proceed with token claims; subsequent queries will re-validate.
+        }
+      }
+      if (!cancelled) {
+        setSnapshot(readWorkspaceSnapshot());
+        setIsRestoring(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isRestoring]);
 
   useEffect(() => {
     const refresh = () => setSnapshot(readWorkspaceSnapshot());
@@ -73,11 +112,12 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       activeRole: snapshot.activeRole,
       hasMultipleRoles: snapshot.roles.length > 1,
       isAuthenticated: Boolean(snapshot.token),
+      isRestoring,
       refreshWorkspace,
       selectRole,
       routeForActiveRole: () => routeForRole(snapshot.activeRole),
     }),
-    [refreshWorkspace, selectRole, snapshot.activeRole, snapshot.roles, snapshot.token],
+    [isRestoring, refreshWorkspace, selectRole, snapshot.activeRole, snapshot.roles, snapshot.token],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

@@ -294,6 +294,28 @@ class RoleScopeMiddleware(BaseHTTPMiddleware):
 # Backwards-compatible name (the nurse was the first single-purpose account).
 NurseScopeMiddleware = RoleScopeMiddleware
 
+class RequestBodySizeLimitMiddleware(BaseHTTPMiddleware):
+    """Reject oversized HTTP request bodies early (Layer 7 DoS protection)."""
+
+    _DEFAULT_MAX_BYTES = 1 * 1024 * 1024  # 1 MiB for JSON / form payloads
+
+    async def dispatch(self, request: Request, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                size = int(content_length)
+            except ValueError:
+                return JSONResponse({"detail": "Invalid Content-Length header."}, status_code=400)
+            content_type = (request.headers.get("content-type") or "").lower()
+            if content_type.startswith("multipart/form-data"):
+                max_bytes = settings.media_max_upload_bytes + (1 * 1024 * 1024)
+            else:
+                max_bytes = self._DEFAULT_MAX_BYTES
+            if size > max_bytes:
+                return JSONResponse({"detail": "Request payload too large."}, status_code=413)
+        return await call_next(request)
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)

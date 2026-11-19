@@ -36,18 +36,38 @@ class ChatRepository {
         try {
           final json = jsonDecode(raw as String) as Map<String, dynamic>;
           if (json.containsKey('error')) {
-            debugPrint('[WS] Error from server: ${json['error']}');
+            if (kDebugMode) {
+              debugPrint('[WS] Error from server: ${json['error']}');
+            }
             return;
           }
           final msg = MessageModel.fromJson(json);
           _controller.add(msg);
         } catch (e) {
-          debugPrint('[WS] Parse error: $e');
+          if (kDebugMode) debugPrint('[WS] Parse error: $e');
         }
       },
-      onError: (e) => debugPrint('[WS] Stream error: $e'),
-      onDone: () => debugPrint('[WS] Connection closed'),
+      onError: (e) {
+        if (kDebugMode) debugPrint('[WS] Stream error: $e');
+      },
+      onDone: () {
+        if (kDebugMode) debugPrint('[WS] Connection closed');
+      },
     );
+  }
+
+  /// Report an inappropriate class message to school administrators.
+  Future<void> reportMessage({
+    required String classId,
+    required String messageId,
+    required String reason,
+    String? details,
+  }) async {
+    final body = <String, dynamic>{'reason': reason};
+    if (details != null && details.trim().isNotEmpty) {
+      body['details'] = details.trim();
+    }
+    await _api.post('/classes/$classId/messages/$messageId/report', data: body);
   }
 
   /// Send a message via WebSocket after the connection was authenticated.

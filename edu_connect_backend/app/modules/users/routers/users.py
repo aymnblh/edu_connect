@@ -71,10 +71,15 @@ async def register_push_token(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    token = payload.push_token or payload.token
-    if not token:
+    from app.utils.push import expected_ntfy_topic, validate_ntfy_topic
+
+    raw_token = payload.push_token or payload.token
+    if not raw_token:
         raise HTTPException(status_code=422, detail="Missing push token.")
-    current_user.push_token = token
+    topic = validate_ntfy_topic(raw_token)
+    if not topic or topic != expected_ntfy_topic(current_user.id):
+        raise HTTPException(status_code=422, detail="Invalid push topic for this account.")
+    current_user.push_token = topic
     await db.commit()
     return {"status": "ok"}
 

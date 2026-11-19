@@ -1709,11 +1709,13 @@ html[dir='rtl'] .dashboard-action-arrow {
   background: var(--paper-muted);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
+  width: 100%;
 }
 
 .teacher-homework-kind-option {
+  min-width: 0;
   min-height: 42px;
-  padding: 8px 10px;
+  padding: 8px 6px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -1721,6 +1723,9 @@ html[dir='rtl'] .dashboard-action-arrow {
   font: inherit;
   font-size: 12px;
   font-weight: 650;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 

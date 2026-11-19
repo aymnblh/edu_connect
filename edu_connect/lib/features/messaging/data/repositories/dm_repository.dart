@@ -124,6 +124,43 @@ class DmRepository {
     await _api.post('/dm/conversations/$conversationId/read', data: {});
   }
 
+  // ── Moderation (Block & Report) ────────────────────────────────────────────
+
+  Future<Set<String>> getBlockedUserIds() async {
+    final data = await _api.get('/dm/blocks') as List<dynamic>;
+    return data
+        .map((e) => (e as Map<String, dynamic>)['blocked_user_id'] as String)
+        .toSet();
+  }
+
+  Future<void> blockUser(String userId) async {
+    await _api.post('/dm/blocks/$userId', data: {});
+  }
+
+  Future<void> unblockUser(String userId) async {
+    await _api.delete('/dm/blocks/$userId');
+  }
+
+  Future<void> reportMessage({
+    required String conversationId,
+    required String reportedUserId,
+    String? messageId,
+    required String reason,
+    String? details,
+  }) async {
+    final body = <String, dynamic>{
+      'reported_user_id': reportedUserId,
+      'reason': reason,
+    };
+    if (messageId != null && messageId.isNotEmpty) {
+      body['message_id'] = messageId;
+    }
+    if (details != null && details.trim().isNotEmpty) {
+      body['details'] = details.trim();
+    }
+    await _api.post('/dm/conversations/$conversationId/reports', data: body);
+  }
+
   // ── WebSocket ──────────────────────────────────────────────────────────────
 
   Future<void> connect(String conversationId) async {
@@ -139,17 +176,21 @@ class DmRepository {
         try {
           final json = jsonDecode(raw as String) as Map<String, dynamic>;
           if (json.containsKey('error')) {
-            debugPrint('[DM WS] Error: ${json['error']}');
+            if (kDebugMode) debugPrint('[DM WS] Error: ${json['error']}');
             return;
           }
           final msg = DirectMessageModel.fromJson(json);
           _messageController.add(msg);
         } catch (e) {
-          debugPrint('[DM WS] Parse error: $e');
+          if (kDebugMode) debugPrint('[DM WS] Parse error: $e');
         }
       },
-      onError: (e) => debugPrint('[DM WS] Stream error: $e'),
-      onDone: () => debugPrint('[DM WS] Connection closed'),
+      onError: (e) {
+        if (kDebugMode) debugPrint('[DM WS] Stream error: $e');
+      },
+      onDone: () {
+        if (kDebugMode) debugPrint('[DM WS] Connection closed');
+      },
     );
   }
 

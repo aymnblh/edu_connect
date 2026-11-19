@@ -1,12 +1,16 @@
+import asyncio
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.database import get_db
 from app.models import Class, ClassMember, ClassTeacher, ClassTemporaryAccess, Message, StudentParent, User, UserRole
 from app.schemas import MessageOut
 from app.core.access import assert_class_read_access, assert_school_is_active
+from app.core.audit import record_audit_event
+from app.core.middleware import role_may_call
 from app.core.rate_limit import check_rate_limit
 from app.core.rls import set_request_rls_context
 from app.core.security import get_current_user, decode_token, session_rejection
@@ -18,6 +22,14 @@ router = APIRouter(prefix="/classes/{class_id}", tags=["Chat"])
 
 _STAFF_ROLES = {UserRole.teacher, UserRole.principal, UserRole.secretary}
 _ADMIN_ROLES = {UserRole.principal, UserRole.secretary}
+_WS_AUTH_TIMEOUT_SECONDS = 10.0
+_MAX_WS_MESSAGE_LENGTH = 4000
+_CHAT_REPORT_REASONS = {"harassment", "spam", "inappropriate", "threat", "other"}
+
+
+class ChatMessageReportRequest(BaseModel):
+    reason: str = Field(min_length=2, max_length=32)
+    details: str | None = Field(default=None, max_length=500)
 
 
 async def _assert_can_access_class_chat(
@@ -199,8 +211,11 @@ def _can_view_message(message: Message, current_user: User) -> bool:
 
 async def _user_from_ws(websocket: WebSocket, db: AsyncSession) -> User | None:
     try:
-        auth_frame = await websocket.receive_json()
-        if auth_frame.get("type") != "auth":
+        auth_frame = await asyncio.wait_for(
+            websocket.receive_json(),
+            timeout=_WS_AUTH_TIMEOUT_SECONDS,
+        )
+        if not isinstance(auth_frame, dict) or auth_frame.get("type") != "auth":
             return None
         token = auth_frame.get("token")
         if not isinstance(token, str) or not token:
@@ -210,6 +225,8 @@ async def _user_from_ws(websocket: WebSocket, db: AsyncSession) -> User | None:
     except Exception:
         return None
     if not uid:
+        return None
+    if not role_may_call(payload.get("role"), websocket.url.path):
         return None
     await set_request_rls_context(
         db,
@@ -246,6 +263,83 @@ async def get_messages(
     )
     messages = result.scalars().all()
     return [message for message in messages if _can_view_message(message, current_user)]
+
+
+@router.post("/messages/{message_id}/report", status_code=201)
+async def report_class_message(
+    class_id: str,
+    message_id: str,
+    req: ChatMessageReportRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Report an abusive or inappropriate class chat message to school administrators."""
+    cls = await _assert_can_access_class_chat(class_id, current_user, db)
+    reason = req.reason.strip().lower()
+    if reason not in _CHAT_REPORT_REASONS:
+        raise HTTPException(status_code=400, detail="Motif de signalement invalide.")
+
+    await check_rate_limit(f"chat_report:{current_user.id}", limit=10, window_seconds=3600)
+
+    msg_res = await db.execute(
+        select(Message).where(
+            Message.school_id == cls.school_id,
+            Message.class_id == class_id,
+            Message.id == message_id,
+        )
+    )
+    message = msg_res.scalar_one_or_none()
+    if not message or not _can_view_message(message, current_user):
+        raise HTTPException(status_code=404, detail="Message introuvable.")
+    if message.sender_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Vous ne pouvez pas vous signaler vous-meme.")
+
+    await record_audit_event(
+        db,
+        action="chat.message_reported",
+        actor=current_user,
+        school_id=cls.school_id,
+        resource_type="class_message",
+        resource_id=message.id,
+        method=request.method,
+        path=request.url.path,
+        status_code=201,
+        ip_address=getattr(request.state, "ip_address", None),
+        device_fingerprint=getattr(request.state, "device_fingerprint", None),
+        device_platform=getattr(request.state, "device_platform", None),
+        user_agent=request.headers.get("user-agent"),
+        metadata={
+            "class_id": class_id,
+            "reported_user_id": message.sender_id,
+            "reason": reason,
+            "details": req.details.strip()[:200] if req.details else None,
+        },
+    )
+
+    from app.utils.notifications import create_notification
+
+    admins_res = await db.execute(
+        select(User.id).where(
+            User.school_id == cls.school_id,
+            User.role.in_(_ADMIN_ROLES),
+            User.deactivated_at.is_(None),
+        )
+    )
+    for admin_id in admins_res.scalars().all():
+        if admin_id == current_user.id:
+            continue
+        await create_notification(
+            db,
+            user_id=admin_id,
+            title="Signalement de message",
+            content=f"Un message dans {cls.name} a ete signale ({reason}).",
+            type="SECURITY",
+            school_id=cls.school_id,
+        )
+
+    await db.commit()
+    return {"status": "reported", "message_id": message.id}
 
 
 @router.websocket("/ws")
@@ -291,6 +385,9 @@ async def ws_chat(
 
             content = str(data.get("content", "")).strip()
             if not content:
+                continue
+            if len(content) > _MAX_WS_MESSAGE_LENGTH:
+                await websocket.send_json({"error": "Message trop long."})
                 continue
 
             requested_ids = _requested_recipient_ids(data.get("recipient_ids"))

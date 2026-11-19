@@ -24,6 +24,7 @@ throw new Error("VITE_API_BASE_URL is required for production builds.");
     join(root, 'leak.js'),
     `
 const DATABASE_URL = "postgresql://user:password@example.com/db";
+const HEALTH_DATA_KEY = "fernet-key-leak";
 const leaked = "-----BEGIN PRIVATE KEY-----";
 const jwt = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc123456789xyz";
 `,
@@ -32,6 +33,7 @@ const jwt = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc123456789xyz";
 
   const findings = await scanBuiltArtifacts(root);
   assert(findings.some((finding) => finding.includes('backend-only environment name')));
+  assert(findings.some((finding) => finding.includes('HEALTH_DATA_KEY')));
   assert(findings.some((finding) => finding.includes('private key material')));
   assert(findings.some((finding) => finding.includes('JWT-looking literal')));
   console.log('secret scanner logic passed');

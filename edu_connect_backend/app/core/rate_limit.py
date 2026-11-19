@@ -25,6 +25,17 @@ _redis_retry_after_seconds = 30.0
 
 logger = logging.getLogger(__name__)
 
+# Atomic INCR + conditional EXPIRE avoids orphaned keys without TTL on transient disconnects.
+_REDIS_INCR_EXPIRE_LUA = """
+local current = redis.call("INCR", KEYS[1])
+if current == 1 then
+    redis.call("EXPIRE", KEYS[1], ARGV[1])
+elseif redis.call("TTL", KEYS[1]) == -1 then
+    redis.call("EXPIRE", KEYS[1], ARGV[1])
+end
+return current
+"""
+
 
 def _memory_rate_limit(key: str, *, limit: int, window_seconds: int) -> None:
     namespaced_key = f"{key}:{window_seconds}"
@@ -73,9 +84,7 @@ async def check_rate_limit(key: str, *, limit: int, window_seconds: int) -> None
         try:
             client = _get_redis_client()
             redis_key = _redis_key(key, window_seconds)
-            count = await client.incr(redis_key)
-            if count == 1:
-                await client.expire(redis_key, window_seconds)
+            count = int(await client.eval(_REDIS_INCR_EXPIRE_LUA, 1, redis_key, window_seconds))
             if count > limit:
                 raise HTTPException(status_code=429, detail="Rate limit exceeded.")
             _redis_failed_at = None

@@ -241,6 +241,12 @@ async def rotate_refresh_token(
     if not user:
         await invalidate_token_family(db, user_id, family_id)
         raise HTTPException(status_code=404, detail="User not found.")
+    if user.deactivated_at is not None:
+        await invalidate_token_family(db, user_id, family_id)
+        raise HTTPException(status_code=403, detail="Account deactivated.")
+    if user.password_hash is None:
+        await invalidate_token_family(db, user_id, family_id)
+        raise HTTPException(status_code=403, detail="Password setup is required.")
 
     await set_request_rls_context(
         db,

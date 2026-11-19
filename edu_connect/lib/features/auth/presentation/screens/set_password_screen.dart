@@ -128,12 +128,14 @@ class _SetPasswordScreenState extends ConsumerState<SetPasswordScreen> {
                     TextFormField(
                       controller: _inviteCodeCtrl,
                       textCapitalization: TextCapitalization.characters,
-                      decoration: const InputDecoration(
-                        labelText: 'Code d\'activation',
-                        prefixIcon: Icon(Icons.key_outlined),
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      decoration: InputDecoration(
+                        labelText: text.inviteCodeLabel,
+                        prefixIcon: const Icon(Icons.key_outlined),
                       ),
                       validator: (value) => (value == null || value.trim().length < 16)
-                          ? 'Code d\'activation invalide'
+                          ? text.invalidInviteCode
                           : null,
                     ),
                     const SizedBox(height: 16),
@@ -143,6 +145,8 @@ class _SetPasswordScreenState extends ConsumerState<SetPasswordScreen> {
                       child: TextFormField(
                         controller: _passwordCtrl,
                         obscureText: _obscurePassword,
+                        autocorrect: false,
+                        enableSuggestions: false,
                         decoration: InputDecoration(
                           labelText: text.newPasswordLabel,
                           prefixIcon: const Icon(Icons.lock_outline),
@@ -168,6 +172,8 @@ class _SetPasswordScreenState extends ConsumerState<SetPasswordScreen> {
                       child: TextFormField(
                         controller: _confirmPasswordCtrl,
                         obscureText: _obscurePassword,
+                        autocorrect: false,
+                        enableSuggestions: false,
                         decoration: InputDecoration(
                           labelText: text.confirmPasswordLabel,
                           prefixIcon: const Icon(Icons.check_circle_outline),
@@ -262,6 +268,16 @@ class _SetPasswordText {
       : _fr
           ? 'Nouveau mot de passe'
           : 'New password';
+  String get inviteCodeLabel => _ar
+      ? 'رمز التفعيل'
+      : _fr
+          ? "Code d'activation"
+          : 'Activation code';
+  String get invalidInviteCode => _ar
+      ? 'رمز التفعيل غير صالح'
+      : _fr
+          ? "Code d'activation invalide"
+          : 'Invalid activation code';
   String get confirmPasswordLabel => _ar
       ? 'تأكيد كلمة المرور'
       : _fr

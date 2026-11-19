@@ -90,6 +90,18 @@ async def link_student_by_qr(
     if current_user.role.value != "parent":
         raise HTTPException(status_code=403, detail="Only parents can link via QR")
 
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    await check_rate_limit(
+        f"link_by_qr:user:{current_user.id}",
+        limit=20,
+        window_seconds=CODE_LOOKUP_WINDOW_SECONDS,
+    )
+    await check_rate_limit(
+        f"link_by_qr:ip:{ip_address}",
+        limit=30,
+        window_seconds=CODE_LOOKUP_WINDOW_SECONDS,
+    )
+
     # 1. Lock the token for update to prevent simultaneous scans
     stmt = select(PendingLink).where(PendingLink.token == payload.token).with_for_update()
     result = await db.execute(stmt)
@@ -100,9 +112,9 @@ async def link_student_by_qr(
     if current_user.school_id and pending_link.school_id != current_user.school_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    # 2. Check if already used
-    if pending_link.status != "pending":
-        raise HTTPException(status_code=400, detail="QR Code already used")
+    # 2. Check if already used or revoked
+    if pending_link.status != "pending" or pending_link.revoked_at is not None:
+        raise HTTPException(status_code=400, detail="QR Code already used or revoked")
 
     # 3. Check token expiration
     from datetime import datetime, timezone
@@ -110,6 +122,17 @@ async def link_student_by_qr(
         pending_link.status = "expired"
         await db.commit()
         raise HTTPException(status_code=400, detail="QR Code expired")
+
+    # 3b. Ensure the target student exists and is not archived
+    student_res = await db.execute(
+        select(Student).where(
+            Student.school_id == pending_link.school_id,
+            Student.id == pending_link.student_id,
+            Student.archived_at.is_(None),
+        )
+    )
+    if not student_res.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Ce lien n'est plus actif.")
 
     # 4. Check if parent is already linked to this student
     # Note: RLS might block this check if not handled correctly, 

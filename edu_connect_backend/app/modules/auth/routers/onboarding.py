@@ -41,6 +41,11 @@ async def register_school(
     """
     ip_address = getattr(request.state, "ip_address", "unknown")
     await check_rate_limit(
+        f"register_school:ip:{ip_address}",
+        limit=5,
+        window_seconds=3600,
+    )
+    await check_rate_limit(
         f"register_school:{ip_address}:{hashlib.sha256(str(payload.admin_email).lower().encode()).hexdigest()}",
         limit=3,
         window_seconds=3600,

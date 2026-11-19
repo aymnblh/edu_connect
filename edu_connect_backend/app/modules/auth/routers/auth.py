@@ -1,6 +1,7 @@
 import hashlib
 import uuid
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlparse
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status, Body, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, func, select, update
@@ -102,7 +103,34 @@ def _set_refresh_cookie(response: Response | None, refresh_token: str, *, persis
 def _clear_refresh_cookie(response: Response | None) -> None:
     if response is None:
         return
-    response.delete_cookie(key="educonnect_refresh", path="/auth")
+    response.delete_cookie(
+        key="educonnect_refresh",
+        path="/auth",
+        httponly=True,
+        secure=settings.is_production,
+        samesite="none" if settings.is_production else "lax",
+    )
+
+
+def _extract_origin(value: str | None) -> str | None:
+    if not value:
+        return None
+    parsed = urlparse(value.strip())
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return None
+    return f"{parsed.scheme.lower()}://{parsed.netloc.lower()}"
+
+
+def _assert_cookie_csrf_origin(request: Request) -> None:
+    """Block cross-site POSTs relying on the SameSite=None refresh cookie."""
+    origin = _extract_origin(request.headers.get("origin")) or _extract_origin(request.headers.get("referer"))
+    allowed = {o.rstrip("/").lower() for o in settings.allowed_cors_origins}
+    if origin is None:
+        if settings.is_production:
+            raise HTTPException(status_code=403, detail="Origin header required for cookie-authenticated session requests.")
+        return
+    if allowed and origin not in allowed:
+        raise HTTPException(status_code=403, detail="Cross-site session request blocked.")
 
 
 def _session_metadata(request: Request) -> dict:
@@ -169,6 +197,8 @@ async def login(
 ):
     ip_address = getattr(request.state, "ip_address", "unknown")
     email = str(req.email).lower()
+    await check_rate_limit(f"login:ip:{ip_address}", limit=30, window_seconds=300)
+    await check_rate_limit(f"login:email:{rate_key_part(email)}", limit=15, window_seconds=300)
     await check_rate_limit(f"login:{ip_address}:{email}", limit=10, window_seconds=300)
 
     await set_auth_lookup_email(db, email)
@@ -303,7 +333,10 @@ async def demo_availability():
         "roles": list(DEMO_ROLE_ACCOUNTS),
     }
     if settings.public_demo_enabled and demo_refresh.last_refresh_error():
-        payload["error"] = demo_refresh.last_refresh_error()
+        if settings.is_production:
+            payload["degraded"] = True
+        else:
+            payload["error"] = demo_refresh.last_refresh_error()
     return payload
 
 
@@ -366,6 +399,11 @@ async def set_password(
 
     ip_address = getattr(request.state, "ip_address", "unknown")
     await check_rate_limit(
+        f"set_password:ip:{ip_address}",
+        limit=15,
+        window_seconds=900,
+    )
+    await check_rate_limit(
         f"set_password:{ip_address}:{hashlib.sha256(req.invite_code.encode()).hexdigest()}",
         limit=5,
         window_seconds=900,
@@ -417,6 +455,11 @@ async def refresh(
     db: AsyncSession = Depends(get_db),
 ):
     """Strict rotation: invalidate old, issue new."""
+    ip_address = getattr(request.state, "ip_address", "unknown")
+    await check_rate_limit(f"refresh:ip:{ip_address}", limit=60, window_seconds=300)
+    used_cookie = refresh_token is None and refresh_cookie is not None
+    if used_cookie:
+        _assert_cookie_csrf_origin(request)
     refresh_token = refresh_token or refresh_cookie
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token is required.")
@@ -445,6 +488,9 @@ async def logout(
     db: AsyncSession = Depends(get_db),
 ):
     """Invalidate a specific refresh token."""
+    used_cookie = refresh_token is None and refresh_cookie is not None
+    if used_cookie:
+        _assert_cookie_csrf_origin(request)
     refresh_token = refresh_token or refresh_cookie
     if not refresh_token:
         _clear_refresh_cookie(response)
@@ -804,6 +850,11 @@ async def _complete_staff_invite_code(
     require_terms_accepted(req.terms_accepted)
 
     ip_address = getattr(request.state, "ip_address", "unknown")
+    await check_rate_limit(
+        f"complete_staff_code:ip:{ip_address}",
+        limit=15,
+        window_seconds=900,
+    )
     await check_rate_limit(
         f"complete_staff_code:{ip_address}:{hashlib.sha256(req.invite_code.encode()).hexdigest()}",
         limit=5,

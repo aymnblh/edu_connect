@@ -49,10 +49,10 @@ compose run --rm --no-deps --entrypoint sh api \
   -c 'tar -C /app/private_media -czf - .' \
   > "${work_dir}/private_media.tar.gz"
 
-echo "[3/6] Copying encrypted-backup inputs"
-mkdir -p "${work_dir}/secrets"
-cp -a secrets/. "${work_dir}/secrets/"
-cp "$ENV_FILE" "${work_dir}/environment.env"
+echo "[3/6] Writing backup manifest (keys excluded by security policy)"
+# Per SECURITY_PRIVACY_POLICY.md, HEALTH_DATA_KEY, JWT signing keys, and .env
+# credentials must NEVER be bundled inside the same archive as database.dump.
+# Store secrets/ and environment files in a separate vault/escrow.
 
 cat > "${work_dir}/manifest.txt" <<EOF
 timestamp=${timestamp}
@@ -61,6 +61,7 @@ database_dump_sha256=${database_dump_sha256}
 app_env=${APP_ENV:-}
 fqdn=${FQDN:-}
 web_fqdn=${WEB_FQDN:-}
+keys_excluded_by_policy=true
 alembic_current=$(compose exec -T api alembic current 2>/dev/null || true)
 EOF
 

@@ -24,6 +24,15 @@ class AppConstants {
     defaultValue: 'development',
   );
 
+  /// Optional comma-separated SHA-256 fingerprints (hex or base64, with or
+  /// without colons) of allowed leaf/intermediate X.509 certificates for
+  /// [apiBaseUrl]. When non-empty, native builds reject any certificate not
+  /// matching one of these pins.
+  static const String apiCertSha256Pins = String.fromEnvironment(
+    'API_CERT_SHA256_PINS',
+    defaultValue: '',
+  );
+
   // Firebase (push when the app is closed). All empty = push stays off.
   static const String firebaseApiKey =
       String.fromEnvironment('FIREBASE_API_KEY', defaultValue: '');

@@ -731,8 +731,13 @@ async def import_students(
         dialect = csv.Sniffer().sniff(decoded[:4096], delimiters=",;\t")
     except csv.Error:
         dialect = csv.excel
-    reader = csv.DictReader(io.StringIO(decoded), dialect=dialect)
-    
+    rows = list(csv.DictReader(io.StringIO(decoded), dialect=dialect))
+    if len(rows) > STUDENT_IMPORT_MAX_ROWS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Au plus {STUDENT_IMPORT_MAX_ROWS} eleves par fichier.",
+        )
+
     current_year_suffix = str(datetime.now().year)[2:]
     count_stmt = select(func.count(Student.id)).where(Student.school_id == current_user.school_id)
     count_res = await db.execute(count_stmt)
@@ -748,7 +753,7 @@ async def import_students(
             await db.execute(select(Class.id, Class.name).where(Class.school_id == current_user.school_id))
         ).all()
     }
-    for row in reader:
+    for row in rows:
         name = _student_name_from_csv_row(row)
         if name:
             # Generate Unique Human-Readable Student ID
@@ -842,6 +847,7 @@ async def regenerate_pin(
     
     return {"status": "success", "new_pin": pin, "notified": payload.notify if payload else False}
 
+STUDENT_IMPORT_MAX_ROWS = 2000
 TEACHER_IMPORT_MAX_ROWS = 300
 
 

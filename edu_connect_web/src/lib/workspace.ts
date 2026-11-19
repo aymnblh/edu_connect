@@ -15,26 +15,50 @@ const rolePriority: WorkspaceRole[] = ['system_admin', 'principal', 'secretary',
 const validRoles = new Set<WorkspaceRole>(rolePriority);
 export const workspaceSessionChangeEvent = 'educonnect_workspace_session_change';
 export const rememberDevicePreferenceKey = 'educonnect_remember_device';
+const rememberedSessionHintKey = 'educonnect_session_hint';
+const driverOfflineQueueKey = 'wasel_driver_offline_events';
 
 type WorkspaceSessionKey = 'access_token' | 'refresh_token' | 'user' | 'active_workspace_role';
 const workspaceSessionKeys: WorkspaceSessionKey[] = ['access_token', 'refresh_token', 'user', 'active_workspace_role'];
 
+// Keep access tokens in JavaScript memory instead of persistent localStorage to
+// reduce exposure to disk-reading infostealers.
+let memoryAccessToken: string | null = null;
+
+function safeLocalStorage(): Storage | null {
+  return typeof localStorage !== 'undefined' ? localStorage : null;
+}
+
+function safeSessionStorage(): Storage | null {
+  return typeof sessionStorage !== 'undefined' ? sessionStorage : null;
+}
+
 function preferredRememberDevice(): boolean {
-  return localStorage.getItem(rememberDevicePreferenceKey) !== 'false';
+  return safeLocalStorage()?.getItem?.(rememberDevicePreferenceKey) === 'true';
+}
+
+export function hasRememberedSessionHint(): boolean {
+  return safeLocalStorage()?.getItem?.(rememberedSessionHintKey) === '1';
 }
 
 export function getCurrentSessionPersistence(): boolean {
-  if (localStorage.getItem('access_token')) {
+  if (hasRememberedSessionHint()) {
     return true;
   }
-  if (sessionStorage.getItem('access_token') || sessionStorage.getItem('refresh_token')) {
+  const ss = safeSessionStorage();
+  if (ss?.getItem?.('access_token') || ss?.getItem?.('refresh_token')) {
     return false;
   }
   return preferredRememberDevice();
 }
 
 export function setRememberDevicePreference(rememberDevice: boolean): void {
-  localStorage.setItem(rememberDevicePreferenceKey, rememberDevice ? 'true' : 'false');
+  safeLocalStorage()?.setItem?.(rememberDevicePreferenceKey, rememberDevice ? 'true' : 'false');
+  if (rememberDevice) {
+    safeLocalStorage()?.setItem?.(rememberedSessionHintKey, '1');
+  } else {
+    safeLocalStorage()?.removeItem?.(rememberedSessionHintKey);
+  }
 }
 
 export function readRememberDevicePreference(): boolean {
@@ -42,11 +66,16 @@ export function readRememberDevicePreference(): boolean {
 }
 
 export function readWorkspaceSessionItem(key: WorkspaceSessionKey): string | null {
+  const ss = safeSessionStorage();
+  const ls = safeLocalStorage();
+  if (key === 'access_token') {
+    return memoryAccessToken ?? ss?.getItem?.(key) ?? ls?.getItem?.(key) ?? null;
+  }
   if (key === 'refresh_token') {
     // Persistent refresh tokens live in the HttpOnly backend cookie.
-    return sessionStorage.getItem(key);
+    return ss?.getItem?.(key) ?? null;
   }
-  return localStorage.getItem(key) ?? sessionStorage.getItem(key);
+  return ss?.getItem?.(key) ?? ls?.getItem?.(key) ?? null;
 }
 
 export function storeWorkspaceSessionItem(
@@ -54,15 +83,39 @@ export function storeWorkspaceSessionItem(
   value: string,
   rememberDevice = getCurrentSessionPersistence(),
 ): void {
-  const targetStorage = rememberDevice && key !== 'refresh_token' ? localStorage : sessionStorage;
-  const otherStorage = rememberDevice ? sessionStorage : localStorage;
-  otherStorage.removeItem(key);
-  targetStorage.setItem(key, value);
+  const ss = safeSessionStorage();
+  const ls = safeLocalStorage();
+  if (key === 'access_token') {
+    memoryAccessToken = value;
+    // Never write access tokens to persistent localStorage.
+    ls?.removeItem?.(key);
+    if (rememberDevice) {
+      // Remembered sessions re-hydrate from the HttpOnly refresh cookie on reload.
+      ss?.removeItem?.(key);
+      ls?.setItem?.(rememberedSessionHintKey, '1');
+    } else {
+      ss?.setItem?.(key, value);
+    }
+    return;
+  }
+  if (key === 'refresh_token' || key === 'user') {
+    // Never persist refresh tokens or user PII in localStorage.
+    ls?.removeItem?.(key);
+    ss?.setItem?.(key, value);
+    return;
+  }
+  const targetStorage = rememberDevice ? ls : ss;
+  const otherStorage = rememberDevice ? ss : ls;
+  otherStorage?.removeItem?.(key);
+  targetStorage?.setItem?.(key, value);
 }
 
 export function removeWorkspaceSessionItem(key: WorkspaceSessionKey): void {
-  localStorage.removeItem(key);
-  sessionStorage.removeItem(key);
+  if (key === 'access_token') {
+    memoryAccessToken = null;
+  }
+  safeLocalStorage()?.removeItem?.(key);
+  safeSessionStorage()?.removeItem?.(key);
 }
 
 export function normalizeWorkspaceRoles(rawRoles: unknown): WorkspaceRole[] {
@@ -131,5 +184,7 @@ export function notifyWorkspaceSessionChanged(): void {
 
 export function clearWorkspaceStorage(): void {
   workspaceSessionKeys.forEach(removeWorkspaceSessionItem);
+  safeLocalStorage()?.removeItem?.(rememberedSessionHintKey);
+  safeLocalStorage()?.removeItem?.(driverOfflineQueueKey);
   notifyWorkspaceSessionChanged();
 }

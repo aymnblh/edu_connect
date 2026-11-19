@@ -156,12 +156,16 @@ class ProfileScreen extends ConsumerWidget {
                                 textStyle: const TextStyle(fontSize: 12),
                               ),
                               onPressed: () async {
-                                if (!user.isParent) {
+                                if (user.isDemo || !user.isParent) {
                                   await showDialog<void>(
                                     context: context,
                                     builder: (ctx) => AlertDialog(
                                       title: Text(text.deleteAccount),
-                                      content: Text(text.staffDeletionInfo),
+                                      content: Text(
+                                        user.isDemo
+                                            ? text.demoDeletionInfo
+                                            : text.staffDeletionInfo,
+                                      ),
                                       actions: [
                                         TextButton(
                                           onPressed: () =>
@@ -688,6 +692,11 @@ class _ProfileText {
       : _fr
           ? "Les comptes du personnel sont geres par l'etablissement. Pour fermer votre compte, contactez la direction de votre etablissement."
           : 'Staff accounts are managed by the school. To close your account, contact your school administration.';
+  String get demoDeletionInfo => _ar
+      ? 'لا يمكن حذف حساب العرض التجريبي المشترك.'
+      : _fr
+          ? 'Le compte de démonstration partagé ne peut pas être supprimé.'
+          : 'The shared demo account cannot be deleted.';
   String get deleteAccountFailed => _ar
       ? 'تعذر حذف الحساب. حاول مرة أخرى.'
       : _fr

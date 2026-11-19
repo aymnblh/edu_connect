@@ -27,7 +27,7 @@ Write-Host "[INFO] Using Dart defines: $DartDefineFile"
 flutter pub get
 dart run tool/validate_mobile_config.dart $DartDefineFile
 flutter analyze
-flutter build appbundle --release --no-pub --dart-define-from-file="$DartDefineFile"
+flutter build appbundle --release --no-pub --obfuscate --split-debug-info=build/debug-info --dart-define-from-file="$DartDefineFile"
 
 if (!(Test-Path $AabPath)) {
     Fail "AAB not found at $AabPath"
