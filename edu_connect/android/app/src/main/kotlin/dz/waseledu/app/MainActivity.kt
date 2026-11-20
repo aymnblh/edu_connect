@@ -1,4 +1,4 @@
-package com.educonnect.edu_connect
+package dz.waseledu.app
 
 import android.os.Build
 import android.os.Bundle
@@ -8,7 +8,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val screenSecurityChannel = "com.educonnect.edu_connect/screen_security"
+    private val screenSecurityChannel = "dz.waseledu.app/screen_security"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

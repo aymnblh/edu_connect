@@ -1,6 +1,12 @@
 # Guide de build Android
 
-L'application Android est generee avec Capacitor a partir du front Vite.
+> **Application officielle pour Google Play Store (recommandee)** : utilisez l'application **Flutter native** dans `edu_connect/` (`applicationId = dz.waseledu.app`) via `.\scripts\build_android_release.ps1` et consultez [STORE_PUBLISHING_GUIDE.md](STORE_PUBLISHING_GUIDE.md).
+>
+> Les instructions ci-dessous concernent uniquement la variante alternative **Capacitor** (enveloppe du front Vite).
+
+## Variante Capacitor (alternative)
+
+L'application Android alternative est generee avec Capacitor a partir du front Vite.
 
 ## Formats
 

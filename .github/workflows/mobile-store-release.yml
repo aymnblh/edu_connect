@@ -1,0 +1,375 @@
+name: Mobile Store Release
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Target platform(s) to build
+        type: choice
+        required: true
+        default: both
+        options:
+          - both
+          - android
+          - ios
+      build_number:
+        description: Optional numeric build number (defaults to GitHub run number)
+        type: string
+        required: false
+        default: ""
+      upload_to_stores:
+        description: Upload signed artifacts directly to Google Play / TestFlight
+        type: boolean
+        required: true
+        default: false
+      play_track:
+        description: Google Play track when upload_to_stores is enabled
+        type: choice
+        required: true
+        default: internal
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+      play_release_status:
+        description: Google Play release status (use draft for first upload before app review)
+        type: choice
+        required: true
+        default: draft
+        options:
+          - draft
+          - completed
+      enable_ios_push_entitlements:
+        description: Attach Runner/Runner.entitlements (enable once Push Notifications is active on Apple App ID)
+        type: boolean
+        required: true
+        default: false
+
+jobs:
+  android-release:
+    name: Android Play Store release (.aab)
+    if: inputs.platform == 'both' || inputs.platform == 'android'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: edu_connect
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verify required Android secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          MOBILE_PRODUCTION_CONFIG_JSON: ${{ secrets.MOBILE_PRODUCTION_CONFIG_JSON }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          UPLOAD_TO_STORES: ${{ inputs.upload_to_stores }}
+        run: |
+          missing=0
+          for var in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_PASSWORD MOBILE_PRODUCTION_CONFIG_JSON; do
+            if [[ -z "${!var:-}" ]]; then
+              echo "::error::Missing required GitHub secret: $var"
+              missing=1
+            fi
+          done
+          if [[ "$UPLOAD_TO_STORES" == "true" && -z "${GOOGLE_PLAY_SERVICE_ACCOUNT_JSON:-}" ]]; then
+            echo "::error::Missing required GitHub secret for upload: GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"
+            missing=1
+          fi
+          exit "$missing"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Prepare signing files and production config
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          MOBILE_PRODUCTION_CONFIG_JSON: ${{ secrets.MOBILE_PRODUCTION_CONFIG_JSON }}
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          KEY_ALIAS="${ANDROID_KEY_ALIAS:-upload}"
+          cat > android/key.properties <<EOF
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          keyAlias=${KEY_ALIAS}
+          storeFile=upload-keystore.jks
+          EOF
+          printf '%s\n' "$MOBILE_PRODUCTION_CONFIG_JSON" > config/production.json
+
+      - name: Install dependencies and validate
+        run: |
+          flutter pub get
+          dart run tool/validate_mobile_config.dart config/production.json
+          flutter analyze --no-pub
+          flutter test --no-pub
+
+      - name: Build signed Android App Bundle (.aab)
+        env:
+          INPUT_BUILD_NUMBER: ${{ inputs.build_number }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          BUILD_NUM="${INPUT_BUILD_NUMBER:-$RUN_NUMBER}"
+          if ! [[ "$BUILD_NUM" =~ ^[0-9]+$ ]]; then
+            echo "::error::build_number must be a positive integer."
+            exit 1
+          fi
+          flutter build appbundle \
+            --release \
+            --no-pub \
+            --build-number="$BUILD_NUM" \
+            --obfuscate \
+            --split-debug-info=build/debug-info \
+            --dart-define-from-file=config/production.json
+
+      - name: Upload Android release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasel-edu-android-aab-${{ inputs.build_number || github.run_number }}
+          path: |
+            edu_connect/build/app/outputs/bundle/release/app-release.aab
+            edu_connect/build/debug-info/
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload to Google Play Console
+        if: inputs.upload_to_stores == true
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: dz.waseledu.app
+          releaseFiles: edu_connect/build/app/outputs/bundle/release/app-release.aab
+          track: ${{ inputs.play_track }}
+          status: ${{ inputs.play_release_status }}
+
+      - name: Clean up sensitive build files
+        if: always()
+        run: |
+          rm -f android/app/upload-keystore.jks android/key.properties config/production.json
+
+  ios-release:
+    name: iOS App Store / TestFlight release (.ipa)
+    if: inputs.platform == 'both' || inputs.platform == 'ios'
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: edu_connect
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verify required iOS secrets
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          IOS_DIST_CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          MOBILE_PRODUCTION_CONFIG_JSON: ${{ secrets.MOBILE_PRODUCTION_CONFIG_JSON }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_P8_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8_BASE64 }}
+          UPLOAD_TO_STORES: ${{ inputs.upload_to_stores }}
+        run: |
+          missing=0
+          for var in APPLE_TEAM_ID IOS_DIST_CERT_P12_BASE64 IOS_DIST_CERT_PASSWORD IOS_PROVISIONING_PROFILE_BASE64 MOBILE_PRODUCTION_CONFIG_JSON; do
+            if [[ -z "${!var:-}" ]]; then
+              echo "::error::Missing required GitHub secret: $var"
+              missing=1
+            fi
+          done
+          if [[ "$UPLOAD_TO_STORES" == "true" ]]; then
+            for var in APP_STORE_CONNECT_API_KEY_ID APP_STORE_CONNECT_API_ISSUER_ID APP_STORE_CONNECT_API_KEY_P8_BASE64; do
+              if [[ -z "${!var:-}" ]]; then
+                echo "::error::Missing required GitHub secret for TestFlight upload: $var"
+                missing=1
+              fi
+            done
+          fi
+          exit "$missing"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Apple Distribution certificate and provisioning profile
+        env:
+          IOS_DIST_CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          CERT_PATH="$RUNNER_TEMP/distribution.p12"
+          PROFILE_TMP="$RUNNER_TEMP/profile.mobileprovision"
+
+          printf '%s' "$IOS_DIST_CERT_P12_BASE64" | base64 --decode > "$CERT_PATH"
+          printf '%s' "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILE_TMP"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$IOS_DIST_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH" login.keychain-db
+
+          PROFILE_PLIST="$RUNNER_TEMP/profile.plist"
+          security cms -D -i "$PROFILE_TMP" > "$PROFILE_PLIST"
+          PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PROFILE_PLIST")"
+          PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PROFILE_PLIST")"
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PROFILE_TMP" "$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
+
+          echo "PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+          echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+
+          cat > ios/ExportOptions.ci.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+            <key>signingCertificate</key>
+            <string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>dz.waseledu.app</key>
+              <string>${PROFILE_NAME}</string>
+            </dict>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+          rm -f "$CERT_PATH" "$PROFILE_TMP" "$PROFILE_PLIST"
+
+      - name: Prepare production config and validate
+        env:
+          MOBILE_PRODUCTION_CONFIG_JSON: ${{ secrets.MOBILE_PRODUCTION_CONFIG_JSON }}
+        run: |
+          printf '%s\n' "$MOBILE_PRODUCTION_CONFIG_JSON" > config/production.json
+          flutter pub get
+          dart run tool/validate_mobile_config.dart config/production.json
+          flutter analyze --no-pub
+          flutter test --no-pub
+          plutil -lint ios/Runner/Info.plist ios/Runner/PrivacyInfo.xcprivacy ios/ExportOptions.ci.plist
+
+      - name: Build and sign iOS archive (.ipa)
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          INPUT_BUILD_NUMBER: ${{ inputs.build_number }}
+          RUN_NUMBER: ${{ github.run_number }}
+          ENABLE_PUSH_ENTITLEMENTS: ${{ inputs.enable_ios_push_entitlements }}
+        run: |
+          BUILD_NUM="${INPUT_BUILD_NUMBER:-$RUN_NUMBER}"
+          if ! [[ "$BUILD_NUM" =~ ^[0-9]+$ ]]; then
+            echo "::error::build_number must be a positive integer."
+            exit 1
+          fi
+
+          flutter build ios \
+            --release \
+            --no-codesign \
+            --no-pub \
+            --build-number="$BUILD_NUM" \
+            --obfuscate \
+            --split-debug-info=build/ios/debug-info \
+            --dart-define-from-file=config/production.json
+
+          (cd ios && pod install)
+
+          EXTRA_ARGS=()
+          if [[ "$ENABLE_PUSH_ENTITLEMENTS" == "true" ]]; then
+            EXTRA_ARGS+=("CODE_SIGN_ENTITLEMENTS=Runner/Runner.entitlements")
+          fi
+
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.ci.plist \
+            -exportPath build/ios/ipa
+
+      - name: Upload iOS release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasel-edu-ios-ipa-${{ inputs.build_number || github.run_number }}
+          path: |
+            edu_connect/build/ios/ipa/*.ipa
+            edu_connect/build/ios/debug-info/
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload to App Store Connect (TestFlight)
+        if: inputs.upload_to_stores == true
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_P8_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p "$HOME/.private_keys"
+          KEY_FILE="$HOME/.private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+          printf '%s' "$APP_STORE_CONNECT_API_KEY_P8_BASE64" | base64 --decode > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+
+          IPA_FILE="$(ls build/ios/ipa/*.ipa | head -n 1)"
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_FILE" \
+            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_API_ISSUER_ID"
+
+      - name: Clean up signing keychain and secrets
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" 2>/dev/null || true
+          if [[ -n "${PROFILE_UUID:-}" ]]; then
+            rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
+          fi
+          rm -rf "$HOME/.private_keys"
+          rm -f ios/ExportOptions.ci.plist config/production.json

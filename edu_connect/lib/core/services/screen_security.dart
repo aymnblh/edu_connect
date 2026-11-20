@@ -8,7 +8,7 @@ class ScreenSecurity {
   ScreenSecurity._();
 
   static const MethodChannel _channel =
-      MethodChannel('com.educonnect.edu_connect/screen_security');
+      MethodChannel('dz.waseledu.app/screen_security');
   static int _activeLocks = 0;
 
   static Future<void> acquire() async {

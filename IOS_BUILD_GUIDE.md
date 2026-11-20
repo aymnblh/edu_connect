@@ -4,7 +4,7 @@ Le depot contient deux applications iOS possibles. Une seule doit etre publiee s
 
 | Application | Dossier | Bundle identifier |
 | --- | --- | --- |
-| Flutter (native) | `edu_connect/ios` | `com.educonnect.eduConnect` |
+| Flutter (native, recommande) | `edu_connect/ios` | `dz.waseledu.app` |
 | Capacitor (app web enveloppee) | `edu_connect_web` (projet `ios/` a generer) | `dz.waseledu.app` |
 
 Le bundle identifier ne peut plus changer apres la premiere publication: choisis-le avant le premier envoi vers App Store Connect.

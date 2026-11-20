@@ -22,7 +22,7 @@ fun signingProperty(name: String): String =
         ?: throw GradleException("Missing '$name' in android/key.properties")
 
 android {
-    namespace = "com.educonnect.edu_connect"
+    namespace = "dz.waseledu.app"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -37,7 +37,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.educonnect.edu_connect"
+        applicationId = "dz.waseledu.app"
         minSdk = 26
         targetSdk = 36
         versionCode = flutter.versionCode

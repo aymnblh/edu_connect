@@ -3,6 +3,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
+Push-Location $ProjectRoot
+try {
 $AabPath = "build/app/outputs/bundle/release/app-release.aab"
 
 function Fail($Message) {
@@ -34,3 +37,6 @@ if (!(Test-Path $AabPath)) {
 }
 
 Write-Host "[INFO] Android production AAB ready: $AabPath"
+} finally {
+    Pop-Location
+}
