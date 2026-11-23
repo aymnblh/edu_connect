@@ -92,7 +92,12 @@ def _audit_query(
         stmt = stmt.where(AuditEvent.action == action)
     if category:
         # "auth" matches auth.login_success, auth.logout, ...
-        stmt = stmt.where(AuditEvent.action.like(f"{category.strip('.')}.%"))
+        # "grade" matches both grade.* (edits/deletes) and grades.* (approvals).
+        cleaned = category.strip(".")
+        if cleaned == "grade":
+            stmt = stmt.where(AuditEvent.action.like("grade.%") | AuditEvent.action.like("grades.%"))
+        else:
+            stmt = stmt.where(AuditEvent.action.like(f"{cleaned}.%"))
     if not include_http:
         stmt = stmt.where(AuditEvent.action.not_like("http.%"))
     if resource_type:

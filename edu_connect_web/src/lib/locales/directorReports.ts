@@ -217,9 +217,9 @@ export const directorReportsTranslations: TranslationMap = {
     en: 'To',
   },
   'audit.technical': {
-    fr: 'Afficher aussi les requêtes techniques (http.*)',
-    ar: 'عرض الطلبات التقنية أيضا (http.*)',
-    en: 'Also show technical requests (http.*)',
+    fr: 'Afficher aussi l\'activité technique détaillée',
+    ar: 'عرض النشاط التقني المفصل أيضا',
+    en: 'Also show detailed technical activity',
   },
   'audit.empty': {
     fr: 'Aucune entrée pour ces filtres.',
@@ -335,6 +335,31 @@ export const directorReportsTranslations: TranslationMap = {
     fr: 'Alertes de sécurité',
     ar: 'تنبيهات أمنية',
     en: 'Security alerts',
+  },
+  'audit.category.fees': {
+    fr: 'Frais scolaires',
+    ar: 'المستحقات المدرسية',
+    en: 'School fees',
+  },
+  'audit.category.health': {
+    fr: 'Santé et infirmerie',
+    ar: 'الصحة والتمريض',
+    en: 'Health and infirmary',
+  },
+  'audit.category.canteen': {
+    fr: 'Cantine',
+    ar: 'المطعم المدرسي',
+    en: 'Canteen',
+  },
+  'audit.category.transport': {
+    fr: 'Transport scolaire',
+    ar: 'النقل المدرسي',
+    en: 'School transport',
+  },
+  'audit.category.school': {
+    fr: 'Paramètres de l\'établissement',
+    ar: 'إعدادات المؤسسة',
+    en: 'School settings',
   },
   'audit.action.auth.login_success': {
     fr: 'Connexion',
@@ -550,6 +575,791 @@ export const directorReportsTranslations: TranslationMap = {
     fr: 'Message groupé',
     ar: 'رسالة جماعية',
     en: 'Bulk message',
+  },
+  'audit.action.auth.nurse_completed': {
+    fr: 'Compte infirmerie activé',
+    ar: 'تفعيل حساب التمريض',
+    en: 'School nurse account activated',
+  },
+  'audit.action.auth.canteen_completed': {
+    fr: 'Compte cantine activé',
+    ar: 'تفعيل حساب المطعم',
+    en: 'Canteen staff account activated',
+  },
+  'audit.action.auth.driver_completed': {
+    fr: 'Compte chauffeur activé',
+    ar: 'تفعيل حساب السائق',
+    en: 'Bus driver account activated',
+  },
+  'audit.action.grades.approved': {
+    fr: 'Notes validées',
+    ar: 'اعتماد النقاط',
+    en: 'Grades approved',
+  },
+  'audit.action.staff.teachers_imported': {
+    fr: 'Enseignants importés',
+    ar: 'استيراد قائمة الأساتذة',
+    en: 'Teachers imported',
+  },
+  'audit.action.parent_codes.viewed': {
+    fr: 'Codes d\'accès parents consultés',
+    ar: 'الاطلاع على رموز دخول الأولياء',
+    en: 'Parent access codes viewed',
+  },
+  'audit.action.school.logo_updated': {
+    fr: 'Logo de l\'école modifié',
+    ar: 'تحديث شعار المدرسة',
+    en: 'School logo updated',
+  },
+  'audit.action.school.logo_removed': {
+    fr: 'Logo de l\'école supprimé',
+    ar: 'حذف شعار المدرسة',
+    en: 'School logo removed',
+  },
+  'audit.action.school.modules_updated': {
+    fr: 'Modules de l\'école modifiés',
+    ar: 'تعديل خدمات المدرسة',
+    en: 'School modules updated',
+  },
+  'audit.action.chat.message_reported': {
+    fr: 'Message de classe signalé',
+    ar: 'الإبلاغ عن رسالة في القسم',
+    en: 'Class message reported',
+  },
+  'audit.action.demo.school_seeded': {
+    fr: 'École de démonstration initialisée',
+    ar: 'تهيئة المدرسة التجريبية',
+    en: 'Demo school initialized',
+  },
+  'audit.action.fees.invoices_created': {
+    fr: 'Frais scolaires générés',
+    ar: 'إنشاء مستحقات مدرسية',
+    en: 'School fees generated',
+  },
+  'audit.action.fees.invoice_updated': {
+    fr: 'Facture modifiée',
+    ar: 'تعديل فاتورة',
+    en: 'Invoice updated',
+  },
+  'audit.action.fees.invoice_deleted': {
+    fr: 'Facture supprimée',
+    ar: 'حذف فاتورة',
+    en: 'Invoice deleted',
+  },
+  'audit.action.fees.payment_recorded': {
+    fr: 'Paiement enregistré',
+    ar: 'تسجيل دفعة مالية',
+    en: 'Payment recorded',
+  },
+  'audit.action.fees.payment_cancelled': {
+    fr: 'Paiement annulé',
+    ar: 'إلغاء دفعة مالية',
+    en: 'Payment cancelled',
+  },
+  'audit.action.fees.reminders_sent': {
+    fr: 'Rappels de paiement envoyés',
+    ar: 'إرسال تذكيرات بالدفع',
+    en: 'Payment reminders sent',
+  },
+  'audit.action.fees.settings_updated': {
+    fr: 'Paramètres de rappels modifiés',
+    ar: 'تعديل إعدادات التذكير بالدفع',
+    en: 'Fee reminder settings updated',
+  },
+  'audit.action.health.viewed': {
+    fr: 'Fiche santé consultée',
+    ar: 'الاطلاع على البطاقة الصحية',
+    en: 'Health sheet viewed',
+  },
+  'audit.action.health.updated': {
+    fr: 'Fiche santé mise à jour',
+    ar: 'تحديث البطاقة الصحية',
+    en: 'Health sheet updated',
+  },
+  'audit.action.health.deleted': {
+    fr: 'Fiche santé effacée',
+    ar: 'حذف البطاقة الصحية',
+    en: 'Health sheet erased',
+  },
+  'audit.action.health.directory_viewed': {
+    fr: 'Liste des alertes santé consultée',
+    ar: 'الاطلاع على قائمة التنبيهات الصحية',
+    en: 'Health alerts directory viewed',
+  },
+  'audit.action.canteen.headcount_viewed': {
+    fr: 'Effectif cantine du jour consulté',
+    ar: 'الاطلاع على عدد وجبات المطعم اليومي',
+    en: 'Daily canteen headcount viewed',
+  },
+  'audit.action.canteen.menu_saved': {
+    fr: 'Menu cantine enregistré',
+    ar: 'حفظ قائمة طعام المطعم',
+    en: 'Canteen menu saved',
+  },
+  'audit.action.canteen.menu_deleted': {
+    fr: 'Menu cantine supprimé',
+    ar: 'حذف قائمة طعام المطعم',
+    en: 'Canteen menu deleted',
+  },
+  'audit.action.canteen.menus_published': {
+    fr: 'Menus de la semaine publiés',
+    ar: 'نشر قوائم طعام الأسبوع',
+    en: 'Weekly menus published',
+  },
+  'audit.action.canteen.enrollment_created': {
+    fr: 'Élève inscrit à la cantine',
+    ar: 'تسجيل تلميذ في المطعم',
+    en: 'Student enrolled in canteen',
+  },
+  'audit.action.canteen.enrollment_updated': {
+    fr: 'Inscription cantine modifiée',
+    ar: 'تعديل تسجيل المطعم',
+    en: 'Canteen enrollment updated',
+  },
+  'audit.action.canteen.enrollment_deleted': {
+    fr: 'Inscription cantine supprimée',
+    ar: 'إلغاء تسجيل المطعم',
+    en: 'Canteen enrollment removed',
+  },
+  'audit.action.canteen.month_billed': {
+    fr: 'Facturation mensuelle cantine générée',
+    ar: 'إصدار فواتير المطعم الشهرية',
+    en: 'Monthly canteen billing generated',
+  },
+  'audit.action.canteen.settings_updated': {
+    fr: 'Tarifs cantine modifiés',
+    ar: 'تعديل أسعار المطعم',
+    en: 'Canteen pricing updated',
+  },
+  'audit.action.transport.route_created': {
+    fr: 'Ligne de bus créée',
+    ar: 'إنشاء خط نقل مدرسي',
+    en: 'Bus route created',
+  },
+  'audit.action.transport.route_updated': {
+    fr: 'Ligne de bus modifiée',
+    ar: 'تعديل خط نقل مدرسي',
+    en: 'Bus route updated',
+  },
+  'audit.action.transport.route_deleted': {
+    fr: 'Ligne de bus supprimée',
+    ar: 'حذف خط نقل مدرسي',
+    en: 'Bus route deleted',
+  },
+  'audit.action.transport.stop_created': {
+    fr: 'Arrêt de bus ajouté',
+    ar: 'إضافة موقف حافلة',
+    en: 'Bus stop added',
+  },
+  'audit.action.transport.stop_updated': {
+    fr: 'Arrêt de bus modifié',
+    ar: 'تعديل موقف حافلة',
+    en: 'Bus stop updated',
+  },
+  'audit.action.transport.stop_deleted': {
+    fr: 'Arrêt de bus supprimé',
+    ar: 'حذف موقف حافلة',
+    en: 'Bus stop deleted',
+  },
+  'audit.action.transport.assignment_saved': {
+    fr: 'Affectation au bus enregistrée',
+    ar: 'تسجيل تلميذ في النقل المدرسي',
+    en: 'Bus assignment saved',
+  },
+  'audit.action.transport.assignment_deleted': {
+    fr: 'Affectation au bus supprimée',
+    ar: 'إلغاء تسجيل تلميذ في النقل المدرسي',
+    en: 'Bus assignment removed',
+  },
+  'audit.action.transport.month_billed': {
+    fr: 'Facturation mensuelle transport générée',
+    ar: 'إصدار فواتير النقل الشهرية',
+    en: 'Monthly transport billing generated',
+  },
+  'audit.action.transport.driver_manifest_viewed': {
+    fr: 'Liste des passagers consultée (chauffeur)',
+    ar: 'الاطلاع على قائمة ركاب الحافلة',
+    en: 'Driver passenger list viewed',
+  },
+  'audit.action.transport.trip_started': {
+    fr: 'Trajet de bus démarré',
+    ar: 'بدء رحلة الحافلة',
+    en: 'Bus trip started',
+  },
+  'audit.action.transport.trip_events_recorded': {
+    fr: 'Montées / descentes enregistrées',
+    ar: 'تسجيل صعود ونزول التلاميذ',
+    en: 'Boarding and drop-off check-ins recorded',
+  },
+  'audit.action.transport.trip_delayed': {
+    fr: 'Retard de bus signalé aux parents',
+    ar: 'إبلاغ الأولياء بتأخر الحافلة',
+    en: 'Bus delay reported to parents',
+  },
+  'audit.action.transport.trip_completed': {
+    fr: 'Trajet de bus terminé',
+    ar: 'إنهاء رحلة الحافلة',
+    en: 'Bus trip completed',
+  },
+  'audit.action.transport.unaccounted_student_alert': {
+    fr: 'Alerte sécurité : élève non descendu du bus',
+    ar: 'تنبيه أمني: تلميذ لم يُسجَّل نزوله من الحافلة',
+    en: 'Security alert: student not marked dropped off',
+  },
+  'audit.action.transport.exception_created': {
+    fr: 'Absence au bus signalée par un parent',
+    ar: 'إبلاغ ولي بعدم ركوب الحافلة',
+    en: 'No-bus notice submitted by parent',
+  },
+  'audit.action.transport.exception_deleted': {
+    fr: 'Absence au bus annulée',
+    ar: 'إلغاء بلاغ عدم ركوب الحافلة',
+    en: 'No-bus notice cancelled',
+  },
+  'audit.action.http.get': {
+    fr: 'Consultation technique (GET)',
+    ar: 'طلب قراءة تقني (GET)',
+    en: 'Technical read request (GET)',
+  },
+  'audit.action.http.post': {
+    fr: 'Envoi technique (POST)',
+    ar: 'طلب إرسال تقني (POST)',
+    en: 'Technical write request (POST)',
+  },
+  'audit.action.http.put': {
+    fr: 'Mise à jour technique (PUT)',
+    ar: 'طلب تحديث تقني (PUT)',
+    en: 'Technical update request (PUT)',
+  },
+  'audit.action.http.patch': {
+    fr: 'Modification technique (PATCH)',
+    ar: 'طلب تعديل تقني (PATCH)',
+    en: 'Technical edit request (PATCH)',
+  },
+  'audit.action.http.delete': {
+    fr: 'Suppression technique (DELETE)',
+    ar: 'طلب حذف تقني (DELETE)',
+    en: 'Technical delete request (DELETE)',
+  },
+  'audit.resource.canteen': {
+    fr: 'Cantine',
+    ar: 'المطعم',
+    en: 'Canteen',
+  },
+  'audit.resource.transport': {
+    fr: 'Transport',
+    ar: 'النقل',
+    en: 'Transport',
+  },
+  'audit.resource.class': {
+    fr: 'Classe',
+    ar: 'القسم',
+    en: 'Class',
+  },
+  'audit.resource.school': {
+    fr: 'Établissement',
+    ar: 'المؤسسة',
+    en: 'School',
+  },
+  'audit.resource.student': {
+    fr: 'Élève',
+    ar: 'التلميذ',
+    en: 'Student',
+  },
+  'audit.resource.staff': {
+    fr: 'Personnel',
+    ar: 'الطاقم',
+    en: 'Staff',
+  },
+  'audit.resource.user': {
+    fr: 'Compte',
+    ar: 'الحساب',
+    en: 'Account',
+  },
+  'audit.resource.fees': {
+    fr: 'Frais scolaires',
+    ar: 'المستحقات',
+    en: 'Fees',
+  },
+  'audit.resource.health': {
+    fr: 'Santé',
+    ar: 'الصحة',
+    en: 'Health',
+  },
+  'audit.resource.grade': {
+    fr: 'Note',
+    ar: 'نقطة',
+    en: 'Grade',
+  },
+  'audit.resource.grades': {
+    fr: 'Notes',
+    ar: 'النقاط',
+    en: 'Grades',
+  },
+  'audit.resource.attendance': {
+    fr: 'Présences',
+    ar: 'الحضور',
+    en: 'Attendance',
+  },
+  'audit.resource.homework': {
+    fr: 'Devoir',
+    ar: 'واجب',
+    en: 'Homework',
+  },
+  'audit.resource.lesson': {
+    fr: 'Cours',
+    ar: 'درس',
+    en: 'Lesson',
+  },
+  'audit.resource.announcement': {
+    fr: 'Annonce',
+    ar: 'إعلان',
+    en: 'Announcement',
+  },
+  'audit.resource.class_message': {
+    fr: 'Message de classe',
+    ar: 'رسالة القسم',
+    en: 'Class message',
+  },
+  'audit.resource.direct_message_bulk': {
+    fr: 'Message groupé',
+    ar: 'رسالة جماعية',
+    en: 'Bulk message',
+  },
+  'audit.resource.message_block': {
+    fr: 'Blocage',
+    ar: 'حظر',
+    en: 'Block',
+  },
+  'audit.resource.message_report': {
+    fr: 'Signalement',
+    ar: 'بلاغ',
+    en: 'Report',
+  },
+  'audit.resource.security_alert': {
+    fr: 'Sécurité',
+    ar: 'الأمان',
+    en: 'Security',
+  },
+  'audit.resource.audit': {
+    fr: 'Journal',
+    ar: 'السجل',
+    en: 'Log',
+  },
+  'audit.resource.auth': {
+    fr: 'Connexion',
+    ar: 'الدخول',
+    en: 'Sign-in',
+  },
+  'audit.meta.date': {
+    fr: 'Date',
+    ar: 'التاريخ',
+    en: 'Date',
+  },
+  'audit.meta.total': {
+    fr: 'Total',
+    ar: 'المجموع',
+    en: 'Total',
+  },
+  'audit.meta.approved_count': {
+    fr: 'Notes validées',
+    ar: 'النقاط المعتمدة',
+    en: 'Approved grades',
+  },
+  'audit.meta.count': {
+    fr: 'Nombre',
+    ar: 'العدد',
+    en: 'Count',
+  },
+  'audit.meta.amount': {
+    fr: 'Montant',
+    ar: 'المبلغ',
+    en: 'Amount',
+  },
+  'audit.meta.month': {
+    fr: 'Mois',
+    ar: 'الشهر',
+    en: 'Month',
+  },
+  'audit.meta.year': {
+    fr: 'Année',
+    ar: 'السنة',
+    en: 'Year',
+  },
+  'audit.meta.direction': {
+    fr: 'Trajet',
+    ar: 'الاتجاه',
+    en: 'Trip',
+  },
+  'audit.meta.reason': {
+    fr: 'Motif',
+    ar: 'السبب',
+    en: 'Reason',
+  },
+  'audit.meta.status': {
+    fr: 'Statut',
+    ar: 'الحالة',
+    en: 'Status',
+  },
+  'audit.meta.purpose': {
+    fr: 'Objet',
+    ar: 'الغرض',
+    en: 'Purpose',
+  },
+  'audit.meta.imported': {
+    fr: 'Importés',
+    ar: 'تم استيرادهم',
+    en: 'Imported',
+  },
+  'audit.meta.skipped': {
+    fr: 'Ignorés',
+    ar: 'تم تجاوزهم',
+    en: 'Skipped',
+  },
+  'audit.meta.created': {
+    fr: 'Créés',
+    ar: 'تم إنشاؤهم',
+    en: 'Created',
+  },
+  'audit.meta.notified': {
+    fr: 'Notifiés',
+    ar: 'تم إشعارهم',
+    en: 'Notified',
+  },
+  'audit.meta.minutes': {
+    fr: 'Minutes',
+    ar: 'دقائق',
+    en: 'Minutes',
+  },
+  'audit.meta.forced': {
+    fr: 'Clôture forcée',
+    ar: 'إغلاق إجباري',
+    en: 'Forced completion',
+  },
+  'audit.meta.recipient_count': {
+    fr: 'Destinataires',
+    ar: 'المستلمون',
+    en: 'Recipients',
+  },
+  'audit.meta.day': {
+    fr: 'Jour',
+    ar: 'اليوم',
+    en: 'Day',
+  },
+  'audit.meta.diet': {
+    fr: 'Régime',
+    ar: 'النظام الغذائي',
+    en: 'Diet',
+  },
+  'audit.meta.all_overdue': {
+    fr: 'Tous les retards',
+    ar: 'كل المتأخرات',
+    en: 'All overdue',
+  },
+  'audit.meta.attendance_count': {
+    fr: 'Présences',
+    ar: 'سجلات الحضور',
+    en: 'Attendance records',
+  },
+  'audit.meta.auto_reminders': {
+    fr: 'Rappels automatiques',
+    ar: 'التذكير التلقائي',
+    en: 'Automatic reminders',
+  },
+  'audit.meta.bytes': {
+    fr: 'Taille (octets)',
+    ar: 'الحجم (بايت)',
+    en: 'Size (bytes)',
+  },
+  'audit.meta.category': {
+    fr: 'Catégorie',
+    ar: 'الفئة',
+    en: 'Category',
+  },
+  'audit.meta.class_count': {
+    fr: 'Classes',
+    ar: 'الأقسام',
+    en: 'Classes',
+  },
+  'audit.meta.consent_method': {
+    fr: 'Mode de consentement',
+    ar: 'طريقة الموافقة',
+    en: 'Consent method',
+  },
+  'audit.meta.detail': {
+    fr: 'Détail',
+    ar: 'التفصيل',
+    en: 'Detail',
+  },
+  'audit.meta.details': {
+    fr: 'Détails',
+    ar: 'التفاصيل',
+    en: 'Details',
+  },
+  'audit.meta.email': {
+    fr: 'E-mail',
+    ar: 'البريد الإلكتروني',
+    en: 'Email',
+  },
+  'audit.meta.expires_in_hours': {
+    fr: 'Validité (heures)',
+    ar: 'الصلاحية (ساعات)',
+    en: 'Validity (hours)',
+  },
+  'audit.meta.grade_count': {
+    fr: 'Notes',
+    ar: 'النقاط',
+    en: 'Grades',
+  },
+  'audit.meta.invited': {
+    fr: 'Invités',
+    ar: 'تمت دعوتهم',
+    en: 'Invited',
+  },
+  'audit.meta.label': {
+    fr: 'Libellé',
+    ar: 'التسمية',
+    en: 'Label',
+  },
+  'audit.meta.linked_students': {
+    fr: 'Élèves liés',
+    ar: 'التلاميذ المرتبطون',
+    en: 'Linked students',
+  },
+  'audit.meta.method': {
+    fr: 'Moyen',
+    ar: 'الطريقة',
+    en: 'Method',
+  },
+  'audit.meta.name': {
+    fr: 'Nom',
+    ar: 'الاسم',
+    en: 'Name',
+  },
+  'audit.meta.no_parent': {
+    fr: 'Sans parent connecté',
+    ar: 'دون ولي متصل',
+    en: 'Without connected parent',
+  },
+  'audit.meta.plan': {
+    fr: 'Formule',
+    ar: 'الصيغة',
+    en: 'Plan',
+  },
+  'audit.meta.previous_reason': {
+    fr: 'Ancien motif',
+    ar: 'السبب السابق',
+    en: 'Previous reason',
+  },
+  'audit.meta.published': {
+    fr: 'Publié',
+    ar: 'منشور',
+    en: 'Published',
+  },
+  'audit.meta.reactivated': {
+    fr: 'Réactivé',
+    ar: 'إعادة تفعيل',
+    en: 'Reactivated',
+  },
+  'audit.meta.receipt_number': {
+    fr: 'N° reçu',
+    ar: 'رقم الوصل',
+    en: 'Receipt no.',
+  },
+  'audit.meta.recipients': {
+    fr: 'Destinataires',
+    ar: 'المستلمون',
+    en: 'Recipients',
+  },
+  'audit.meta.recorded': {
+    fr: 'Enregistrés',
+    ar: 'مسجلون',
+    en: 'Recorded',
+  },
+  'audit.meta.remark_count': {
+    fr: 'Remarques',
+    ar: 'الملاحظات',
+    en: 'Remarks',
+  },
+  'audit.meta.republished': {
+    fr: 'Republié',
+    ar: 'إعادة نشر',
+    en: 'Republished',
+  },
+  'audit.meta.requester_role': {
+    fr: 'Rôle demandeur',
+    ar: 'دور الطالب',
+    en: 'Requester role',
+  },
+  'audit.meta.role': {
+    fr: 'Rôle',
+    ar: 'الدور',
+    en: 'Role',
+  },
+  'audit.meta.routes': {
+    fr: 'Lignes',
+    ar: 'الخطوط',
+    en: 'Routes',
+  },
+  'audit.meta.rows': {
+    fr: 'Lignes exportées',
+    ar: 'الصفوف المصدرة',
+    en: 'Exported rows',
+  },
+  'audit.meta.sender_name': {
+    fr: 'Expéditeur',
+    ar: 'المرسل',
+    en: 'Sender',
+  },
+  'audit.meta.sent': {
+    fr: 'Envoyés',
+    ar: 'تم إرسالها',
+    en: 'Sent',
+  },
+  'audit.meta.sessions_revoked': {
+    fr: 'Sessions déconnectées',
+    ar: 'الجلسات المفصولة',
+    en: 'Sessions signed out',
+  },
+  'audit.meta.skipped_recent': {
+    fr: 'Déjà rappelés récemment',
+    ar: 'تم تذكيرهم مؤخرا',
+    en: 'Recently reminded',
+  },
+  'audit.meta.status_code': {
+    fr: 'Code réponse',
+    ar: 'رمز الاستجابة',
+    en: 'Response code',
+  },
+  'audit.meta.students': {
+    fr: 'Élèves',
+    ar: 'التلاميذ',
+    en: 'Students',
+  },
+  'audit.meta.subject': {
+    fr: 'Matière',
+    ar: 'المادة',
+    en: 'Subject',
+  },
+  'audit.meta.threshold': {
+    fr: 'Seuil',
+    ar: 'العتبة',
+    en: 'Threshold',
+  },
+  'audit.meta.title': {
+    fr: 'Titre',
+    ar: 'العنوان',
+    en: 'Title',
+  },
+  'audit.meta.token_count': {
+    fr: 'Codes générés',
+    ar: 'الرموز المنشأة',
+    en: 'Codes generated',
+  },
+  'audit.meta.type': {
+    fr: 'Type',
+    ar: 'النوع',
+    en: 'Type',
+  },
+  'audit.meta.via': {
+    fr: 'Via',
+    ar: 'عبر',
+    en: 'Via',
+  },
+  'audit.meta.was_approved': {
+    fr: 'Était validée',
+    ar: 'كانت معتمدة',
+    en: 'Was approved',
+  },
+  'audit.meta.week_start': {
+    fr: 'Semaine du',
+    ar: 'أسبوع',
+    en: 'Week of',
+  },
+  'audit.meta.whole_school': {
+    fr: 'Toute l\'école',
+    ar: 'كامل المدرسة',
+    en: 'Whole school',
+  },
+  'audit.meta.window_seconds': {
+    fr: 'Fenêtre (secondes)',
+    ar: 'المدة (ثوان)',
+    en: 'Window (seconds)',
+  },
+  'audit.value.cash': {
+    fr: 'Espèces',
+    ar: 'نقدا',
+    en: 'Cash',
+  },
+  'audit.value.bank_transfer': {
+    fr: 'Virement bancaire',
+    ar: 'تحويل بنكي',
+    en: 'Bank transfer',
+  },
+  'audit.value.ccp': {
+    fr: 'CCP / BaridiMob',
+    ar: 'بريد الجزائر / بريدي موب',
+    en: 'CCP / BaridiMob',
+  },
+  'audit.value.cheque': {
+    fr: 'Chèque',
+    ar: 'شيك',
+    en: 'Cheque',
+  },
+  'audit.value.monthly': {
+    fr: 'Forfait mensuel',
+    ar: 'اشتراك شهري',
+    en: 'Monthly flat rate',
+  },
+  'audit.value.selected_days': {
+    fr: 'Jours choisis',
+    ar: 'أيام مختارة',
+    en: 'Selected days',
+  },
+  'audit.value.app': {
+    fr: 'Dans l\'application',
+    ar: 'عبر التطبيق',
+    en: 'In the app',
+  },
+  'audit.value.paper': {
+    fr: 'Formulaire papier',
+    ar: 'استمارة ورقية',
+    en: 'Signed paper form',
+  },
+  'audit.value.yes': {
+    fr: 'Oui',
+    ar: 'نعم',
+    en: 'Yes',
+  },
+  'audit.value.no': {
+    fr: 'Non',
+    ar: 'لا',
+    en: 'No',
+  },
+  'audit.value.morning': {
+    fr: 'Matin',
+    ar: 'الصباح',
+    en: 'Morning',
+  },
+  'audit.value.evening': {
+    fr: 'Soir',
+    ar: 'المساء',
+    en: 'Evening',
+  },
+  'audit.value.both': {
+    fr: 'Aller-retour',
+    ar: 'ذهاب وإياب',
+    en: 'Round trip',
+  },
+  'audit.value.schoolPresentation': {
+    fr: 'Présentation de la démo',
+    ar: 'عرض المدرسة التجريبية',
+    en: 'Demo presentation',
+  },
+  'audit.origin.system': {
+    fr: 'Système (automatique)',
+    ar: 'النظام (تلقائي)',
+    en: 'System (automatic)',
   },
   'records.openFile': {
     fr: 'Dossier complet de l\'élève',

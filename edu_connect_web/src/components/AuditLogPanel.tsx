@@ -22,7 +22,8 @@ interface AuditEvent {
 const PAGE_SIZE = 50;
 const CATEGORIES = [
   'auth', 'user', 'staff', 'parent', 'account', 'grade', 'attendance', 'homework', 'lesson',
-  'student', 'report_cards', 'announcement', 'dm', 'data_export', 'audit', 'security',
+  'student', 'report_cards', 'fees', 'health', 'canteen', 'transport', 'announcement', 'dm',
+  'school', 'data_export', 'audit', 'security',
 ];
 
 function formatWhen(iso: string, locale: Locale) {
@@ -33,11 +34,15 @@ function formatWhen(iso: string, locale: Locale) {
   }).format(new Date(iso));
 }
 
-function details(event: AuditEvent) {
-  const meta = Object.entries(event.event_metadata ?? {})
-    .filter(([, value]) => value !== null && value !== undefined && typeof value !== 'object')
-    .map(([key, value]) => `${key}: ${String(value)}`);
-  return [event.resource_type, ...meta].filter(Boolean).join(' · ');
+function formatDayValue(value: string, locale: Locale) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-DZ' : locale === 'en' ? 'en-GB' : 'fr-DZ', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
 }
 
 type AuditLogPanelProps = {
@@ -69,10 +74,78 @@ export default function AuditLogPanel({ people }: AuditLogPanelProps) {
   const events = logQuery.data?.pages.flat() ?? [];
 
   const actionLabel = (action: string) => {
-    const label = t(`audit.action.${action}`);
-    return label === `audit.action.${action}` ? action : label;
+    const key = `audit.action.${action}`;
+    const label = t(key);
+    if (label !== key) return label;
+    return action.replaceAll('.', ' — ').replaceAll('_', ' ');
   };
   const roleLabel = (role?: string | null) => (role ? t(`role.${role}`) : '');
+
+  const formatMetaValue = (rawValue: unknown): string => {
+    if (typeof rawValue === 'boolean') return rawValue ? t('audit.value.yes') : t('audit.value.no');
+    const text = String(rawValue);
+    const knownValueKeys: Record<string, string> = {
+      morning: 'audit.value.morning',
+      evening: 'audit.value.evening',
+      both: 'audit.value.both',
+      'school presentation': 'audit.value.schoolPresentation',
+      cash: 'audit.value.cash',
+      bank_transfer: 'audit.value.bank_transfer',
+      ccp: 'audit.value.ccp',
+      cheque: 'audit.value.cheque',
+      monthly: 'audit.value.monthly',
+      selected_days: 'audit.value.selected_days',
+      app: 'audit.value.app',
+      paper: 'audit.value.paper',
+      principal: 'role.principal',
+      secretary: 'role.secretary',
+      teacher: 'role.teacher',
+      parent: 'role.parent',
+      nurse: 'role.nurse',
+      canteen: 'role.canteen',
+      driver: 'role.driver',
+    };
+    const mappedKey = knownValueKeys[text];
+    if (mappedKey) return t(mappedKey);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return formatDayValue(text, locale);
+    return text;
+  };
+
+  const hiddenMetaKeys = new Set(['format_version', 'triggered_at']);
+
+  const formatDetails = (event: AuditEvent) => {
+    const resourceKey = event.resource_type ? `audit.resource.${event.resource_type}` : '';
+    const resourceTranslated = resourceKey ? t(resourceKey) : '';
+    const resourceLabel = resourceKey && resourceTranslated !== resourceKey ? resourceTranslated : event.resource_type;
+
+    const meta = Object.entries(event.event_metadata ?? {})
+      .filter(([key, value]) => {
+        if (value === null || value === undefined || typeof value === 'object') return false;
+        if (hiddenMetaKeys.has(key)) return false;
+        if (key.endsWith('_id') && /^[0-9a-f-]{16,}$/i.test(String(value))) return false;
+        return true;
+      })
+      .map(([key, value]) => {
+        const metaKey = `audit.meta.${key}`;
+        const translatedKey = t(metaKey);
+        const label = translatedKey !== metaKey ? translatedKey : key.replaceAll('_', ' ');
+        return `${label} : ${formatMetaValue(value)}`;
+      });
+
+    return [resourceLabel, ...meta].filter(Boolean).join(' · ');
+  };
+
+  const formatOrigin = (event: AuditEvent) => {
+    const platformMap: Record<string, string> = {
+      'local-script': t('audit.origin.system'),
+      web: 'Web',
+      android: 'Android',
+      ios: 'iOS',
+    };
+    const rawPlatform = event.device_platform?.trim();
+    const platform = rawPlatform ? (platformMap[rawPlatform.toLowerCase()] ?? rawPlatform) : null;
+    return [event.ip_address, platform].filter(Boolean).join(' · ');
+  };
 
   const exportCsv = async () => {
     setExporting(true);
@@ -167,8 +240,8 @@ export default function AuditLogPanel({ people }: AuditLogPanelProps) {
                     {event.actor_role && <div className="report-card-muted">{roleLabel(event.actor_role)}</div>}
                   </td>
                   <td>{actionLabel(event.action)}</td>
-                  <td className="audit-details">{details(event)}</td>
-                  <td className="report-card-muted">{[event.ip_address, event.device_platform].filter(Boolean).join(' · ')}</td>
+                  <td className="audit-details">{formatDetails(event)}</td>
+                  <td className="report-card-muted">{formatOrigin(event)}</td>
                 </tr>
               ))}
             </tbody>
