@@ -175,7 +175,7 @@ export default function RolePreviewShowcase() {
                 <div className="preview-report-card">
                   <div className="preview-rc-main">
                     <div className="preview-rc-school">
-                      <img src="/wasel-edu-logo.svg" alt="" />
+                      <img src="/wasel-edu-logo.png" alt="" />
                       <div>
                         <strong>{t('landing.preview.dir.school')}</strong>
                         <span>{t('landing.preview.dir.rcStudent')}</span>

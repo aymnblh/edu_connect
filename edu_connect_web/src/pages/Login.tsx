@@ -93,7 +93,7 @@ export default function Login() {
       <div className="login-brand-side">
         <div className="login-brand-content">
           <div className="login-masthead">
-            <img src="/wasel-edu-logo.svg" alt="" />
+            <img src="/wasel-edu-logo.png" alt="" />
             <span className="login-masthead-name">{t('common.appName')}</span>
             <span className="login-masthead-meta">FR · AR · EN</span>
           </div>
@@ -151,7 +151,7 @@ export default function Login() {
           <div className="login-card-header">
             <div className="login-logo-wrap">
               <div className="login-logo">
-                <img src="/wasel-edu-logo.svg" alt={t('common.appName')} />
+                <img src="/wasel-edu-logo.png" alt={t('common.appName')} />
               </div>
             </div>
             <h2 className="login-title">{t('login.title')}</h2>

@@ -142,7 +142,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
       <div className={`sidebar-header ${collapsed ? 'sidebar-header--collapsed' : 'sidebar-header--expanded'}`}>
         <div className="sidebar-brand">
           <div className="sidebar-brand-icon">
-            <img src="/wasel-edu-logo.svg" alt="" aria-hidden="true" />
+            <img src="/wasel-edu-logo.png" alt="" aria-hidden="true" />
           </div>
           {!collapsed && (
             <span className="sidebar-brand-text">

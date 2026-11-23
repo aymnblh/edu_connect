@@ -95,7 +95,7 @@ export default function Landing() {
       <header className="landing-nav">
         <div className="landing-nav-inner">
           <Link to="/accueil" className="landing-brand">
-            <img src="/wasel-edu-logo.svg" alt="" />
+            <img src="/wasel-edu-logo.png" alt="" />
             <span>WaselEdu</span>
           </Link>
 
@@ -350,7 +350,7 @@ export default function Landing() {
         <div className="landing-footer-inner">
           <div className="landing-footer-brand">
             <div className="landing-brand" style={{ color: '#f7f4eb' }}>
-              <img src="/wasel-edu-logo.svg" alt="" />
+              <img src="/wasel-edu-logo.png" alt="" />
               <span>WaselEdu</span>
             </div>
             <p>{t('landing.footer.tagline')}</p>

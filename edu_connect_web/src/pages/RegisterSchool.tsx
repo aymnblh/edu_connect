@@ -112,7 +112,7 @@ export default function RegisterSchool() {
           <div className="login-card-header">
             <div className="login-logo-wrap">
               <div className="login-logo">
-                <img src="/wasel-edu-logo.svg" alt={t('common.appName')} />
+                <img src="/wasel-edu-logo.png" alt={t('common.appName')} />
               </div>
             </div>
             <h2 className="login-title">{t('register.title')}</h2>

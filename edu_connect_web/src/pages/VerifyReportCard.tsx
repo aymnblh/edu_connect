@@ -34,7 +34,7 @@ export default function VerifyReportCard() {
     <main className="verify-page">
       <div className="glass-card verify-card">
         <div className="login-card-actions"><LocaleSwitcher /></div>
-        <img className="verify-brand" src="/wasel-edu-logo.svg" alt="WaselEdu" />
+        <img className="verify-brand" src="/wasel-edu-logo.png" alt="WaselEdu" />
         {cardQuery.isLoading && <p>{t('common.loading')}</p>}
         {card && (
           <>

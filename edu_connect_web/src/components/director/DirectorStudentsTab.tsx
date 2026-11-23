@@ -538,7 +538,7 @@ export default function DirectorStudentsTab({
 
             <div className="director-print-sheet">
               <div className="qr-panel">
-                <img src="/wasel-edu-logo.svg" alt={t('common.appName')} />
+                <img src="/wasel-edu-logo.png" alt={t('common.appName')} />
                 <QRCodeSVG value={qrModal.token.token} size={220} level="M" includeMargin />
                 <h3>{qrModal.student.full_name}</h3>
                 <p>{t('director.qr.scanCopy')}</p>
