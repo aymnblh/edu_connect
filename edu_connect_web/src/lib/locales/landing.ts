@@ -307,9 +307,9 @@ export const landingTranslations: TranslationMap = {
     en: 'Yearly price based on the number of students: ask for your quote after signing up.',
   },
   'pricing.referral': {
-    fr: 'Recommandé par une autre école ? Indiquez son code à l\'inscription : deux mois offerts à chacune.',
-    ar: 'رشّحتك مدرسة أخرى؟ أدخل رمزها عند التسجيل: شهران مجانيان لكل واحدة.',
-    en: 'Recommended by another school? Enter its code when you sign up: two months free for each.',
+    fr: 'Recommandé par une autre école ? Indiquez son code à l\'inscription : deux mois offerts à chacune dès le 1er règlement.',
+    ar: 'رشّحتك مدرسة أخرى؟ أدخل رمزها عند التسجيل: شهران مجانيان لكل واحدة فور أول تسديد.',
+    en: 'Recommended by another school? Enter its code when you sign up: two months free for each upon first payment.',
   },
   'pricing.signUp': {
     fr: 'Inscrire mon école',
@@ -397,9 +397,9 @@ export const landingTranslations: TranslationMap = {
     en: 'Estimate your annual budget in DZD',
   },
   'pricing.sim.subtitle': {
-    fr: 'Ajustez le curseur selon l\'effectif de votre école : tous les modules sont inclus et le tarif par élève est dégressif.',
-    ar: 'حرّك المؤشر حسب عدد تلاميذ مدرستك: كل الوحدات مشمولة والتسعيرة تنازلية حسب العدد.',
-    en: 'Adjust the slider to your school size: every module is included with volume-based per-student pricing.',
+    fr: 'Ajustez le curseur selon l\'effectif de votre école : tous les modules sont inclus, tarification par tranches progressives (forfait minimum 180 000 DA HT / an).',
+    ar: 'حرّك المؤشر حسب عدد تلاميذ مدرستك: كل الوحدات مشمولة، تسعيرة بشرائح تنازلية تدريجية (حد أدنى 180,000 دج سنويا خارج الرسوم).',
+    en: 'Adjust the slider to your school size: every module is included with progressive tiered pricing (180,000 DZD/year excl. tax minimum).',
   },
   'pricing.sim.studentsLabel': {
     fr: 'Effectif estimé',
@@ -417,24 +417,24 @@ export const landingTranslations: TranslationMap = {
     en: 'Applicable tier',
   },
   'pricing.sim.tier.essential': {
-    fr: 'Pack Essentiel (≤ 150 élèves · 1 500 DA / élève / an)',
-    ar: 'الباقة الأساسية (≤ 150 تلميذ · 1,500 دج / تلميذ / سنة)',
-    en: 'Essential Tier (≤ 150 students · 1,500 DZD / student / year)',
+    fr: 'Palier Essentiel (1–150 élèves · 2 000 DA HT / élève / an · min. 180 000 DA)',
+    ar: 'الباقة الأساسية (1–150 تلميذ · 2,000 دج / تلميذ / سنة · حد أدنى 180,000 دج)',
+    en: 'Essential Tier (1–150 students · 2,000 DZD / student / year · 180,000 DZD min.)',
   },
   'pricing.sim.tier.growth': {
-    fr: 'Pack Croissance (151–400 élèves · 1 200 DA / élève / an)',
-    ar: 'باقة النمو (151–400 تلميذ · 1,200 دج / تلميذ / سنة)',
-    en: 'Growth Tier (151–400 students · 1,200 DZD / student / year)',
+    fr: 'Palier Croissance (tranche 151–400 élèves · 1 700 DA HT / élève / an)',
+    ar: 'باقة النمو (شريحة 151–400 تلميذ · 1,700 دج / تلميذ / سنة)',
+    en: 'Growth Tier (151–400 students bracket · 1,700 DZD / student / year)',
   },
   'pricing.sim.tier.campus': {
-    fr: 'Pack Établissement (400+ élèves · 950 DA / élève / an)',
-    ar: 'باقة المؤسسات الكبرى (400+ تلميذ · 950 دج / تلميذ / سنة)',
-    en: 'Campus Tier (400+ students · 950 DZD / student / year)',
+    fr: 'Palier Campus (tranche > 400 élèves · 1 400 DA HT / élève / an)',
+    ar: 'باقة المؤسسات الكبرى (شريحة > 400 تلميذ · 1,400 دج / تلميذ / سنة)',
+    en: 'Campus Tier (400+ students bracket · 1,400 DZD / student / year)',
   },
   'pricing.sim.annualEstimate': {
-    fr: 'Estimation annuelle',
-    ar: 'التقدير السنوي',
-    en: 'Estimated annual fee',
+    fr: 'Estimation annuelle (HT)',
+    ar: 'التقدير السنوي (خارج الرسوم)',
+    en: 'Estimated annual fee (excl. tax)',
   },
   'pricing.sim.perStudentMonth': {
     fr: 'Soit environ {monthly} DA / élève / mois (sur 12 mois)',
@@ -442,9 +442,9 @@ export const landingTranslations: TranslationMap = {
     en: 'Around {monthly} DZD / student / month (over 12 months)',
   },
   'pricing.sim.disclaimer': {
-    fr: 'Estimation indicative hors remise parrainage (2 mois offerts). Votre 1er trimestre reste 100 % gratuit avant toute facturation.',
-    ar: 'تقدير إرشادي قبل خصم الترشيح (شهران مجانيان). فصلكم الأول يبقى مجانيا بالكامل قبل أي دفع.',
-    en: 'Indicative estimate before referral rewards (2 free months). Your first trimester remains 100% free before any billing.',
+    fr: 'Tarif catalogue HT par tranches progressives. Offre Écoles Pionnières : −20 % la 1re année pour les 10 premières écoles (hors parrainage : +2 mois offerts dès le 1er règlement). 1er trimestre 100 % gratuit.',
+    ar: 'السعر الرسمي خارج الرسوم حسب الشرائح التدريجية. عرض المدارس الرائدة: خصم 20% للسنة الأولى لأول 10 مدارس (إضافة إلى شهرين مجانيين عند الترشيح بعد أول تسديد). الفصل الأول مجاني 100%.',
+    en: 'Progressive tiered list price (excl. tax). Pioneer Schools Offer: 20% off year 1 for the first 10 schools (plus 2 free referral months upon first payment). First trimester is 100% free.',
   },
   'pricing.stepsTitle': {
     fr: 'Votre école opérationnelle en 24 heures',
@@ -532,9 +532,9 @@ export const landingTranslations: TranslationMap = {
     en: 'How do the free first trimester and school referral program work?',
   },
   'pricing.faq.a5': {
-    fr: 'Dès l\'activation de votre école, toutes les fonctionnalités sont gratuites jusqu\'à la fin du trimestre en cours — ou jusqu\'à la fin du trimestre suivant s\'il reste moins de 30 jours. Si vous indiquez le code de parrainage d\'une école partenaire, vous recevez chacune 2 mois offerts supplémentaires.',
-    ar: 'بمجرد تفعيل مدرستك، تستفيد من جميع المزايا مجانا حتى نهاية الفصل الحالي — أو نهاية الفصل الموالي إذا بقي أقل من 30 يوما. وعند إدخال رمز ترشيح مدرسة شريكة، تحصل كلتا المدرستين على شهرين مجانيين إضافيين.',
-    en: 'Once your school is activated, everything is free until the end of the current trimester — or the next one if fewer than 30 days remain. Entering a partner school\'s referral code grants 2 bonus free months to both schools.',
+    fr: 'Dès l\'activation de votre école, toutes les fonctionnalités sont gratuites jusqu\'à la fin du trimestre en cours — ou jusqu\'à la fin du trimestre suivant s\'il reste moins de 30 jours. Les 10 premières Écoles Pionnières bénéficient en plus de −20 % la 1re année, et le code parrainage ajoute 2 mois offerts à chaque école dès le premier règlement du filleul.',
+    ar: 'بمجرد تفعيل مدرستك، تستفيد من جميع المزايا مجانا حتى نهاية الفصل الحالي — أو نهاية الفصل الموالي إذا بقي أقل من 30 يوما. وتستفيد أول 10 مدارس رائدة من خصم 20% للسنة الأولى، كما يمنح رمز الترشيح شهرين مجانيين لكل مدرسة فور أول تسديد للمدرسة المرشَّحة.',
+    en: 'Once your school is activated, everything is free until the end of the current trimester — or the next one if fewer than 30 days remain. The first 10 Pioneer Schools also receive 20% off year 1, and referral codes grant 2 bonus free months to both schools upon the referred school\'s first payment.',
   },
   'pricing.discoverLink': {
     fr: 'Visite interactive',

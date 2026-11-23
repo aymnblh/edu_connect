@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wasel Edu — Présentation Directeurs d'Établissement</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --deep: #123b36;
+      --deep-2: #0c2b27;
+      --primary: #0d655d;
+      --primary-soft: #e5eeea;
+      --gold: #d7b174;
+      --gold-dark: #a96f24;
+      --gold-soft: #fbf5ea;
+      --paper: #f3f1eb;
+      --surface: #fffdf8;
+      --border: #d8ddd6;
+      --ink: #18302e;
+      --muted: #556661;
+      --danger: #b43c2f;
+      --danger-soft: #fdeeed;
+      --success: #0d655d;
+      --success-soft: #e5f3ef;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      background: #0b1f1c;
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .arabic {
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+    }
+
+    /* App Shell */
+    .deck-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Top Control Bar */
+    .topbar {
+      height: 52px;
+      background: var(--deep-2);
+      color: #f4f1e8;
+      border-bottom: 1px solid rgba(215, 177, 116, 0.28);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    .brand-mini {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+    }
+
+    .brand-mini svg {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      flex-shrink: 0;
+    }
+
+    .brand-mini span.sub {
+      color: var(--gold);
+      font-weight: 500;
+      font-size: 12px;
+      border-left: 1px solid rgba(255,255,255,0.2);
+      padding-left: 10px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .c-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f4f1e8;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 7px;
+      padding: 6px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .c-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .c-btn.active, .c-btn.gold {
+      background: var(--gold);
+      color: var(--deep-2);
+      border-color: var(--gold);
+    }
+
+    .slide-counter {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      min-width: 58px;
+      text-align: center;
+    }
+
+    /* Progress Bar */
+    .progress-track {
+      height: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--gold));
+      width: 8.33%;
+      transition: width 0.25s ease;
+    }
+
+    /* Main Stage */
+    .stage-wrap {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      position: relative;
+    }
+
+    .stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+      background: radial-gradient(circle at top right, #16443d 0%, #0b1f1c 70%);
+    }
+
+    /* Slide Canvas 16:9 */
+    .slide {
+      display: none;
+      width: min(1220px, 100%);
+      aspect-ratio: 16 / 9;
+      max-height: 100%;
+      background: var(--paper);
+      border-radius: 16px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+      position: relative;
+      flex-direction: column;
+      border: 1px solid rgba(215, 177, 116, 0.35);
+    }
+
+    .slide.active {
+      display: flex;
+      animation: fadeSlide 0.25s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Dark Cover / Closing Theme */
+    .slide.dark {
+      background: linear-gradient(135deg, #0d2e2a 0%, #123b36 55%, #0c4d46 100%);
+      color: #f7f4eb;
+    }
+
+    /* Header inside standard light slide */
+    .slide-header {
+      padding: 26px 42px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--gold-dark);
+      margin-bottom: 6px;
+    }
+
+    .slide.dark .kicker {
+      color: var(--gold);
+    }
+
+    .slide-title {
+      font-size: 27px;
+      font-weight: 800;
+      color: var(--deep);
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+    }
+
+    .slide-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .slide-badge-top {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .slide-body {
+      flex: 1;
+      padding: 24px 42px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .slide-footer {
+      height: 36px;
+      padding: 0 42px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .slide.dark .slide-footer {
+      background: rgba(0, 0, 0, 0.22);
+      border-top: 1px solid rgba(215, 177, 116, 0.22);
+      color: rgba(247, 244, 235, 0.72);
+    }
+
+    /* Typography & Utility Layouts */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card.accent-top {
+      border-top: 3px solid var(--primary);
+    }
+
+    .card.gold-top {
+      border-top: 3px solid var(--gold-dark);
+    }
+
+    .card.danger-top {
+      border-top: 3px solid var(--danger);
+    }
+
+    .card.deep-card {
+      background: var(--deep);
+      color: #f7f4eb;
+      border-color: rgba(215, 177, 116, 0.35);
+    }
+
+    .card h3 {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--deep);
+      line-height: 1.25;
+    }
+
+    .card.deep-card h3 {
+      color: var(--gold);
+    }
+
+    .card p, .card li {
+      font-size: 13px;
+      line-height: 1.48;
+      color: var(--muted);
+    }
+
+    .card.deep-card p, .card.deep-card li {
+      color: rgba(247, 244, 235, 0.88);
+    }
+
+    .clean-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .clean-list li {
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .clean-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .card.deep-card .clean-list li::before {
+      color: var(--gold);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(215, 177, 116, 0.35);
+      color: #f7f4eb;
+    }
+
+    .pill.light {
+      background: var(--primary-soft);
+      border-color: #c7dcd5;
+      color: var(--deep);
+    }
+
+    .pill.gold {
+      background: var(--gold-soft);
+      border-color: #e6cca0;
+      color: #7d4e12;
+    }
+
+    /* Slide 1 Specific */
+    .cover-wrap {
+      flex: 1;
+      padding: 46px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .cover-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .cover-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .cover-brand svg {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .cover-brand-text strong {
+      display: block;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .cover-brand-text span {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .cover-arabic {
+      text-align: right;
+    }
+
+    .cover-arabic strong {
+      display: block;
+      font-size: 20px;
+      color: #fffdf8;
+    }
+
+    .cover-arabic span {
+      font-size: 13px;
+      color: var(--gold);
+    }
+
+    .cover-main {
+      max-width: 820px;
+    }
+
+    .cover-main h1 {
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      margin: 12px 0 18px;
+    }
+
+    .cover-main h1 em {
+      font-style: normal;
+      color: var(--gold);
+    }
+
+    .cover-main p {
+      font-size: 17px;
+      line-height: 1.55;
+      color: rgba(247, 244, 235, 0.86);
+      max-width: 740px;
+    }
+
+    .cover-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 1px solid rgba(215, 177, 116, 0.25);
+      padding-top: 18px;
+    }
+
+    /* Pain Points Cards */
+    .pain-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--danger-soft);
+      color: var(--danger);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .callout-bar {
+      background: var(--deep);
+      color: #f7f4eb;
+      border-radius: 12px;
+      padding: 14px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-left: 4px solid var(--gold);
+    }
+
+    .callout-bar strong {
+      color: var(--gold);
+    }
+
+    .callout-bar p {
+      font-size: 13.5px;
+      line-height: 1.45;
+    }
+
+    /* Roles Ecosystem */
+    .role-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .role-chip .r-tag {
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+    }
+
+    .role-chip h4 {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--deep);
+    }
+
+    .role-chip p {
+      font-size: 12px;
+      line-height: 1.42;
+      color: var(--muted);
+    }
+
+    /* Stat Highlight */
+    .stat-box {
+      background: var(--primary-soft);
+      border: 1px solid #c5dbd4;
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+
+    .stat-box strong {
+      display: block;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--deep);
+      line-height: 1.1;
+    }
+
+    .stat-box span {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* Comparison Table */
+    .comp-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 13px;
+    }
+
+    .comp-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    .comp-table th:nth-child(1) { background: #e8ece8; color: var(--deep); width: 20%; }
+    .comp-table th:nth-child(2) { background: #f8e6e4; color: #8c281d; width: 39%; }
+    .comp-table th:nth-child(3) { background: var(--deep); color: var(--gold); width: 41%; }
+
+    .comp-table td {
+      padding: 11px 16px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.42;
+    }
+
+    .comp-table td:nth-child(1) { font-weight: 700; color: var(--deep); }
+    .comp-table td:nth-child(2) { color: #6d3a35; background: #fffbfa; }
+    .comp-table td:nth-child(3) { color: var(--ink); background: #f6fbf9; font-weight: 500; }
+
+    /* Step Number Circle */
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--deep);
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    /* Pricing & Live Simulator */
+    .tier-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+
+    .tier-card.featured {
+      border: 2px solid var(--primary);
+      background: #f5fbf9;
+    }
+
+    .tier-card .t-name {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+    }
+
+    .tier-card .t-price {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--deep);
+    }
+
+    .tier-card .t-price small {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .sim-box {
+      background: var(--deep);
+      color: #f7f4eb;
+      border-radius: 12px;
+      padding: 16px 22px;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+      align-items: center;
+      border: 1px solid rgba(215, 177, 116, 0.4);
+    }
+
+    .sim-box input[type="range"] {
+      width: 100%;
+      accent-color: var(--gold);
+      margin: 8px 0 4px;
+      cursor: pointer;
+    }
+
+    .sim-result {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(215, 177, 116, 0.35);
+      border-radius: 10px;
+      padding: 12px 16px;
+      text-align: right;
+    }
+
+    .sim-result strong {
+      display: block;
+      font-size: 24px;
+      color: var(--gold);
+    }
+
+    .sim-result span {
+      font-size: 12px;
+      color: rgba(247, 244, 235, 0.85);
+    }
+
+    /* Speaker Notes Drawer */
+    .notes-drawer {
+      width: 370px;
+      background: #102421;
+      color: #eef3f0;
+      border-left: 1px solid rgba(215, 177, 116, 0.3);
+      display: none;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .notes-drawer.open {
+      display: flex;
+    }
+
+    .notes-head {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notes-head strong {
+      color: var(--gold);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .notes-body {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      font-size: 13.5px;
+      line-height: 1.62;
+    }
+
+    .notes-body .n-meta {
+      display: inline-block;
+      background: rgba(215, 177, 116, 0.16);
+      color: var(--gold);
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    .notes-body .n-cue {
+      background: rgba(13, 101, 93, 0.28);
+      border-left: 3px solid var(--gold);
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin: 12px 0;
+      font-size: 12.5px;
+      color: #dfece8;
+    }
+
+    .notes-body p {
+      margin-bottom: 10px;
+      color: #e6eeeb;
+    }
+
+    /* Print / PDF Mode */
+    @media print {
+      @page {
+        size: 16in 9in;
+        margin: 0;
+      }
+      html, body {
+        background: #fff;
+        overflow: visible;
+        height: auto;
+      }
+      .topbar, .progress-track, .notes-drawer {
+        display: none !important;
+      }
+      .deck-shell, .stage-wrap, .stage {
+        display: block;
+        padding: 0;
+        background: #fff;
+        height: auto;
+        overflow: visible;
+      }
+      .slide {
+        display: flex !important;
+        width: 100vw;
+        height: 100vh;
+        max-height: none;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+        page-break-after: always;
+        break-after: page;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck-shell">
+    <!-- Top Control Bar -->
+    <header class="topbar">
+      <div class="brand-mini">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" aria-hidden="true">
+          <defs>
+            <linearGradient id="wt" x1="246" y1="180" x2="778" y2="844" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#0c8f7f"/><stop offset="1" stop-color="#047362"/>
+            </linearGradient>
+          </defs>
+          <rect width="1024" height="1024" rx="220" fill="#ffffff"/>
+          <g fill="url(#wt)">
+            <path fill-rule="evenodd" d="M397 142h230c72 0 130 58 130 130v345c0 18-15 33-33 33s-33-15-33-33V272c0-35-29-64-64-64H397c-35 0-64 29-64 64v345c0 18-15 33-33 33s-33-15-33-33V272c0-72 58-130 130-130Zm95 47h40c12 0 22 10 22 22s-10 22-22 22h-40c-12 0-22-10-22-22s10-22 22-22Z" clip-rule="evenodd"/>
+            <path d="M507 264c0-12 10-22 22-22s22 10 22 22v46l53-8c14-2 27 9 27 23v34c0 14-13 25-27 23l-53-8v41l107 98c17 16 6 44-17 44h-22v176c0 14-11 25-25 25h-85v-92c0-36-29-65-65-65s-65 29-65 65v92h-85c-14 0-25-11-25-25V557h-22c-23 0-34-28-17-44l126-116c5-5 12-8 19-8h110v-125Z"/>
+            <circle cx="512" cy="500" r="52" fill="#ffffff"/>
+            <path d="M507 465c0-9 7-16 16-16s16 7 16 16v24h21c9 0 16 7 16 16s-7 16-16 16h-37c-9 0-16-7-16-16v-40Z"/>
+            <circle cx="255" cy="569" r="57"/><circle cx="769" cy="569" r="57"/><circle cx="512" cy="707" r="48"/>
+            <path d="M219 648c57 0 106 38 121 92 20 73 91 127 172 127s152-54 172-127c15-54 64-92 121-92 26 0 47 21 47 47 0 97-199 218-310 256a91 91 0 0 1-60 0C371 913 172 792 172 695c0-26 21-47 47-47Z"/>
+          </g>
+        </svg>
+        <span>Wasel Edu</span>
+        <span class="sub">Présentation Directeurs d'Établissement</span>
+      </div>
+
+      <div class="controls">
+        <button class="c-btn" id="btnPrev" title="Slide précédente (←)">← Précédent</button>
+        <span class="slide-counter" id="slideCounter">1 / 12</span>
+        <button class="c-btn" id="btnNext" title="Slide suivante (→)">Suivant →</button>
+        <button class="c-btn" id="btnNotes" title="Afficher/Masquer le speech oral (Touche S)">🎤 Speech oral (S)</button>
+        <button class="c-btn" id="btnFull" title="Plein écran (Touche F)">⛶ Plein écran</button>
+        <button class="c-btn gold" onclick="window.print()" title="Imprimer ou enregistrer en PDF">🖨 Exporter PDF</button>
+      </div>
+    </header>
+
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="stage-wrap">
+      <main class="stage">
+
+        <!-- ==================== SLIDE 1 : COUVERTURE ==================== -->
+        <section class="slide dark active" data-slide="1">
+          <div class="cover-wrap">
+            <div class="cover-top">
+              <div class="cover-brand">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+                  <defs><linearGradient id="wt2" x1="246" y1="180" x2="778" y2="844" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0c8f7f"/><stop offset="1" stop-color="#047362"/></linearGradient></defs>
+                  <rect width="1024" height="1024" rx="220" fill="#ffffff"/>
+                  <g fill="url(#wt2)">
+                    <path fill-rule="evenodd" d="M397 142h230c72 0 130 58 130 130v345c0 18-15 33-33 33s-33-15-33-33V272c0-35-29-64-64-64H397c-35 0-64 29-64 64v345c0 18-15 33-33 33s-33-15-33-33V272c0-72 58-130 130-130Zm95 47h40c12 0 22 10 22 22s-10 22-22 22h-40c-12 0-22-10-22-22s10-22 22-22Z" clip-rule="evenodd"/>
+                    <path d="M507 264c0-12 10-22 22-22s22 10 22 22v46l53-8c14-2 27 9 27 23v34c0 14-13 25-27 23l-53-8v41l107 98c17 16 6 44-17 44h-22v176c0 14-11 25-25 25h-85v-92c0-36-29-65-65-65s-65 29-65 65v92h-85c-14 0-25-11-25-25V557h-22c-23 0-34-28-17-44l126-116c5-5 12-8 19-8h110v-125Z"/>
+                    <circle cx="512" cy="500" r="52" fill="#ffffff"/>
+                    <path d="M507 465c0-9 7-16 16-16s16 7 16 16v24h21c9 0 16 7 16 16s-7 16-16 16h-37c-9 0-16-7-16-16v-40Z"/>
+                    <circle cx="255" cy="569" r="57"/><circle cx="769" cy="569" r="57"/><circle cx="512" cy="707" r="48"/>
+                    <path d="M219 648c57 0 106 38 121 92 20 73 91 127 172 127s152-54 172-127c15-54 64-92 121-92 26 0 47 21 47 47 0 97-199 218-310 256a91 91 0 0 1-60 0C371 913 172 792 172 695c0-26 21-47 47-47Z"/>
+                  </g>
+                </svg>
+                <div class="cover-brand-text">
+                  <strong>Wasel Edu</strong>
+                  <span>Plateforme Scolaire Algérie</span>
+                </div>
+              </div>
+              <div class="cover-arabic arabic">
+                <strong>المنصة الشاملة لتسيير المدارس الخاصة في الجزائر</strong>
+                <span>تطبيق ويب وهاتف · عربي · فرنسي · إنجليزي</span>
+              </div>
+            </div>
+
+            <div class="cover-main">
+              <span class="kicker">Préscolaire · Primaire · CEM · Lycée · Groupes Scolaires</span>
+              <h1>Toute votre école privée dans <em>une seule application</em> sécurisée.</h1>
+              <p>
+                Remplacez les groupes WhatsApp ingérables et les fichiers Excel dispersés par un pilotage complet :
+                pédagogie, bulletins QR anti-falsification, écolage en DA, cantine, transport scolaire et infirmerie —
+                conçu 100 % pour le système éducatif algérien.
+              </p>
+            </div>
+
+            <div class="cover-bottom">
+              <div class="pill-row">
+                <span class="pill">🇩🇿 Semaine Dim–Jeu · 3 Trimestres · /20</span>
+                <span class="pill">🌐 Arabe (RTL) · Français · Anglais</span>
+                <span class="pill">📱 Web + App Android &amp; iOS</span>
+                <span class="pill">🎁 1er Trimestre 100 % Offert</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 2 : LE CONSTAT ==================== -->
+        <section class="slide" data-slide="2">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">01 · Le Constat sur le Terrain</span>
+              <h2 class="slide-title">Les 5 frictions invisibles qui coûtent cher aux écoles privées</h2>
+              <p class="slide-subtitle">Dès qu'un établissement dépasse 80 élèves, WhatsApp, Excel et le papier atteignent leurs limites.</p>
+            </div>
+            <span class="slide-badge-top">Diagnostic Direction</span>
+          </div>
+          <div class="slide-body">
+            <div class="grid-5">
+              <div class="card danger-top">
+                <span class="pain-num">01</span>
+                <h3>Chaos WhatsApp</h3>
+                <p>Numéros privés des profs exposés, messages à 22h, discussions incontrôlables entre parents et zéro archivage officiel.</p>
+              </div>
+              <div class="card danger-top">
+                <span class="pain-num">02</span>
+                <h3>L'enfer des Bulletins</h3>
+                <p>Ressaisies Excel longues, erreurs de coefficients, stress des conseils de classe et risque de falsification papier.</p>
+              </div>
+              <div class="card danger-top">
+                <span class="pain-num">03</span>
+                <h3>Retards d'Écolage</h3>
+                <p>Carnets papier, oublis d'échéances et relances téléphoniques gênantes pour votre secrétariat.</p>
+              </div>
+              <div class="card danger-top">
+                <span class="pain-num">04</span>
+                <h3>Angles morts Services</h3>
+                <p>Repas gaspillés faute d'effectif à jour le matin ; aucune preuve horodatée de montée/descente du bus scolaire.</p>
+              </div>
+              <div class="card danger-top">
+                <span class="pain-num">05</span>
+                <h3>Perte de Contrôle</h3>
+                <p>Un enseignant qui part garde les fichiers ou reste dans les groupes ; difficile de détecter tôt un élève qui décroche.</p>
+              </div>
+            </div>
+
+            <div class="callout-bar">
+              <p>
+                <strong>Le constat est simple :</strong> un outil « gratuit » comme WhatsApp vous coûte chaque année en
+                <strong>image de marque</strong>, en <strong>heures administratives</strong> et en <strong>trésorerie non recouvrée</strong>.
+              </p>
+              <span class="pill" style="white-space:nowrap;">Passer à un cadre pro →</span>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Wasel Edu — Présentation Directeurs d'Établissement</span>
+            <span>2 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 3 : L'ECOSYSTEME ==================== -->
+        <section class="slide" data-slide="3">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">02 · La Solution Globale</span>
+              <h2 class="slide-title">Un écosystème unifié : 7 rôles cloisonnés, 1 seule vérité</h2>
+              <p class="slide-subtitle">Chaque acteur accède uniquement à son périmètre — sur ordinateur (Web) comme sur smartphone (Android &amp; iOS).</p>
+            </div>
+            <span class="slide-badge-top">Architecture Multi-Rôles</span>
+          </div>
+          <div class="slide-body">
+            <div class="grid-4">
+              <div class="role-chip" style="border-top:3px solid var(--deep);">
+                <span class="r-tag">Pilotage Global</span>
+                <h4>Directeur / Fondateur</h4>
+                <p>Vue d'ensemble, validation des notes, vigilance élèves, bilan mensuel PDF, logo, journal d'audit et contrôle total.</p>
+              </div>
+              <div class="role-chip" style="border-top:3px solid var(--primary);">
+                <span class="r-tag">Opérations</span>
+                <h4>Secrétariat</h4>
+                <p>Inscriptions, imports CSV, codes parents, encaissements d'écolage au guichet, reçus PDF et publications.</p>
+              </div>
+              <div class="role-chip" style="border-top:3px solid var(--primary);">
+                <span class="r-tag">Pédagogie</span>
+                <h4>Enseignants</h4>
+                <p>Uniquement leurs classes et leurs matières : appel en 20s, notes, devoirs, cahier de textes et créneaux de RDV.</p>
+              </div>
+              <div class="role-chip" style="border-top:3px solid var(--gold-dark);">
+                <span class="r-tag">Familles</span>
+                <h4>Parents</h4>
+                <p>Uniquement leurs enfants : alertes absences, notes, bulletins PDF, menus, suivi bus, reçus d'écolage et RDV.</p>
+              </div>
+            </div>
+
+            <div class="grid-3">
+              <div class="role-chip" style="border-left:4px solid var(--primary);">
+                <span class="r-tag">Espace Isolé</span>
+                <h4>Infirmerie scolaire</h4>
+                <p>Accès exclusif aux fiches santé chiffrées (allergies, traitements, contacts d'urgence). Aucun accès aux notes ni à la finance.</p>
+              </div>
+              <div class="role-chip" style="border-left:4px solid var(--gold-dark);">
+                <span class="r-tag">Module Optionnel</span>
+                <h4>Cantine / Cuisine</h4>
+                <p>Publication des menus (Dim–Jeu), effectif exact du matin déduit des absents, régimes spéciaux et alertes courtes d'allergies.</p>
+              </div>
+              <div class="role-chip" style="border-left:4px solid var(--deep);">
+                <span class="r-tag">Module Optionnel</span>
+                <h4>Chauffeur / Accompagnateur</h4>
+                <p>Feuille de route hors-ligne, pointage montée/descente en 1 geste, bouton retard +15 min et verrou de sécurité anti-oubli.</p>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Wasel Edu — Pensé pour le terrain algérien (Arabe · Français · Anglais)</span>
+            <span>3 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 4 : PILIER 1 PEDAGOGIE ==================== -->
+        <section class="slide" data-slide="4">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">03 · Pilier 1 — Pédagogie &amp; Image de Marque</span>
+              <h2 class="slide-title">Notes validées, appel instantané et Bulletins certifiés QR</h2>
+              <p class="slide-subtitle">Modernisez l'image de votre établissement tout en gardant un contrôle absolu avant toute publication.</p>
+            </div>
+            <span class="slide-badge-top">Barème /20 · 3 Trimestres</span>
+          </div>
+          <div class="slide-body">
+            <div class="grid-2">
+              <div class="card accent-top">
+                <h3>Contrôle pédagogique de bout en bout</h3>
+                <ul class="clean-list">
+                  <li><strong>Validation direction obligatoire :</strong> toute note saisie par un enseignant reste « en attente » jusqu'à votre validation.</li>
+                  <li><strong>Cloisonnement par matière :</strong> un professeur de mathématiques ne voit ni ne modifie jamais les notes de français.</li>
+                  <li><strong>Appel en 20 secondes :</strong> alerte immédiate aux parents en cas d'absence ou retard ; justification soumise en ligne et validée par l'école.</li>
+                  <li><strong>Cahier de textes &amp; Devoirs :</strong> emploi du temps dimanche–jeudi, examens et remarques disciplinaires tracés.</li>
+                  <li><strong>RDV Parents–Professeurs :</strong> réservation de créneaux sans jamais exposer le numéro personnel de l'enseignant.</li>
+                </ul>
+              </div>
+
+              <div class="card deep-card">
+                <span class="kicker" style="margin-bottom:2px;">L'effet « Waouh » pour les parents</span>
+                <h3>Bulletins trimestriels officiels &amp; Anti-falsification</h3>
+                <ul class="clean-list">
+                  <li><strong>Votre identité visuelle :</strong> logo de votre établissement, moyenne générale pondérée, rang, moyenne de classe et assiduité.</li>
+                  <li><strong>Mentions algériennes automatiques :</strong> <span class="arabic">لوحة الشرف</span> Tableau d'honneur (≥12), <span class="arabic">تشجيع</span> Encouragements (≥14), <span class="arabic">تهنئة</span> Félicitations (≥16) — seuils personnalisables.</li>
+                  <li><strong>Document figé à la publication :</strong> aucune modification ultérieure ne fausse un bulletin déjà émis.</li>
+                  <li><strong>QR Code vérifiable en ligne :</strong> n'importe qui (autre école, parent, administration) scanne le papier et vérifie instantanément son authenticité.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Wasel Edu — Bulletins PDF imprimables et exportables sur mobile</span>
+            <span>4 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 5 : PILIER 2 TRESORERIE ==================== -->
+        <section class="slide" data-slide="5">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">04 · Pilier 2 — Trésorerie &amp; Recouvrement</span>
+              <h2 class="slide-title">Écolage en DA, Reçus PDF instantanés et Relances automatiques</h2>
+              <p class="slide-subtitle">Accélérez vos encaissements sans changer vos habitudes au guichet et sans aucune commission bancaire.</p>
+            </div>
+            <span class="slide-badge-top">0 % Commission</span>
+          </div>
+          <div class="slide-body">
+            <div class="grid-3">
+              <div class="stat-box">
+                <strong>0 %</strong>
+                <span>Commission sur vos encaissements au guichet</span>
+              </div>
+              <div class="stat-box">
+                <strong>5 sec</strong>
+                <span>Pour encaisser et envoyer le reçu officiel PDF</span>
+              </div>
+              <div class="stat-box">
+                <strong>8h – 20h</strong>
+                <span>Rappels automatiques polis (heure d'Algérie)</span>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="card accent-top">
+                <h3>Adapté à la réalité des paiements en Algérie</h3>
+                <ul class="clean-list">
+                  <li>Facturation par classe ou école entière en 1 clic — <strong>protection anti-doublon intégrée</strong>.</li>
+                  <li>Vos parents paient toujours au secrétariat : <strong>Espèces, CCP / BaridiMob, Chèque ou Virement</strong>.</li>
+                  <li>Le reçu officiel avec le <strong>logo de votre école</strong> s'affiche aussitôt pour impression ET sur le smartphone du parent.</li>
+                  <li>Suivi en temps réel : <em>Total facturé, Encaissé, Reste à payer, En retard</em> par classe et par famille.</li>
+                </ul>
+              </div>
+              <div class="card gold-top">
+                <h3>Fini les coups de fil gênants pour relancer</h3>
+                <ul class="clean-list">
+                  <li><strong>Rappels automatiques programmables :</strong> notification courtoise 3 jours avant l'échéance, puis 1 fois par semaine en cas de retard (4 max).</li>
+                  <li><strong>Relance ciblée en 1 clic :</strong> relancez une famille ou tous les retards d'un coup, même depuis le téléphone du directeur.</li>
+                  <li><strong>Traçabilité comptable :</strong> chaque annulation exige un motif enregistré dans le journal d'audit.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Wasel Edu — Gestion financière claire pour le directeur et le secrétariat</span>
+            <span>5 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 6 : PILIER 3 TRANSPORT & CANTINE ==================== -->
+        <section class="slide" data-slide="6">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">05 · Pilier 3 — Services Différenciants (Modules Activables en 1 Clic)</span>
+              <h2 class="slide-title">Transport scolaire anti-oubli &amp; Cantine zéro gaspillage</h2>
+              <p class="slide-subtitle">Deux arguments décisifs qui rassurent immédiatement les parents dès la visite d'inscription.</p>
+            </div>
+            <span class="slide-badge-top">Sécurité &amp; Économies</span>
+          </div>
+          <div class="slide-body">
+            <div class="grid-2">
+              <div class="card accent-top">
+                <span class="pill light" style="width:fit-content;">🚌 Transport Scolaire</span>
+                <h3>Verrou de Sécurité Anti-Oubli d'Enfant</h3>
+                <ul class="clean-list">
+                  <li><strong>Pointage en 1 tap (même hors connexion 4G) :</strong> le chauffeur pointe Montée / Descente à chaque arrêt ; synchronisation automatique dès le retour du réseau.</li>
+                  <li><strong>Notification parent en temps réel :</strong> heure exacte de montée, de descente, et bouton <strong>« Retard +15 min »</strong> en cas d'embouteillage.</li>
+                  <li><strong>Clôture bloquée :</strong> impossible de fermer le trajet s'il reste un enfant pointé à bord sans descente — alerte <strong>SÉCURITÉ</strong> immédiate envoyée à la direction.</li>
+                  <li><strong>Absence bus déclarée :</strong> le parent prévient jusqu'à 30 min avant l'arrêt ; la feuille du chauffeur se met à jour seule.</li>
+                </ul>
+              </div>
+
+              <div class="card gold-top">
+                <span class="pill gold" style="width:fit-content;">🍽️ Cantine Scolaire</span>
+                <h3>Effectif Cuisine Exact &amp; Allergies Maîtrisées</h3>
+                <ul class="clean-list">
+                  <li><strong>Zéro repas préparé pour rien :</strong> les élèves marqués absents lors de l'appel du matin en classe sont <strong>automatiquement déduits</strong> du nombre de repas du jour.</li>
+                  <li><strong>Menus hebdomadaires (Dim–Jeu) :</strong> publiés avec les allergènes et notifiés aux familles.</li>
+                  <li><strong>Régimes et alertes visibles :</strong> sans gluten, diabétique, végétarien et alerte courte santé affichés en cuisine (sans exposer le dossier médical complet).</li>
+                  <li><strong>Facturation mensuelle reliée :</strong> génère automatiquement les frais cantine en excluant les jours fériés.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Wasel Edu — Modules activables ou désactivables librement selon votre établissement</span>
+            <span>6 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 7 : PILIER 4 PILOTAGE & SANTE ==================== -->
+        <section class="slide" data-slide="7">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">06 · Pilier 4 — Pilotage Direction &amp; Santé</span>
+              <h2 class="slide-title">Anticipez les décrochages et pilotez avec des chiffres fiables</h2>
+              <p class="slide-subtitle">Passez d'une gestion réactive au quotidien à un véritable tableau de bord de direction.</p>
+            </div>
+            <span class="slide-badge-top">Cockpit Directeur</span>
+          </div>
+          <div class="slide-body">
+            <div class="grid-3">
+              <div class="card accent-top">
+                <h3>🚨 Vigilance du Trimestre</h3>
+                <p>Détection automatique des élèves à suivre dès les premiers signaux :</p>
+                <ul class="clean-list">
+                  <li>Moyenne générale inférieure à <strong>10 / 20</strong></li>
+                  <li>Baisse de <strong>2 points ou plus</strong> vs trimestre précédent</li>
+                  <li><strong>≥ 3 absences non justifiées</strong> ou <strong>≥ 5 retards</strong> sur 30 jours</li>
+                  <li>Graphique d'assiduité sur les 12 dernières semaines scolaires</li>
+                </ul>
+              </div>
+
+              <div class="card gold-top">
+                <h3>📊 Bilan Mensuel PDF Automatique</h3>
+                <p>Le <strong>1er de chaque mois</strong>, un rapport complet comparable au mois précédent :</p>
+                <ul class="clean-list">
+                  <li>Taux de présence global et par classe</li>
+                  <li>Frais d'écolage encaissés sur le mois</li>
+                  <li>Activité des enseignants (notes, devoirs, appels) et engagement des parents</li>
+                  <li>Imprimable en 1 clic pour le fondateur ou le conseil</li>
+                </ul>
+              </div>
+
+              <div class="card accent-top">
+                <h3>🩺 Fiches Santé &amp; Infirmerie</h3>
+                <p>Protection des élèves dans le respect strict de la vie privée :</p>
+                <ul class="clean-list">
+                  <li>Allergies, traitements, groupe sanguin, contacts d'urgence dans l'ordre d'appel</li>
+                  <li>Création uniquement avec <strong>consentement parental</strong> (app ou papier signé)</li>
+                  <li>Fiches <strong>chiffrées</strong> en base, espace isolé pour l'infirmier(ère), alerte courte pour profs/chauffeurs</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Wasel Edu — Dossier complet de l'élève &amp; historique 30 jours par enseignant</span>
+            <span>7 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 8 : AVANT / APRES ==================== -->
+        <section class="slide" data-slide="8">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">07 · Comparatif Opérationnel</span>
+              <h2 class="slide-title">Pourquoi quitter WhatsApp &amp; Excel dès cette année ?</h2>
+              <p class="slide-subtitle">La différence concrète au quotidien pour la direction, le secrétariat, les professeurs et les parents.</p>
+            </div>
+            <span class="slide-badge-top">Avant vs Après</span>
+          </div>
+          <div class="slide-body">
+            <table class="comp-table">
+              <thead>
+                <tr>
+                  <th>Domaine</th>
+                  <th>❌ Gestion Classique (WhatsApp + Excel + Papier)</th>
+                  <th>✅ Avec Wasel Edu</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Communication &amp; Vie Privée</td>
+                  <td>Numéros personnels des profs exposés, messages tardifs, parents qui débattent entre eux.</td>
+                  <td>Messagerie encadrée avec accusés de lecture ; les parents ne se voient jamais entre eux.</td>
+                </tr>
+                <tr>
+                  <td>Bulletins &amp; Crédibilité</td>
+                  <td>Ressaisies manuelles, erreurs de formules Excel et bulletins papier falsifiables.</td>
+                  <td>Validation direction en 1 clic, document figé avec logo de l'école et QR code vérifiable.</td>
+                </tr>
+                <tr>
+                  <td>Écolage &amp; Relances</td>
+                  <td>Carnets papier, oublis d'échéances et appels téléphoniques inconfortables.</td>
+                  <td>Reçus PDF instantanés sur mobile (espèces, CCP/BaridiMob, chèque) + rappels auto polis.</td>
+                </tr>
+                <tr>
+                  <td>Cantine &amp; Transport</td>
+                  <td>Repas préparés pour des absents ; aucune traçabilité de descente du bus.</td>
+                  <td>Effectif cuisine recalculé à l'appel du matin ; pointage bus hors-ligne &amp; verrou anti-oubli.</td>
+                </tr>
+                <tr>
+                  <td>Départ d'un salarié &amp; Sécurité</td>
+                  <td>Un enseignant parti garde les fichiers ou reste membre des groupes WhatsApp.</td>
+                  <td>Cloisonnement par classe/matière et déconnexion mondiale instantanée de tous ses appareils.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="slide-footer">
+            <span>Wasel Edu — Moins d'administratif, plus de sérénité et une image d'école d'excellence</span>
+            <span>8 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 9 : SECURITE & SOUVERAINETE ==================== -->
+        <section class="slide" data-slide="9">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">08 · Confiance &amp; Gouvernance</span>
+              <h2 class="slide-title">Sécurité de niveau bancaire : vous gardez 100 % du contrôle</h2>
+              <p class="slide-subtitle">Conçu dès le premier jour pour protéger les données sensibles de vos familles et la comptabilité de votre école.</p>
+            </div>
+            <span class="slide-badge-top">Zéro Pub · Zéro Revente</span>
+          </div>
+          <div class="slide-body">
+            <div class="grid-2">
+              <div class="card accent-top">
+                <h3>🔐 Accès strictement fermés</h3>
+                <p>Ni les parents ni les enseignants ne peuvent s'inscrire librement de l'extérieur. <strong>Tout démarre d'un code remis par votre administration</strong> (code 72h pour le personnel, carte QR/PIN unique par élève pour les parents).</p>
+              </div>
+              <div class="card accent-top">
+                <h3>🧱 Isolation totale par établissement</h3>
+                <p>Base de données PostgreSQL cloisonnée par établissement (<strong>Row-Level Security</strong>) : il est techniquement impossible qu'une donnée de votre école soit visible par un autre établissement.</p>
+              </div>
+              <div class="card gold-top">
+                <h3>⚡ Déconnexion mondiale en 1 clic</h3>
+                <p>Un téléphone perdu ou un enseignant qui quitte l'école ? Désactivez ou déconnectez son compte en un clic : <strong>toutes ses sessions mobiles et web sont coupées instantanément</strong>.</p>
+              </div>
+              <div class="card gold-top">
+                <h3>📜 Chiffrement, Audit &amp; Propriété 100 %</h3>
+                <p>Fiches santé chiffrées, <strong>journal d'activité complet</strong> (qui a modifié une note, annulé un paiement ou consulté une fiche santé, exportable en CSV). Zéro publicité, zéro revente.</p>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Wasel Edu — Souveraineté et protection stricte des données scolaires</span>
+            <span>9 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 10 : DEPLOIEMENT 24H ==================== -->
+        <section class="slide" data-slide="10">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">09 · Zéro Friction Technique</span>
+              <h2 class="slide-title">Votre école opérationnelle en 24 heures — même en cours d'année</h2>
+              <p class="slide-subtitle">Aucune installation serveur, aucun matériel à acheter : une checklist guidée en 7 étapes vous accompagne pas à pas.</p>
+            </div>
+            <span class="slide-badge-top">Accompagnement Inclus</span>
+          </div>
+          <div class="slide-body">
+            <div class="grid-3">
+              <div class="card accent-top">
+                <span class="step-badge">1</span>
+                <h3>Création &amp; Import Excel (15 min)</h3>
+                <p>Nous créons l'espace de votre établissement avec votre <strong>logo</strong>. Vous importez vos listes existantes depuis Excel/CSV :</p>
+                <ul class="clean-list">
+                  <li>Élèves : <code>prenom ; nom ; classe</code></li>
+                  <li>Enseignants : <code>prenom ; nom ; email</code></li>
+                </ul>
+              </div>
+
+              <div class="card gold-top">
+                <span class="step-badge">2</span>
+                <h3>Cartes QR Parents imprimées (Jour 1)</h3>
+                <p>Imprimez en 1 clic les fiches d'invitation par classe (ID Élève + PIN 6 chiffres / QR code) à glisser dans le carnet ou remettre sous enveloppe.</p>
+                <ul class="clean-list">
+                  <li>Le parent scanne, choisit son mot de passe et sa langue (AR/FR/EN)</li>
+                  <li>Autonome en moins de 30 secondes</li>
+                </ul>
+              </div>
+
+              <div class="card accent-top">
+                <span class="step-badge">3</span>
+                <h3>Pilotage en temps réel (Jour 2)</h3>
+                <p>Dès le lendemain matin, toute l'école tourne sur un seul outil :</p>
+                <ul class="clean-list">
+                  <li>Appel en classe &amp; effectif cantine</li>
+                  <li>Pointage bus &amp; encaissements guichet</li>
+                  <li>Premier bilan mensuel PDF automatique</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="callout-bar">
+              <p><strong>Notre engagement terrain :</strong> nous vous accompagnons personnellement lors de l'import de vos fichiers Excel et de la prise en main de votre secrétariat.</p>
+              <span class="pill">Prise en main rapide</span>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Wasel Edu — Déploiement express sans perturber les cours</span>
+            <span>10 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 11 : TARIFICATION & ROI ==================== -->
+        <section class="slide" data-slide="11">
+          <div class="slide-header">
+            <div>
+              <span class="kicker">10 · Investissement &amp; Rentabilité</span>
+              <h2 class="slide-title">Une formule Tout Inclus, transparente et immédiatement rentabilisée</h2>
+              <p class="slide-subtitle">Tous les modules, Web + Android + iOS, mises à jour et support inclus — tarif dégressif selon vos effectifs.</p>
+            </div>
+            <span class="slide-badge-top">Sans Frais Cachés</span>
+          </div>
+          <div class="slide-body">
+            <div class="grid-3">
+              <div class="tier-card">
+                <span class="t-name">Tranche 1 · 1 – 150 élèves</span>
+                <div class="t-price">2 000 DA <small>HT / élève / an</small></div>
+                <p style="font-size:12.5px;color:var(--muted);">Soit <strong>~167 DA / élève / mois</strong> — forfait minimum <strong>180 000 DA HT/an</strong>.</p>
+              </div>
+              <div class="tier-card featured">
+                <span class="t-name">Tranche 2 · 151 – 400 élèves</span>
+                <div class="t-price">1 700 DA <small>HT / élève / an</small></div>
+                <p style="font-size:12.5px;color:var(--muted);">Soit <strong>~142 DA / élève / mois</strong> — calcul par tranches progressives.</p>
+              </div>
+              <div class="tier-card">
+                <span class="t-name">Tranche 3 · &gt; 400 élèves</span>
+                <div class="t-price">1 400 DA <small>HT / élève / an</small></div>
+                <p style="font-size:12.5px;color:var(--muted);">Soit <strong>~117 DA / élève / mois</strong> — conçu pour les groupes scolaires.</p>
+              </div>
+            </div>
+
+            <!-- Interactive Live Estimator for the Meeting -->
+            <div class="sim-box">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:13px;font-weight:700;color:var(--gold);">⚡ Simulateur progressif en direct (tarif catalogue HT)</span>
+                  <strong id="simStudentsLabel" style="font-size:15px;">200 élèves</strong>
+                </div>
+                <input type="range" id="simRange" min="50" max="1000" step="10" value="200" />
+                <p style="font-size:12px;color:rgba(247,244,235,0.78);">
+                  <strong>Offre 10 Écoles Pionnières (−20 % la 1re année) :</strong> <span id="simPioneer" style="color:var(--gold);font-weight:700;">308 000 DA HT / an</span> — moins de 2 % d'une mensualité, rentabilisé dès 2 à 3 retards d'écolage récupérés.
+                </p>
+              </div>
+              <div class="sim-result">
+                <span id="simTierLabel">Tranches progressives (jusqu'à 1 700 DA)</span>
+                <strong id="simTotal">385 000 DA HT / an</strong>
+                <span id="simMonthly">soit ~160 DA / élève / mois</span>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>🎁 Parrainage : +2 mois offerts chacun dès le 1er règlement du filleul · Paiement annuel ou trimestriel</span>
+            <span>11 / 12</span>
+          </div>
+        </section>
+
+        <!-- ==================== SLIDE 12 : CLOSING ==================== -->
+        <section class="slide dark" data-slide="12">
+          <div class="cover-wrap">
+            <div class="cover-top">
+              <div class="cover-brand">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+                  <defs><linearGradient id="wt3" x1="246" y1="180" x2="778" y2="844" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0c8f7f"/><stop offset="1" stop-color="#047362"/></linearGradient></defs>
+                  <rect width="1024" height="1024" rx="220" fill="#ffffff"/>
+                  <g fill="url(#wt3)">
+                    <path fill-rule="evenodd" d="M397 142h230c72 0 130 58 130 130v345c0 18-15 33-33 33s-33-15-33-33V272c0-35-29-64-64-64H397c-35 0-64 29-64 64v345c0 18-15 33-33 33s-33-15-33-33V272c0-72 58-130 130-130Zm95 47h40c12 0 22 10 22 22s-10 22-22 22h-40c-12 0-22-10-22-22s10-22 22-22Z" clip-rule="evenodd"/>
+                    <path d="M507 264c0-12 10-22 22-22s22 10 22 22v46l53-8c14-2 27 9 27 23v34c0 14-13 25-27 23l-53-8v41l107 98c17 16 6 44-17 44h-22v176c0 14-11 25-25 25h-85v-92c0-36-29-65-65-65s-65 29-65 65v92h-85c-14 0-25-11-25-25V557h-22c-23 0-34-28-17-44l126-116c5-5 12-8 19-8h110v-125Z"/>
+                    <circle cx="512" cy="500" r="52" fill="#ffffff"/>
+                    <path d="M507 465c0-9 7-16 16-16s16 7 16 16v24h21c9 0 16 7 16 16s-7 16-16 16h-37c-9 0-16-7-16-16v-40Z"/>
+                    <circle cx="255" cy="569" r="57"/><circle cx="769" cy="569" r="57"/><circle cx="512" cy="707" r="48"/>
+                    <path d="M219 648c57 0 106 38 121 92 20 73 91 127 172 127s152-54 172-127c15-54 64-92 121-92 26 0 47 21 47 47 0 97-199 218-310 256a91 91 0 0 1-60 0C371 913 172 792 172 695c0-26 21-47 47-47Z"/>
+                  </g>
+                </svg>
+                <div class="cover-brand-text">
+                  <strong>Wasel Edu</strong>
+                  <span>Offre de Lancement — Zéro Risque</span>
+                </div>
+              </div>
+              <span class="pill" style="background:var(--gold);color:var(--deep-2);font-weight:800;">🎁 1er Trimestre 100 % Offert</span>
+            </div>
+
+            <div>
+              <h1 style="font-size:38px;font-weight:800;line-height:1.15;margin-bottom:14px;">
+                Testez Wasel Edu en conditions réelles <em style="font-style:normal;color:var(--gold);">avant de payer 1 dinar.</em>
+              </h1>
+              <p style="font-size:16px;color:rgba(247,244,235,0.88);max-width:780px;margin-bottom:24px;">
+                À l'activation de votre école, toute la plateforme est offerte jusqu'à la fin du trimestre en cours — ou du trimestre suivant complet s'il reste moins de 30 jours.
+              </p>
+
+              <div class="grid-3">
+                <div class="card" style="background:rgba(255,255,255,0.08);border-color:rgba(215,177,116,0.35);">
+                  <span class="kicker">Étape 1 · Maintenant (3 min)</span>
+                  <h3 style="color:#fff;">Démo en direct</h3>
+                  <p style="color:rgba(247,244,235,0.82);">Scannez notre bulletin QR papier et découvrez l'interface Directeur, Enseignant &amp; Parent.</p>
+                </div>
+                <div class="card" style="background:rgba(255,255,255,0.08);border-color:rgba(215,177,116,0.35);">
+                  <span class="kicker">Étape 2 · Aujourd'hui (2 min)</span>
+                  <h3 style="color:#fff;">Ouverture de votre espace</h3>
+                  <p style="color:rgba(247,244,235,0.82);">Nous activons votre école avec votre logo et planifions l'import de votre liste Excel.</p>
+                </div>
+                <div class="card" style="background:rgba(215,177,116,0.16);border-color:var(--gold);">
+                  <span class="kicker">Étape 3 · Dès demain</span>
+                  <h3 style="color:var(--gold);">Démarrage en douceur</h3>
+                  <p style="color:#fffdf8;">Impression des cartes QR parents et accompagnement de votre équipe pendant tout le trimestre offert.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="cover-bottom">
+              <div style="font-size:14px;color:rgba(247,244,235,0.9);">
+                <strong>Votre interlocuteur :</strong> [Votre Nom &amp; Prénom] &nbsp;|&nbsp; 📞 [Votre Téléphone] &nbsp;|&nbsp; ✉️ [Votre Email]
+              </div>
+              <span class="arabic" style="color:var(--gold);font-weight:700;font-size:16px;">شكراً لحسن استماعكم — مرحباً بأسئلتكم</span>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Speaker Notes Side Drawer -->
+      <aside class="notes-drawer" id="notesDrawer">
+        <div class="notes-head">
+          <strong>🎤 Speech Oral (Téléprompteur)</strong>
+          <button class="c-btn" id="btnCloseNotes" style="padding:4px 8px;font-size:11px;">Fermer</button>
+        </div>
+        <div class="notes-body" id="notesContent"></div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const counter = document.getElementById('slideCounter');
+    const progressFill = document.getElementById('progressFill');
+    const notesDrawer = document.getElementById('notesDrawer');
+    const notesContent = document.getElementById('notesContent');
+    const btnNotes = document.getElementById('btnNotes');
+
+    const speakerNotes = {
+      1: {
+        time: "0:00 – 1:00 · Accroche & Légitimité",
+        cue: "Posture : Sourire calme, regard franc. Ne commencez pas par la technique : valorisez le directeur et posez le cadre en 45 secondes.",
+        text: [
+          "« Bonjour Monsieur le Directeur / Madame la Directrice, merci beaucoup de m'accorder ces quinze minutes. Je sais à quel point votre agenda est chargé, je vais donc aller droit à l'essentiel. »",
+          "« Si je suis devant vous aujourd'hui, ce n'est pas pour vous vendre un logiciel compliqué de plus, mais pour vous montrer comment les écoles privées algériennes reprennent le contrôle sur leur communication, leurs bulletins, leur écolage et la sécurité de leurs élèves — dans une seule application pensée à 100 % pour notre système : semaine du dimanche au jeudi, 3 trimestres, barème sur 20, paiements en dinars et interface en arabe, français et anglais. »"
+        ]
+      },
+      2: {
+        time: "1:00 – 2:30 · Diagnostic & Empathie",
+        cue: "Interaction clé : Posez la question ouverte à la fin de cette slide pour découvrir sa priorité n°1 et adapter la suite de votre discours.",
+        text: [
+          "« Dans presque toutes les écoles privées que nous rencontrons, dès qu'on dépasse 80 ou 100 élèves, on retrouve exactement les mêmes cinq sources de fatigue au quotidien. »",
+          "« D'abord les groupes WhatsApp : les numéros personnels de vos professeurs circulent, les parents écrivent à 22h, parfois la discussion dérape entre familles… Ensuite, la période des bulletins sur Excel avec le stress des coefficients et des ressaisies. Troisièmement, les retards d'écolage et les relances téléphoniques toujours délicates pour le secrétariat. Quatrièmement, la cantine qui prépare des repas pour des absents et le bus scolaire où les parents s'inquiètent. Et enfin, le risque quand un enseignant quitte l'établissement. »",
+          "« Avant que je vous montre la solution, entre ces cinq points, lequel vous prend le plus d'énergie aujourd'hui dans votre école ? »"
+        ]
+      },
+      3: {
+        time: "2:30 – 3:45 · La Vision Unifiée",
+        cue: "Appuyez sur le mot 'cloisonné' : un directeur redoute toujours les fuites d'information ou que tout le monde voie tout.",
+        text: [
+          "« C'est exactement pour répondre à ça que Wasel Edu réunit toute votre école dans un seul espace, mais avec une règle d'or : le cloisonnement strict. »",
+          "« Vous, à la direction, vous avez la tour de contrôle. Votre secrétariat gère les encaissements et les dossiers. Chaque enseignant ne voit que ses classes et ses matières. Chaque parent ne voit que ses propres enfants. Et si vous avez une infirmerie, une cantine ou des bus, chacun a son espace dédié — l'infirmière ne voit jamais l'écolage, le chauffeur ne voit jamais les notes. Tout le monde travaille sur la même information, en temps réel, sur ordinateur ou smartphone. »"
+        ]
+      },
+      4: {
+        time: "3:45 – 5:30 · Pilier 1 : Pédagogie & Effet Waouh QR",
+        cue: "GESTE FORT : Si vous avez un bulletin imprimé, tendez-le maintenant au directeur et demandez-lui de scanner le QR code avec son propre téléphone !",
+        text: [
+          "« Regardons d'abord ce qui fait la réputation de votre école : la pédagogie et les bulletins. »",
+          "« En classe, l'enseignant fait l'appel en 20 secondes et le parent est alerté immédiatement en cas d'absence. Pour les notes, rien n'est jamais publié sans vous : elles arrivent en attente de validation direction. »",
+          "« Et au moment des bulletins, un seul clic génère les PDF avec le logo de votre école, les mentions algériennes — Tableau d'honneur, Encouragements, Félicitations — et surtout ce QR code anti-falsification. Si vous le scannez avec votre téléphone, vous voyez apparaître la page officielle de vérification : impossible pour qui que ce soit de modifier une moyenne sur papier. Imaginez l'image de sérieux que cela donne lors des inscriptions. »"
+        ]
+      },
+      5: {
+        time: "5:30 – 7:00 · Pilier 2 : Trésorerie & Écolage",
+        cue: "Rassurez immédiatement sur le paiement : en Algérie, les écoles encaissent au guichet. Insistez sur '0 % commission' et 'finit la gêne des relances'.",
+        text: [
+          "« Deuxième pilier, celui qui touche directement votre trésorerie : les frais scolaires. »",
+          "« Je vous rassure tout de suite : nous ne vous imposons aucun paiement en ligne et nous prenons 0 % de commission. Vos parents continuent de payer exactement comme aujourd'hui au secrétariat — espèces, CCP, BaridiMob, chèque ou virement. »",
+          "« La différence ? En 5 secondes, votre secrétaire enregistre le règlement, imprime le reçu avec votre logo, et le parent reçoit immédiatement ce reçu sur son téléphone. Et pour les retards, finie la gêne des appels : vous activez les rappels automatiques polis — 3 jours avant l'échéance, puis une fois par semaine entre 8h et 20h. C'est l'application qui relance, jamais votre équipe. »"
+        ]
+      },
+      6: {
+        time: "7:00 – 8:30 · Pilier 3 : Transport & Cantine",
+        cue: "Adaptez le temps passé ici selon si l'école a un bus / une cantine. Si oui, c'est un argument émotionnel MASSIF (sécurité des enfants).",
+        text: [
+          "« Si vous proposez le transport scolaire ou la cantine — ce sont des modules que vous activez ou désactivez en un clic — nous avons pensé aux deux vraies réalités du terrain. »",
+          "« Sur le transport : le chauffeur pointe la montée et la descente en un geste, même dans une zone sans 4G grâce au mode hors-ligne. En cas de bouchon, un bouton 'Retard +15 min' prévient tous les parents de la ligne. Et surtout, notre verrou anti-oubli : le chauffeur ne peut pas clôturer son trajet s'il reste un enfant pointé à bord sans descente — sinon une alerte sécurité part immédiatement chez vous. »",
+          "« Sur la cantine : dès que l'appel est fait le matin en classe, les absents sont automatiquement déduits du nombre de repas à préparer en cuisine, avec les régimes et allergies affichés clairement. Moins de gaspillage chaque jour, et zéro risque. »"
+        ]
+      },
+      7: {
+        time: "8:30 – 9:45 · Pilier 4 : Pilotage & Vigilance",
+        cue: "Parlez ici d'entrepreneur à entrepreneur / de dirigeant à dirigeant : anticipation, sérénité et pilotage par les chiffres.",
+        text: [
+          "« Au-delà du quotidien, Wasel Edu vous donne un vrai tableau de bord de direction. »",
+          "« L'écran Vigilance repère automatiquement les élèves à suivre avant qu'il ne soit trop tard : moyenne sous 10, chute de 2 points par rapport au trimestre précédent, ou absences répétées. Vous pouvez convoquer les parents en amont, ce qui renforce énormément leur confiance en votre école. »",
+          "« Et le 1er de chaque mois, vous recevez automatiquement votre Bilan Mensuel PDF : présences, encaissements, activité des enseignants, comparés au mois précédent. Et côté santé, vos fiches médicales sont chiffrées sous consentement parental, avec un accès isolé pour l'infirmerie. »"
+        ]
+      },
+      8: {
+        time: "9:45 – 10:30 · Avant vs Après (Synthèse)",
+        cue: "Laissez le silence agir 3 secondes pour que le directeur parcoure le tableau des yeux.",
+        text: [
+          "« Si je résume en une image le passage de WhatsApp et Excel à Wasel Edu : vous protégez la vie privée de vos enseignants, vous sécurisez vos bulletins, vous fluidifiez votre trésorerie, vous évitez le gaspillage à la cantine et les risques dans le bus, et vous gardez la main sur tous vos accès. »"
+        ]
+      },
+      9: {
+        time: "10:30 – 11:15 · Sécurité & Souveraineté",
+        cue: "Point rassurant décisif : les directeurs craignent les fuites de fichiers élèves vers la concurrence.",
+        text: [
+          "« Une question légitime revient toujours : 'Est-ce que nos données sont protégées ?' »",
+          "« Chez Wasel Edu, personne ne peut s'inscrire seul : tout part d'un code remis par votre école. Votre base de données est isolée au niveau technique — aucune autre école ne peut y accéder. Si un professeur quitte votre établissement, un clic le déconnecte instantanément de tous ses téléphones. Enfin, zéro publicité et zéro revente : les données de vos familles restent à 100 % votre propriété. »"
+        ]
+      },
+      10: {
+        time: "11:15 – 12:00 · Déploiement Express 24h",
+        cue: "Désarmez la peur du 'ça va être trop lourd à installer'. Montrez la simplicité.",
+        text: [
+          "« Et contrairement à ce qu'on pourrait craindre, il ne faut pas attendre septembre prochain ni mobiliser un informaticien. »",
+          "« En 24 heures, votre école est prête : on dépose votre logo, on importe vos fichiers Excel d'élèves et d'enseignants en quelques minutes, vous imprimez les petites cartes QR parents par classe — chaque parent scanne la carte de son enfant et choisit sa langue — et dès le lendemain matin, vous pilotez en temps réel. Et nous sommes avec vous pour l'import initial. »"
+        ]
+      },
+      11: {
+        time: "12:00 – 13:15 · Tarification & Simulateur Live",
+        cue: "ACTION LIVE : Demandez 'Combien d'élèves avez-vous exactement cette année ?' et déplacez le curseur du simulateur devant lui !",
+        text: [
+          "« Parlons budget en toute transparence : nous avons une seule formule tout inclus, sans surprise, avec tous les modules, les applications mobiles et l'hébergement souverain en Algérie, par tranches progressives (2 000 / 1 700 / 1 400 DA HT/élève/an, forfait minimum 180 000 DA HT/an). »",
+          "« Vous avez environ combien d'élèves cette année ? [Déplacez le curseur]. Au tarif catalogue, cela représente [Montant] HT/an. Et comme vous faites partie de nos 10 premières Écoles Pionnières, nous vous accordons −20 % sur la première année — soit moins de 2 % d'une mensualité. Concrètement, 2 ou 3 retards d'écolage récupérés grâce aux rappels automatiques rentabilisent l'année entière, et chaque confrère parrainé vous offre 2 mois gratuits chacun dès son premier règlement. »"
+        ]
+      },
+      12: {
+        time: "13:15 – 14:30 · Offre Zéro Risque & Closing",
+        cue: "CLOSING DIRECT ET CALME : Proposez l'essai sans risque et donnez un choix simple (démo live maintenant ou création de l'espace).",
+        text: [
+          "« Mais le mieux, ce n'est pas de me croire sur parole : c'est de le constater dans votre propre école, sans aucun risque financier. »",
+          "« À l'activation, votre premier trimestre est 100 % offert — et s'il reste moins de 30 jours dans le trimestre en cours, nous vous offrons également le trimestre suivant complet. Vous testez avec votre équipe et vos parents avant de payer un seul dinar. »",
+          "« Je vous propose deux choses très simples : soit on regarde ensemble 3 minutes en direct sur mon écran comment sort un reçu et un bulletin, soit on ouvre dès maintenant l'espace de votre école en 2 minutes et on cale un créneau demain avec votre secrétariat pour importer votre liste Excel. Qu'est-ce qui vous convient le mieux ? »"
+        ]
+      }
+    };
+
+    let current = 0;
+
+    function updateSlide(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      const num = current + 1;
+      counter.textContent = `${num} / ${slides.length}`;
+      progressFill.style.width = `${(num / slides.length) * 100}%`;
+
+      const note = speakerNotes[num];
+      notesContent.innerHTML = `
+        <span class="n-meta">Slide ${num} · ${note.time}</span>
+        <div class="n-cue"><strong>💡 Conseil commercial :</strong> ${note.cue}</div>
+        ${note.text.map(p => `<p>${p}</p>`).join('')}
+      `;
+    }
+
+    document.getElementById('btnPrev').addEventListener('click', () => updateSlide(current - 1));
+    document.getElementById('btnNext').addEventListener('click', () => updateSlide(current + 1));
+
+    function toggleNotes() {
+      const open = notesDrawer.classList.toggle('open');
+      btnNotes.classList.toggle('active', open);
+    }
+
+    btnNotes.addEventListener('click', toggleNotes);
+    document.getElementById('btnCloseNotes').addEventListener('click', toggleNotes);
+
+    document.getElementById('btnFull').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        updateSlide(current + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        updateSlide(current - 1);
+      } else if (e.key.toLowerCase() === 's') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'f') {
+        document.getElementById('btnFull').click();
+      }
+    });
+
+    // Interactive Pricing Simulator on Slide 11 (progressive tiers + 180,000 DA floor)
+    const simRange = document.getElementById('simRange');
+    const simStudentsLabel = document.getElementById('simStudentsLabel');
+    const simTierLabel = document.getElementById('simTierLabel');
+    const simTotal = document.getElementById('simTotal');
+    const simMonthly = document.getElementById('simMonthly');
+    const simPioneer = document.getElementById('simPioneer');
+
+    function updateSim() {
+      const n = Number(simRange.value);
+      const t1 = Math.min(n, 150);
+      const t2 = Math.min(Math.max(n - 150, 0), 250);
+      const t3 = Math.max(n - 400, 0);
+      const annual = Math.max(180000, t1 * 2000 + t2 * 1700 + t3 * 1400);
+      const pioneer = Math.round(annual * 0.8);
+      const monthly = Math.round(annual / n / 12);
+      const tier = n <= 90
+        ? 'Forfait minimum (≤ 90 élèves)'
+        : n <= 150
+          ? 'Palier Essentiel (2 000 DA HT/an)'
+          : n <= 400
+            ? 'Tranches progressives (2 000 / 1 700 DA)'
+            : 'Tranches progressives (2 000 / 1 700 / 1 400 DA)';
+      const fmt = new Intl.NumberFormat('fr-FR');
+      simStudentsLabel.textContent = `${fmt.format(n)} élèves`;
+      simTierLabel.textContent = tier;
+      simTotal.textContent = `${fmt.format(annual)} DA HT / an`;
+      simMonthly.textContent = `soit ~${fmt.format(monthly)} DA / élève / mois`;
+      if (simPioneer) {
+        simPioneer.textContent = `${fmt.format(pioneer)} DA HT / an`;
+      }
+    }
+
+    simRange.addEventListener('input', updateSim);
+    updateSim();
+    updateSlide(0);
+  </script>
+</body>
+</html>

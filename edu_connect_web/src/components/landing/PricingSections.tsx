@@ -70,22 +70,29 @@ const FAQ_ITEMS = [
   { key: 'faq5', qKey: 'pricing.faq.q5', aKey: 'pricing.faq.a5' },
 ] as const;
 
+const MINIMUM_ANNUAL_DZD = 180_000;
+
+/** Progressive tiered annual pricing (no cliff effect) with a 180,000 DZD minimum floor. */
 function computePricingEstimate(studentCount: number) {
-  if (studentCount <= 150) {
-    return {
-      unitPrice: 1500,
-      tierKey: 'pricing.sim.tier.essential',
-    };
+  const tier1Count = Math.min(studentCount, 150);
+  const tier2Count = Math.min(Math.max(studentCount - 150, 0), 250);
+  const tier3Count = Math.max(studentCount - 400, 0);
+
+  const rawAnnual = tier1Count * 2000 + tier2Count * 1700 + tier3Count * 1400;
+  const annualTotal = Math.max(MINIMUM_ANNUAL_DZD, rawAnnual);
+  const perStudentMonth = Math.round(annualTotal / studentCount / 12);
+
+  let tierKey = 'pricing.sim.tier.essential';
+  if (studentCount > 400) {
+    tierKey = 'pricing.sim.tier.campus';
+  } else if (studentCount > 150) {
+    tierKey = 'pricing.sim.tier.growth';
   }
-  if (studentCount <= 400) {
-    return {
-      unitPrice: 1200,
-      tierKey: 'pricing.sim.tier.growth',
-    };
-  }
+
   return {
-    unitPrice: 950,
-    tierKey: 'pricing.sim.tier.campus',
+    annualTotal,
+    perStudentMonth,
+    tierKey,
   };
 }
 
@@ -162,9 +169,7 @@ export function PricingSimulatorCard({ id }: { id?: string }) {
   const [studentCount, setStudentCount] = useState(200);
 
   const estimate = useMemo(() => {
-    const { unitPrice, tierKey } = computePricingEstimate(studentCount);
-    const annualTotal = studentCount * unitPrice;
-    const perStudentMonth = Math.round(unitPrice / 12);
+    const { annualTotal, perStudentMonth, tierKey } = computePricingEstimate(studentCount);
     const numberLocale = locale === 'ar' ? 'ar-DZ' : locale === 'en' ? 'en-US' : 'fr-FR';
     const currencyLabel = locale === 'ar' ? 'دج' : locale === 'en' ? 'DZD' : 'DA';
     return {
