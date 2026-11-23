@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy.dialects import postgresql
 
 from app.models import Class, Conversation, ConversationParticipant, User, UserRole
-from app.modules.messaging.routers import chat, dm
+from app.modules.messaging.routers import chat, dm, dm_conversations
 
 
 def run(coro):
@@ -98,8 +98,8 @@ def test_class_broadcast_participants_are_only_teacher_and_parents_of_that_class
     async def no_rate_limit(*_args, **_kwargs):
         return None
 
-    monkeypatch.setattr(dm, "check_rate_limit", no_rate_limit)
-    monkeypatch.setattr(dm, "_build_conv_out", lambda conversation, _user_id: conversation)
+    monkeypatch.setattr(dm_conversations, "check_rate_limit", no_rate_limit)
+    monkeypatch.setattr(dm_conversations, "_build_conv_out", lambda conversation, _user_id: conversation)
 
     result = run(
         dm.broadcast_to_class_parents(

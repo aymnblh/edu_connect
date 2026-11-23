@@ -9,6 +9,7 @@
     "check:env": "node scripts/check-web-env.mjs",
     "lint": "eslint .",
     "test:env": "node scripts/test-web-env.mjs",
+    "test:i18n": "node scripts/test-i18n.mjs",
     "test:session": "node scripts/test-api-session.mjs",
     "test:secret-scanner": "node scripts/test-secret-scanner.mjs",
     "test:secrets": "node scripts/check-built-secrets.mjs",
