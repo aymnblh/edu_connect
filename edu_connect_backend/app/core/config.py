@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     demo_seed_reset_on_startup: bool = False
     # Opens the demo school to anyone from the login page, read-only, refreshed every night.
     public_demo_enabled: bool = False
+    # Optional one-time startup bootstrap for a platform SuperAdmin (useful on hosts without shell access).
+    # Remove both variables after the first successful deploy.
+    superadmin_bootstrap_email: str = ""
+    superadmin_bootstrap_password: str = ""
+    superadmin_bootstrap_name: str = "Super Administrateur"
     # Hourly jobs in the API process (monthly report notifications, demo refresh).
     background_jobs_enabled: bool = True
     # Encryption key for health records (Fernet; `python manage.py generate-health-key`).

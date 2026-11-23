@@ -42,6 +42,9 @@ async def lifespan(app: FastAPI):
             force=False,
         )
         print(report)
+    from app.core.bootstrap import bootstrap_superadmin_if_configured
+
+    await bootstrap_superadmin_if_configured()
     await manager.startup()
     jobs = start_background_jobs()
     try:
