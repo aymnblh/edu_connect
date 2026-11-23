@@ -138,10 +138,11 @@ async def teacher_history(
 async def student_file(
     student_id: str,
     request: Request,
+    semester_id: str | None = Query(default=None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Everything the school holds about one student, for the administration."""
+    """Everything the school holds about one student, across any term or full history."""
     school_id = _require_admin(current_user)
     student = await db.get(Student, student_id)
     if not student or student.school_id != school_id:
@@ -149,10 +150,10 @@ async def student_file(
 
     classes = (
         await db.execute(
-            select(Class.id, Class.name)
+            select(Class.id, Class.name, Class.academic_year, Class.archived_at)
             .join(ClassMember, ClassMember.class_id == Class.id)
             .where(ClassMember.student_id == student_id, ClassMember.school_id == school_id)
-            .order_by(Class.name)
+            .order_by(Class.archived_at.is_not(None), Class.created_at.desc(), Class.name)
         )
     ).all()
     parents = (
@@ -164,22 +165,42 @@ async def student_file(
         )
     ).all()
 
-    active = (
+    all_semesters = (
         await db.execute(
-            select(Semester).where(Semester.school_id == school_id, Semester.is_active.is_(True)).limit(1)
+            select(Semester)
+            .where(Semester.school_id == school_id)
+            .order_by(Semester.start_date.desc())
         )
-    ).scalar_one_or_none()
+    ).scalars().all()
+    semesters_by_id = {sem.id: sem for sem in all_semesters}
+
+    selected_semester_id = semester_id if isinstance(semester_id, str) else None
+    selected_term: Semester | None = None
+    all_time = selected_semester_id == "all"
+    if not all_time:
+        if selected_semester_id:
+            selected_term = semesters_by_id.get(selected_semester_id)
+            if selected_term is None:
+                raise HTTPException(status_code=404, detail="Trimestre introuvable.")
+        else:
+            selected_term = next((sem for sem in all_semesters if sem.is_active), None)
+
     grade_stmt = select(Grade).where(
         Grade.school_id == school_id, Grade.student_id == student_id, Grade.is_approved.is_(True)
     )
     attendance_stmt = select(Attendance.status, Attendance.is_justified).where(
         Attendance.school_id == school_id, Attendance.student_id == student_id
     )
-    if active is not None:
-        start = datetime.combine(active.start_date.date(), datetime.min.time(), tzinfo=timezone.utc)
-        end = datetime.combine(active.end_date.date() + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc)
+    remark_stmt = select(Remark).where(
+        Remark.school_id == school_id, Remark.student_id == student_id
+    )
+    if selected_term is not None:
+        start = datetime.combine(selected_term.start_date.date(), datetime.min.time(), tzinfo=timezone.utc)
+        end = datetime.combine(selected_term.end_date.date() + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc)
         grade_stmt = grade_stmt.where(Grade.date >= start, Grade.date < end)
         attendance_stmt = attendance_stmt.where(Attendance.date >= start, Attendance.date < end)
+        remark_stmt = remark_stmt.where(Remark.date >= start, Remark.date < end)
+
     grades = (await db.execute(grade_stmt)).scalars().all()
     coefficients = await load_grade_coefficients(db, grades)
     class_averages = weighted_averages_by_group(grades, coefficients, lambda grade: grade.class_id)
@@ -196,8 +217,7 @@ async def student_file(
 
     remarks = (
         await db.execute(
-            select(Remark).where(Remark.school_id == school_id, Remark.student_id == student_id)
-            .order_by(Remark.date.desc()).limit(10)
+            remark_stmt.order_by(Remark.date.desc()).limit(50 if all_time else 20)
         )
     ).scalars().all()
     report_cards = (
@@ -233,8 +253,33 @@ async def student_file(
             "created_at": student.created_at,
         },
         "classes": [{"id": row[0], "name": row[1]} for row in classes],
+        "class_history": [
+            {
+                "id": row[0],
+                "name": row[1],
+                "academic_year": row[2] if len(row) > 2 else None,
+                "archived_at": row[3] if len(row) > 3 else None,
+            }
+            for row in classes
+        ],
         "parents": [{"id": row[0], "full_name": row[1], "email": row[2], "phone": row[3]} for row in parents],
-        "term": {"id": active.id, "name": active.name} if active else None,
+        "scope": "all" if all_time else "term",
+        "term": (
+            {"id": selected_term.id, "name": selected_term.name, "academic_year": selected_term.academic_year}
+            if selected_term
+            else None
+        ),
+        "available_terms": [
+            {
+                "id": sem.id,
+                "name": sem.name,
+                "academic_year": sem.academic_year,
+                "start_date": sem.start_date,
+                "end_date": sem.end_date,
+                "is_active": sem.is_active,
+            }
+            for sem in all_semesters
+        ],
         "averages": {
             "by_class": [
                 {"class_name": class_names.get(class_id, class_id), "average": round(value, 2)}
@@ -252,8 +297,17 @@ async def student_file(
             for remark in remarks
         ],
         "report_cards": [
-            {"id": card.id, "semester_name": card.data.get("semester_name"), "overall_average": card.overall_average,
-             "rank": card.rank, "class_size": card.class_size, "published_at": card.published_at}
+            {
+                "id": card.id,
+                "semester_id": card.semester_id,
+                "semester_name": card.data.get("semester_name"),
+                "academic_year": semesters_by_id[card.semester_id].academic_year if card.semester_id in semesters_by_id else None,
+                "class_name": card.data.get("class_name") or class_names.get(card.class_id),
+                "overall_average": card.overall_average,
+                "rank": card.rank,
+                "class_size": card.class_size,
+                "published_at": card.published_at,
+            }
             for card in report_cards
         ],
         "health": health_out(student_id, health).model_dump(),

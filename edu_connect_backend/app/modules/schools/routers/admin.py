@@ -3,11 +3,13 @@ from fastapi import APIRouter
 
 from . import admin_academics, admin_analytics, admin_staff, admin_students
 from .admin_academics import (
+    StartAcademicYearRequest,
     create_course,
     create_school,
     list_courses,
     list_semesters,
     pending_attendance,
+    start_academic_year,
     update_semester,
 )
 from .admin_analytics import _term_averages, _whole_days, analytics_insights, analytics_overview

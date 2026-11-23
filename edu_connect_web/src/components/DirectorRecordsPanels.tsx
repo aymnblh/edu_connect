@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, History, UserRound, X } from 'lucide-react';
@@ -34,22 +34,49 @@ const date = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString() 
 interface StudentFile {
   student: { id: string; full_name: string; student_number?: string | null; archived_at?: string | null; created_at: string };
   classes: Array<{ id: string; name: string }>;
+  class_history?: Array<{ id: string; name: string; academic_year?: string | null; archived_at?: string | null }>;
   parents: Array<{ id: string; full_name: string; email: string; phone?: string | null }>;
-  term: { id: string; name: string } | null;
+  scope?: 'term' | 'all';
+  term: { id: string; name: string; academic_year?: string | null } | null;
+  available_terms?: Array<{ id: string; name: string; academic_year?: string | null; start_date: string; end_date: string; is_active: boolean }>;
   averages: { by_class: Array<{ class_name: string; average: number }>; by_subject: Array<{ subject: string; average: number }> };
   attendance: { absences: number; justified_absences: number; lates: number; records: number };
   remarks: Array<{ date: string; title: string; content: string; type: string }>;
-  report_cards: Array<{ id: string; semester_name?: string | null; overall_average?: number | null; rank?: number | null; class_size: number; published_at: string }>;
+  report_cards: Array<{
+    id: string;
+    semester_id?: string | null;
+    semester_name?: string | null;
+    academic_year?: string | null;
+    class_name?: string | null;
+    overall_average?: number | null;
+    rank?: number | null;
+    class_size: number;
+    published_at: string;
+  }>;
   health: HealthRecord;
 }
 
 export function StudentFileModal({ studentId, onClose }: { studentId: string; onClose: () => void }) {
   const { t } = useLocale();
+  const [selectedSemesterId, setSelectedSemesterId] = useState<string>('');
   const fileQuery = useQuery<StudentFile>({
-    queryKey: ['student-file', studentId],
-    queryFn: async () => (await api.get(`/admin/students/${studentId}/file`)).data,
+    queryKey: ['student-file', studentId, selectedSemesterId],
+    queryFn: async () =>
+      (
+        await api.get(`/admin/students/${studentId}/file`, {
+          params: selectedSemesterId ? { semester_id: selectedSemesterId } : undefined,
+        })
+      ).data,
   });
   const file = fileQuery.data;
+  const classHistory = file?.class_history ?? file?.classes.map((c) => ({ ...c, academic_year: null, archived_at: null })) ?? [];
+  const availableTerms = file?.available_terms ?? [];
+
+  const termHeadingLabel = file?.scope === 'all'
+    ? t('records.allTime')
+    : file?.term
+      ? [file.term.academic_year, file.term.name].filter(Boolean).join(' · ')
+      : t('records.allTime');
 
   return (
     <Modal title={file ? file.student.full_name : t('records.studentFile')} onClose={onClose}>
@@ -59,7 +86,12 @@ export function StudentFileModal({ studentId, onClose }: { studentId: string; on
           <section>
             <h3><UserRound size={16} /> {t('records.identity')}</h3>
             <p>{t('records.studentNumber')}: <strong>{file.student.student_number ?? '—'}</strong>
-              {' · '}{t('records.classes')}: <strong>{file.classes.map((c) => c.name).join(', ') || '—'}</strong>
+              {' · '}{t('records.classes')}:{' '}
+              <strong>
+                {classHistory
+                  .map((c) => (c.academic_year ? `${c.name} (${c.academic_year})` : c.name))
+                  .join(', ') || '—'}
+              </strong>
               {file.student.archived_at && <span className="badge badge-compact badge-warning"> {t('records.archived')}</span>}
             </p>
             <h4>{t('records.parents')}</h4>
@@ -72,7 +104,29 @@ export function StudentFileModal({ studentId, onClose }: { studentId: string; on
           </section>
 
           <section>
-            <h3>{t('records.results', { term: file.term?.name ?? t('records.allTime') })}</h3>
+            <div className="dashboard-toolbar">
+              <h3>{t('records.results', { term: termHeadingLabel })}</h3>
+              {availableTerms.length > 0 && (
+                <label className="form-group" style={{ marginBottom: 0 }}>
+                  <span className="sr-only">{t('records.periodFilter')}</span>
+                  <select
+                    className="form-input"
+                    aria-label={t('records.periodFilter')}
+                    value={selectedSemesterId}
+                    onChange={(event) => setSelectedSemesterId(event.target.value)}
+                  >
+                    <option value="">{t('records.activeTerm')}</option>
+                    <option value="all">{t('records.allTime')}</option>
+                    {availableTerms.map((sem) => (
+                      <option key={sem.id} value={sem.id}>
+                        {[sem.academic_year, sem.name].filter(Boolean).join(' · ')}
+                        {sem.is_active ? ` (${t('director.status.active')})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
             <div className="insights-kpis">
               {file.averages.by_class.map((row) => (
                 <div key={row.class_name} className="insights-kpi">
@@ -110,7 +164,8 @@ export function StudentFileModal({ studentId, onClose }: { studentId: string; on
             <ul className="record-list">
               {file.report_cards.map((card) => (
                 <li key={card.id}>
-                  {card.semester_name} · {card.overall_average?.toFixed(2) ?? '—'} / 20
+                  {[card.academic_year, card.semester_name, card.class_name].filter(Boolean).join(' · ')}
+                  {' · '}{card.overall_average?.toFixed(2) ?? '—'} / 20
                   {card.rank ? ` · ${t('reportCards.rankOf', { rank: card.rank, size: card.class_size })}` : ''}
                 </li>
               ))}

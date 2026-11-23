@@ -306,6 +306,11 @@ export const directorReportsTranslations: TranslationMap = {
     ar: 'التلاميذ وربط الأولياء',
     en: 'Students and parent links',
   },
+  'audit.category.class': {
+    fr: 'Classes',
+    ar: 'الأقسام',
+    en: 'Classes',
+  },
   'audit.category.report_cards': {
     fr: 'Bulletins',
     ar: 'كشوف النقاط',
@@ -620,6 +625,21 @@ export const directorReportsTranslations: TranslationMap = {
     fr: 'Modules de l\'école modifiés',
     ar: 'تعديل خدمات المدرسة',
     en: 'School modules updated',
+  },
+  'audit.action.school.academic_year_started': {
+    fr: 'Nouvelle année scolaire ouverte',
+    ar: 'فتح سنة دراسية جديدة',
+    en: 'New school year started',
+  },
+  'audit.action.class.archived': {
+    fr: 'Classe archivée',
+    ar: 'أرشفة قسم',
+    en: 'Class archived',
+  },
+  'audit.action.class.restored': {
+    fr: 'Classe restaurée',
+    ar: 'استعادة قسم',
+    en: 'Class restored',
   },
   'audit.action.chat.message_reported': {
     fr: 'Message de classe signalé',
@@ -1286,6 +1306,16 @@ export const directorReportsTranslations: TranslationMap = {
     ar: 'المدة (ثوان)',
     en: 'Window (seconds)',
   },
+  'audit.meta.academic_year': {
+    fr: 'Année scolaire',
+    ar: 'السنة الدراسية',
+    en: 'School year',
+  },
+  'audit.meta.archived_classes': {
+    fr: 'Classes archivées',
+    ar: 'الأقسام المؤرشفة',
+    en: 'Archived classes',
+  },
   'audit.value.cash': {
     fr: 'Espèces',
     ar: 'نقدا',
@@ -1365,6 +1395,16 @@ export const directorReportsTranslations: TranslationMap = {
     fr: 'Dossier complet de l\'élève',
     ar: 'الملف الكامل للتلميذ',
     en: 'Full student file',
+  },
+  'records.periodFilter': {
+    fr: 'Période affichée',
+    ar: 'الفترة المعروضة',
+    en: 'Displayed period',
+  },
+  'records.activeTerm': {
+    fr: 'Trimestre actif',
+    ar: 'الفصل الحالي',
+    en: 'Active term',
   },
   'records.studentFile': {
     fr: 'Dossier de l\'élève',

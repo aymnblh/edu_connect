@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, GraduationCap, Loader2, Plus, Users } from 'lucide-react';
+import { Archive, CalendarDays, GraduationCap, Loader2, Plus, RotateCcw, Sparkles, Users } from 'lucide-react';
 import { api } from '../../lib/api';
 import { formatDate, getApiErrorMessage } from '../../lib/formatters';
 import { useLocale } from '../../lib/i18n';
@@ -19,6 +19,7 @@ interface DirectorClassesTabProps {
   classes: SchoolClass[];
   isLoadingClasses: boolean;
   activeStudents: Student[];
+  canManageAcademicYears?: boolean;
   addToast: AddToastFn;
 }
 
@@ -31,6 +32,7 @@ export default function DirectorClassesTab({
   classes,
   isLoadingClasses,
   activeStudents,
+  canManageAcademicYears = false,
   addToast,
 }: DirectorClassesTabProps) {
   const { t, locale } = useLocale();
@@ -41,6 +43,18 @@ export default function DirectorClassesTab({
   const [selectedCourseClassId, setSelectedCourseClassId] = useState('');
   const [assignmentForm, setAssignmentForm] = useState({ course_id: '', teacher_id: '', coefficient: '1' });
   const [enrollmentDraft, setEnrollmentDraft] = useState<{ classId: string; ids: string[] } | null>(null);
+  const [showArchivedClasses, setShowArchivedClasses] = useState(false);
+
+  const archivedClassesQuery = useQuery<SchoolClass[]>({
+    queryKey: ['director-classes-all'],
+    enabled: showArchivedClasses,
+    queryFn: async () => {
+      const res = await api.get('/classes/', { params: { include_archived: true } });
+      return res.data;
+    },
+  });
+
+  const displayedClasses = showArchivedClasses ? (archivedClassesQuery.data ?? classes) : classes;
 
   const teachersQuery = useQuery<Teacher[]>({
     queryKey: ['director-teachers'],
@@ -172,6 +186,76 @@ export default function DirectorClassesTab({
     onError: (error) => addToast(getApiErrorMessage(error), 'error'),
   });
 
+  const archiveClassMutation = useMutation({
+    mutationFn: async (schoolClass: SchoolClass) => {
+      await api.post(`/classes/${schoolClass.id}/archive`);
+      return schoolClass;
+    },
+    onSuccess: (schoolClass) => {
+      queryClient.invalidateQueries({ queryKey: ['director-classes'] });
+      queryClient.invalidateQueries({ queryKey: ['director-classes-all'] });
+      addToast(t('director.toast.classArchived', { name: schoolClass.name }), 'success');
+    },
+    onError: (error) => addToast(getApiErrorMessage(error), 'error'),
+  });
+
+  const restoreClassMutation = useMutation({
+    mutationFn: async (schoolClass: SchoolClass) => {
+      await api.post(`/classes/${schoolClass.id}/restore`);
+      return schoolClass;
+    },
+    onSuccess: (schoolClass) => {
+      queryClient.invalidateQueries({ queryKey: ['director-classes'] });
+      queryClient.invalidateQueries({ queryKey: ['director-classes-all'] });
+      addToast(t('director.toast.classRestored', { name: schoolClass.name }), 'success');
+    },
+    onError: (error) => addToast(getApiErrorMessage(error), 'error'),
+  });
+
+  const nextAcademicStartYear = useMemo(() => {
+    const years = semesters
+      .map((sem) => {
+        const match = /^(\d{4})-\d{4}$/.exec(sem.academic_year ?? '');
+        if (match) return Number(match[1]);
+        const dt = new Date(sem.start_date);
+        if (Number.isNaN(dt.getTime())) return null;
+        return dt.getUTCMonth() + 1 >= 9 ? dt.getUTCFullYear() : dt.getUTCFullYear() - 1;
+      })
+      .filter((year): year is number => typeof year === 'number');
+    const now = new Date();
+    const currentStart = now.getMonth() + 1 >= 9 ? now.getFullYear() : now.getFullYear() - 1;
+    return years.length > 0 ? Math.max(...years) + 1 : currentStart + 1;
+  }, [semesters]);
+
+  const startAcademicYearMutation = useMutation({
+    mutationFn: async (startYear: number) => {
+      const res = await api.post('/admin/academic-years/start', {
+        start_year: startYear,
+        archive_previous_classes: true,
+      });
+      return res.data as { academic_year: string; semesters_created: number; archived_classes: number };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['director-semesters'] });
+      queryClient.invalidateQueries({ queryKey: ['director-classes'] });
+      queryClient.invalidateQueries({ queryKey: ['director-classes-all'] });
+      addToast(
+        t('director.toast.academicYearStarted', {
+          year: result.academic_year,
+          archived: result.archived_classes,
+        }),
+        'success',
+      );
+    },
+    onError: (error) => addToast(getApiErrorMessage(error), 'error'),
+  });
+
+  const handleStartNextAcademicYear = () => {
+    const nextLabel = `${nextAcademicStartYear}-${nextAcademicStartYear + 1}`;
+    if (!window.confirm(t('director.semesters.startNextConfirm', { year: nextLabel }))) return;
+    startAcademicYearMutation.mutate(nextAcademicStartYear);
+  };
+
   const handleClassSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     createClassMutation.mutate();
@@ -249,7 +333,17 @@ export default function DirectorClassesTab({
             <h2 className="dashboard-section-title dashboard-section-title--plain">{t('director.classes.title')}</h2>
             <p className="dashboard-section-copy">{t('director.classes.copy')}</p>
           </div>
-          <span className="status-badge status-badge--active">{t('director.classes.count', { count: classes.length })}</span>
+          <div className="management-actions">
+            <label className="checkbox-row" style={{ marginBottom: 0 }}>
+              <input
+                type="checkbox"
+                checked={showArchivedClasses}
+                onChange={(event) => setShowArchivedClasses(event.target.checked)}
+              />
+              <span>{t('director.classes.showArchived')}</span>
+            </label>
+            <span className="status-badge status-badge--active">{t('director.classes.count', { count: displayedClasses.length })}</span>
+          </div>
         </div>
         <div className="premium-table-wrapper">
           <table className="premium-table">
@@ -263,33 +357,70 @@ export default function DirectorClassesTab({
               </tr>
             </thead>
             <tbody>
-              {isLoadingClasses && (
+              {(isLoadingClasses || (showArchivedClasses && archivedClassesQuery.isLoading)) && (
                 <tr><td colSpan={5}>{t('director.classes.loading')}</td></tr>
               )}
-              {!isLoadingClasses && classes.map((schoolClass) => (
+              {!isLoadingClasses && displayedClasses.map((schoolClass) => (
                 <tr key={schoolClass.id}>
                   <td>
                     <strong>{schoolClass.name}</strong>
+                    {schoolClass.academic_year && (
+                      <span className="badge badge-compact" style={{ marginInlineStart: '0.5rem' }}>
+                        {schoolClass.academic_year}
+                      </span>
+                    )}
+                    {schoolClass.archived_at && (
+                      <span className="status-badge status-badge--expired" style={{ marginInlineStart: '0.5rem' }}>
+                        {t('records.archived')}
+                      </span>
+                    )}
                     <div className="table-cell-muted">{schoolClass.subject || t('director.classes.noSpecialty')}</div>
                   </td>
                   <td><span className="token-inline">{schoolClass.join_code}</span></td>
                   <td>{schoolClass.teachers?.map((teacher) => teacher.full_name).join(', ') || '-'}</td>
                   <td>{schoolClass.members?.length ?? 0}</td>
                   <td>
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-compact"
-                      onClick={() => {
-                        setSelectedClassId(schoolClass.id);
-                        setSelectedCourseClassId(schoolClass.id);
-                      }}
-                    >
-                      {t('director.classes.manage')}
-                    </button>
+                    <div className="table-actions">
+                      {!schoolClass.archived_at && (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-compact"
+                          onClick={() => {
+                            setSelectedClassId(schoolClass.id);
+                            setSelectedCourseClassId(schoolClass.id);
+                          }}
+                        >
+                          {t('director.classes.manage')}
+                        </button>
+                      )}
+                      {schoolClass.archived_at ? (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-compact"
+                          disabled={restoreClassMutation.isPending}
+                          onClick={() => restoreClassMutation.mutate(schoolClass)}
+                        >
+                          <RotateCcw size={14} /> {t('director.classes.restore')}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-compact"
+                          disabled={archiveClassMutation.isPending}
+                          onClick={() => {
+                            if (window.confirm(t('director.classes.archiveConfirm', { name: schoolClass.name }))) {
+                              archiveClassMutation.mutate(schoolClass);
+                            }
+                          }}
+                        >
+                          <Archive size={14} /> {t('director.classes.archive')}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
-              {!isLoadingClasses && classes.length === 0 && (
+              {!isLoadingClasses && displayedClasses.length === 0 && (
                 <tr><td colSpan={5}>{t('director.classes.empty')}</td></tr>
               )}
             </tbody>
@@ -442,13 +573,28 @@ export default function DirectorClassesTab({
             <h2 className="dashboard-section-title dashboard-section-title--plain">{t('director.semesters.title')}</h2>
             <p className="dashboard-section-copy">{t('director.semesters.copy')}</p>
           </div>
-          <CalendarDays size={22} color="var(--primary)" />
+          <div className="management-actions">
+            {canManageAcademicYears && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-compact"
+                onClick={handleStartNextAcademicYear}
+                disabled={startAcademicYearMutation.isPending}
+              >
+                {startAcademicYearMutation.isPending ? <Loader2 size={15} className="spin-icon" /> : <Sparkles size={15} />}
+                {t('director.semesters.startNext', { year: `${nextAcademicStartYear}-${nextAcademicStartYear + 1}` })}
+              </button>
+            )}
+            <CalendarDays size={22} color="var(--primary)" />
+          </div>
         </div>
         <div className="semester-grid">
           {semesters.map((semester) => (
             <div className="semester-card" key={semester.id}>
               <div>
-                <strong>{semester.name}</strong>
+                <strong>
+                  {[semester.academic_year, semester.name].filter(Boolean).join(' · ')}
+                </strong>
                 <span>{formatDate(semester.start_date, locale)} - {formatDate(semester.end_date, locale)}</span>
               </div>
               {semester.is_active ? (

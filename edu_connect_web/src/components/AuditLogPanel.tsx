@@ -22,7 +22,7 @@ interface AuditEvent {
 const PAGE_SIZE = 50;
 const CATEGORIES = [
   'auth', 'user', 'staff', 'parent', 'account', 'grade', 'attendance', 'homework', 'lesson',
-  'student', 'report_cards', 'fees', 'health', 'canteen', 'transport', 'announcement', 'dm',
+  'student', 'class', 'report_cards', 'fees', 'health', 'canteen', 'transport', 'announcement', 'dm',
   'school', 'data_export', 'audit', 'security',
 ];
 

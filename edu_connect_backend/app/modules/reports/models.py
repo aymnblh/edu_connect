@@ -25,9 +25,9 @@ class ReportCard(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     school_id: Mapped[str] = mapped_column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=False, index=True)
-    class_id: Mapped[str] = mapped_column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False, index=True)
-    semester_id: Mapped[str] = mapped_column(String(36), ForeignKey("semesters.id", ondelete="CASCADE"), nullable=False)
-    student_id: Mapped[str] = mapped_column(String(36), ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
+    class_id: Mapped[str] = mapped_column(String(36), ForeignKey("classes.id", ondelete="RESTRICT"), nullable=False, index=True)
+    semester_id: Mapped[str] = mapped_column(String(36), ForeignKey("semesters.id", ondelete="RESTRICT"), nullable=False)
+    student_id: Mapped[str] = mapped_column(String(36), ForeignKey("students.id", ondelete="RESTRICT"), nullable=False, index=True)
     overall_average: Mapped[float | None] = mapped_column(Float, nullable=True)
     rank: Mapped[int | None] = mapped_column(Integer, nullable=True)
     class_size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

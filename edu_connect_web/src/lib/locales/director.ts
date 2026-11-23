@@ -1316,4 +1316,49 @@ export const directorTranslations: TranslationMap = {
     ar: 'النقل المدرسي',
     en: 'School transport',
   },
+  'director.classes.showArchived': {
+    fr: 'Afficher les classes archivées',
+    ar: 'عرض الأقسام المؤرشفة',
+    en: 'Show archived classes',
+  },
+  'director.classes.archive': {
+    fr: 'Archiver',
+    ar: 'أرشفة',
+    en: 'Archive',
+  },
+  'director.classes.restore': {
+    fr: 'Restaurer',
+    ar: 'استعادة',
+    en: 'Restore',
+  },
+  'director.classes.archiveConfirm': {
+    fr: 'Archiver la classe « {name} » ? Toutes ses notes, présences et bulletins restent conservés dans l\'historique des élèves.',
+    ar: 'هل تريد أرشفة القسم «{name}»؟ ستبقى جميع نقاطه وغياباته وكشوفه محفوظة في سجل التلاميذ.',
+    en: 'Archive class "{name}"? All of its grades, attendance, and report cards stay preserved in student history.',
+  },
+  'director.toast.classArchived': {
+    fr: 'Classe « {name} » archivée (historique conservé).',
+    ar: 'تمت أرشفة القسم «{name}» مع الحفاظ على السجل.',
+    en: 'Class "{name}" archived (history preserved).',
+  },
+  'director.toast.classRestored': {
+    fr: 'Classe « {name} » restaurée.',
+    ar: 'تمت استعادة القسم «{name}».',
+    en: 'Class "{name}" restored.',
+  },
+  'director.semesters.startNext': {
+    fr: 'Ouvrir l\'année {year}',
+    ar: 'فتح السنة الدراسية {year}',
+    en: 'Start {year} school year',
+  },
+  'director.semesters.startNextConfirm': {
+    fr: 'Préparer la nouvelle année scolaire {year} ? Les 3 nouveaux trimestres seront créés (Trimestre 1 activé) et les classes des années précédentes seront archivées sans supprimer aucune note ni aucun bulletin.',
+    ar: 'هل تريد فتح السنة الدراسية الجديدة {year}؟ سيتم إنشاء الفصول الثلاثة الجديدة (مع تفعيل الفصل الأول) وأرشفة أقسام السنوات السابقة دون حذف أي نقطة أو كشف نقاط.',
+    en: 'Start the new {year} school year? The 3 new trimesters will be created (Trimester 1 active) and previous years\' classes will be archived without deleting any grades or report cards.',
+  },
+  'director.toast.academicYearStarted': {
+    fr: 'Année scolaire {year} ouverte ({archived} classe(s) archivée(s), historique intact).',
+    ar: 'تم فتح السنة الدراسية {year} (تمت أرشفة {archived} قسم مع الحفاظ على السجل).',
+    en: 'School year {year} started ({archived} class(es) archived, history intact).',
+  },
 };

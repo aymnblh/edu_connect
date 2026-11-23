@@ -12,6 +12,7 @@ class StudentRegeneratePin(BaseModel):
 class SemesterOut(BaseModel):
     id: str
     name: str
+    academic_year: str | None = None
     start_date: datetime
     end_date: datetime
     is_active: bool

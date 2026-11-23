@@ -1,12 +1,14 @@
 import secrets
 import string
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, select, delete as sa_delete, or_
 from app.core.access import assert_class_read_access, assert_school_admin_for_class
+from app.core.audit import record_audit_event
 from app.db.database import get_db
 from app.models import Class, ClassMember, ClassTemporaryAccess, User, UserRole, Student, ClassTeacher, StudentParent, ClassCourse, Course
+from app.modules.schools.calendar import school_year_label
 from app.schemas import ClassCreate, ClassOut, ClassCourseAssign, ClassCourseOut, ClassStudentEnroll, TeacherSimpleOut
 from app.core.security import get_current_user
 from sqlalchemy.orm import selectinload
@@ -79,6 +81,8 @@ def _class_out(
         "name": cls.name,
         "subject": cls.subject,
         "join_code": cls.join_code if include_join_code else None,
+        "academic_year": cls.academic_year,
+        "archived_at": cls.archived_at,
         "created_at": cls.created_at,
         "teachers": [
             {
@@ -127,10 +131,11 @@ async def create_class(
 
     join_code = _random_code()
     cls = Class(
-        name=payload.name, 
-        subject=payload.subject, 
+        name=payload.name,
+        subject=payload.subject,
         join_code=join_code,
-        school_id=current_user.school_id
+        academic_year=(payload.academic_year or "").strip() or school_year_label(),
+        school_id=current_user.school_id,
     )
     db.add(cls)
     await db.flush()
@@ -177,19 +182,20 @@ async def list_school_teachers(
 
 @router.get("/", response_model=list[ClassOut])
 async def list_classes(
+    include_archived: bool = Query(default=False),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    show_archived = include_archived if isinstance(include_archived, bool) else False
     opts = [
         selectinload(Class.teachers),
         selectinload(Class.members).selectinload(ClassMember.student),
     ]
     if current_user.role.value in ["principal", "secretary"]:
-        result = await db.execute(
-            select(Class)
-            .where(Class.school_id == current_user.school_id)
-            .options(*opts)
-        )
+        stmt = select(Class).where(Class.school_id == current_user.school_id)
+        if not show_archived:
+            stmt = stmt.where(Class.archived_at.is_(None))
+        result = await db.execute(stmt.order_by(Class.archived_at.is_not(None), Class.created_at.desc()).options(*opts))
     elif current_user.role.value == "teacher":
         now = datetime.now(timezone.utc)
         result = await db.execute(
@@ -198,6 +204,7 @@ async def list_classes(
             .outerjoin(ClassTemporaryAccess, ClassTemporaryAccess.class_id == Class.id)
             .where(
                 Class.school_id == current_user.school_id,
+                Class.archived_at.is_(None),
                 or_(
                     ClassTeacher.teacher_id == current_user.id,
                     and_(
@@ -218,6 +225,7 @@ async def list_classes(
             .join(StudentParent, StudentParent.student_id == Student.id)
             .where(
                 Class.school_id == current_user.school_id,
+                Class.archived_at.is_(None),
                 ClassMember.school_id == current_user.school_id,
                 Student.school_id == current_user.school_id,
                 StudentParent.school_id == current_user.school_id,
@@ -668,3 +676,89 @@ async def remove_course_from_class(
         await _drop_class_teacher_if_unassigned(db, current_user.school_id, class_id, teacher_id)
     await db.commit()
     return {"status": "success"}
+
+
+@router.post("/{class_id}/archive", response_model=ClassOut)
+async def archive_class(
+    class_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Archive a class without deleting its historical grades, attendance, or report cards."""
+    if current_user.role.value not in ["principal", "secretary"]:
+        raise HTTPException(status_code=403, detail="Seule l'administration peut archiver une classe.")
+
+    res = await db.execute(
+        select(Class)
+        .where(Class.id == class_id, Class.school_id == current_user.school_id)
+        .options(
+            selectinload(Class.teachers),
+            selectinload(Class.members).selectinload(ClassMember.student),
+        )
+    )
+    cls = res.scalar_one_or_none()
+    if not cls:
+        raise HTTPException(status_code=404, detail="Classe introuvable.")
+
+    if cls.archived_at is None:
+        cls.archived_at = datetime.now(timezone.utc)
+        cls.archived_by = current_user.id
+        await record_audit_event(
+            db,
+            action="class.archived",
+            actor=current_user,
+            school_id=current_user.school_id,
+            resource_type="class",
+            resource_id=cls.id,
+            method=request.method,
+            path=request.url.path,
+            ip_address=getattr(request.state, "ip_address", None),
+            device_platform=getattr(request.state, "device_platform", None),
+            metadata={"name": cls.name, "academic_year": cls.academic_year},
+        )
+        await db.commit()
+    return _class_out(cls)
+
+
+@router.post("/{class_id}/restore", response_model=ClassOut)
+async def restore_class(
+    class_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Restore a previously archived class."""
+    if current_user.role.value not in ["principal", "secretary"]:
+        raise HTTPException(status_code=403, detail="Seule l'administration peut restaurer une classe.")
+
+    res = await db.execute(
+        select(Class)
+        .where(Class.id == class_id, Class.school_id == current_user.school_id)
+        .options(
+            selectinload(Class.teachers),
+            selectinload(Class.members).selectinload(ClassMember.student),
+        )
+    )
+    cls = res.scalar_one_or_none()
+    if not cls:
+        raise HTTPException(status_code=404, detail="Classe introuvable.")
+
+    if cls.archived_at is not None:
+        cls.archived_at = None
+        cls.archived_by = None
+        await record_audit_event(
+            db,
+            action="class.restored",
+            actor=current_user,
+            school_id=current_user.school_id,
+            resource_type="class",
+            resource_id=cls.id,
+            method=request.method,
+            path=request.url.path,
+            ip_address=getattr(request.state, "ip_address", None),
+            device_platform=getattr(request.state, "device_platform", None),
+            metadata={"name": cls.name, "academic_year": cls.academic_year},
+        )
+        await db.commit()
+    return _class_out(cls)

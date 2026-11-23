@@ -8,6 +8,7 @@ class ClassCreate(BaseModel):
     name: str
     school_id: str
     subject: str | None = None
+    academic_year: str | None = Field(default=None, max_length=16)
 
 class ClassOut(BaseModel):
     id: str
@@ -15,6 +16,8 @@ class ClassOut(BaseModel):
     name: str
     subject: str | None
     join_code: str | None = None
+    academic_year: str | None = None
+    archived_at: datetime | None = None
     created_at: datetime
     teachers: list[UserOut] = []
     members: list[StudentOut] = []

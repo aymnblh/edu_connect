@@ -266,6 +266,7 @@ export default function DirectorDashboard() {
           classes={classes}
           isLoadingClasses={classesQuery.isLoading}
           activeStudents={activeStudents}
+          canManageAcademicYears={currentUserRole === 'principal'}
           addToast={addToast}
         />
       )}

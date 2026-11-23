@@ -1,5 +1,5 @@
 import uuid
-from app.modules.schools.calendar import algerian_trimesters
+from app.modules.schools.calendar import algerian_trimesters, school_year_label
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -111,9 +111,10 @@ async def register_school(
     for subject in ALGERIAN_CORE_SUBJECTS:
         db.add(Course(name=subject, school_id=school.id))
 
+    year_label = school_year_label()
     for name, start_dt, end_dt, is_active in algerian_trimesters():
         db.add(Semester(
-            name=name, start_date=start_dt, end_date=end_dt,
+            name=name, academic_year=year_label, start_date=start_dt, end_date=end_dt,
             school_id=school.id, is_active=is_active,
         ))
 

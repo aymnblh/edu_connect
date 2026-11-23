@@ -39,7 +39,7 @@ from app.modules.academics.averages import (
     load_grade_coefficients,
     weighted_averages_by_group,
 )
-from app.modules.schools.calendar import ALGERIA_TZ, algerian_trimesters
+from app.modules.schools.calendar import ALGERIA_TZ, algerian_trimesters, school_year_label, trimesters_for_year
 from app.modules.schools.insights import (
     AVERAGE_DROP,
     LATES_30D,
@@ -100,9 +100,11 @@ async def create_school(
         current_user.school_id = school.id
         
     # Seed Algerian standard semesters (Trimesters)
+    year_label = school_year_label()
     for name, start_dt, end_dt, is_active in algerian_trimesters():
         semester = Semester(
             name=name,
+            academic_year=year_label,
             start_date=start_dt,
             end_date=end_dt,
             school_id=school.id,
@@ -115,6 +117,100 @@ async def create_school(
     return school
 
 
+class StartAcademicYearRequest(BaseModel):
+    start_year: int
+    archive_previous_classes: bool = True
+
+
+@router.post("/academic-years/start", status_code=status.HTTP_201_CREATED)
+async def start_academic_year(
+    payload: StartAcademicYearRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Start a new Algerian school year: create its 3 trimesters and optionally archive previous classes."""
+    if current_user.role != UserRole.principal:
+        raise HTTPException(status_code=403, detail="Seul le directeur peut ouvrir une nouvelle annee scolaire.")
+    if not current_user.school_id:
+        raise HTTPException(status_code=400, detail="User not assigned to a school")
+    if payload.start_year < 2020 or payload.start_year > 2100:
+        raise HTTPException(status_code=422, detail="Annee scolaire invalide.")
+
+    year_label = school_year_label(payload.start_year)
+    existing_res = await db.execute(
+        select(Semester).where(Semester.school_id == current_user.school_id)
+    )
+    existing_semesters = existing_res.scalars().all()
+    if any(
+        sem.academic_year == year_label
+        or (sem.start_date and school_year_label(now=sem.start_date) == year_label)
+        for sem in existing_semesters
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Les trimestres de l'annee scolaire {year_label} existent deja.",
+        )
+
+    # Deactivate previous active semesters while preserving all historical data.
+    for sem in existing_semesters:
+        if sem.is_active:
+            sem.is_active = False
+
+    created_semesters: list[Semester] = []
+    for name, start_dt, end_dt, is_active in trimesters_for_year(payload.start_year):
+        sem = Semester(
+            name=name,
+            academic_year=year_label,
+            start_date=start_dt,
+            end_date=end_dt,
+            school_id=current_user.school_id,
+            is_active=is_active,
+        )
+        db.add(sem)
+        created_semesters.append(sem)
+
+    archived_classes_count = 0
+    if payload.archive_previous_classes:
+        classes_res = await db.execute(
+            select(Class).where(
+                Class.school_id == current_user.school_id,
+                Class.archived_at.is_(None),
+            )
+        )
+        now = datetime.now(timezone.utc)
+        for cls in classes_res.scalars().all():
+            if cls.academic_year != year_label:
+                cls.archived_at = now
+                cls.archived_by = current_user.id
+                archived_classes_count += 1
+
+    await db.flush()
+    await record_audit_event(
+        db,
+        action="school.academic_year_started",
+        actor=current_user,
+        school_id=current_user.school_id,
+        resource_type="school",
+        resource_id=current_user.school_id,
+        method=request.method,
+        path=request.url.path,
+        ip_address=getattr(request.state, "ip_address", None),
+        device_platform=getattr(request.state, "device_platform", None),
+        metadata={
+            "academic_year": year_label,
+            "archived_classes": archived_classes_count,
+            "created": len(created_semesters),
+        },
+    )
+    await db.commit()
+    return {
+        "academic_year": year_label,
+        "semesters_created": len(created_semesters),
+        "archived_classes": archived_classes_count,
+    }
+
+
 @router.get("/semesters", response_model=list[SemesterOut])
 async def list_semesters(
     current_user: User = Depends(get_current_user),
@@ -122,7 +218,11 @@ async def list_semesters(
 ):
     if not current_user.school_id:
         return []
-    result = await db.execute(select(Semester).where(Semester.school_id == current_user.school_id))
+    result = await db.execute(
+        select(Semester)
+        .where(Semester.school_id == current_user.school_id)
+        .order_by(Semester.start_date.desc())
+    )
     return result.scalars().all()
 
 
@@ -141,8 +241,15 @@ async def update_semester(
     semester = result.scalar_one_or_none()
     if not semester:
         raise HTTPException(status_code=404, detail="Semester not found")
-        
-    for key, value in payload.model_dump(exclude_unset=True).items():
+
+    updates = payload.model_dump(exclude_unset=True)
+    if updates.get("is_active") is True:
+        await db.execute(
+            update(Semester)
+            .where(Semester.school_id == current_user.school_id, Semester.id != semester.id)
+            .values(is_active=False)
+        )
+    for key, value in updates.items():
         setattr(semester, key, value)
         
     await db.commit()

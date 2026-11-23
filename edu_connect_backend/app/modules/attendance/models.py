@@ -26,7 +26,7 @@ class Attendance(Base):
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)  # e.g. "uid_2024-01-15"
     school_id: Mapped[str] = mapped_column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), index=True)
-    class_id: Mapped[str] = mapped_column(String(36), ForeignKey("classes.id", ondelete="CASCADE"))
+    class_id: Mapped[str] = mapped_column(String(36), ForeignKey("classes.id", ondelete="RESTRICT"))
     semester_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("semesters.id", ondelete="SET NULL"), nullable=True)
     student_id: Mapped[str] = mapped_column(String(36), ForeignKey("students.id"))
     student_name: Mapped[str] = mapped_column(String(255))
@@ -49,7 +49,7 @@ class Remark(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     school_id: Mapped[str] = mapped_column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), index=True)
-    class_id: Mapped[str] = mapped_column(String(36), ForeignKey("classes.id", ondelete="CASCADE"))
+    class_id: Mapped[str] = mapped_column(String(36), ForeignKey("classes.id", ondelete="RESTRICT"))
     student_id: Mapped[str] = mapped_column(String(36), ForeignKey("students.id"))
     student_name: Mapped[str] = mapped_column(String(255))
     title: Mapped[str] = mapped_column(String(255))

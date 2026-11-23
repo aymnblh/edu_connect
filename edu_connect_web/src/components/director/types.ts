@@ -57,6 +57,8 @@ export interface SchoolClass {
   name: string;
   subject?: string | null;
   join_code: string;
+  academic_year?: string | null;
+  archived_at?: string | null;
   created_at: string;
   teachers: Teacher[];
   members: Student[];
@@ -73,6 +75,7 @@ export interface Course {
 export interface Semester {
   id: string;
   name: string;
+  academic_year?: string | null;
   start_date: string;
   end_date: string;
   is_active: boolean;

@@ -17,6 +17,23 @@ def school_year_start(now: datetime) -> int:
     return now.year if now.month >= 9 else now.year - 1
 
 
+def school_year_label(start_year: int | None = None, now: datetime | None = None) -> str:
+    """Human label such as '2026-2027' for an Algerian school year."""
+    year = start_year if start_year is not None else school_year_start(now or datetime.now(timezone.utc))
+    return f"{year}-{year + 1}"
+
+
+def trimesters_for_year(first_year: int, *, active_name: str | None = None) -> list[tuple[str, datetime, datetime, bool]]:
+    """Return the 3 Algerian trimesters for ``first_year`` (e.g. 2027 -> 2027-2028)."""
+    trimesters = []
+    for name, sm, sd, em, ed in ALGERIAN_TRIMESTERS:
+        start = datetime(first_year if sm >= 9 else first_year + 1, sm, sd, tzinfo=timezone.utc)
+        end = datetime(first_year if em >= 9 else first_year + 1, em, ed, tzinfo=timezone.utc)
+        trimesters.append((name, start, end))
+    chosen = active_name or trimesters[0][0]
+    return [(name, start, end, name == chosen) for name, start, end in trimesters]
+
+
 def algerian_trimesters(now: datetime | None = None) -> list[tuple[str, datetime, datetime, bool]]:
     """Trimesters of the current school year as (name, start, end, is_active).
 
