@@ -412,10 +412,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ? 'Espace établissement scolaire'
                                     : 'School Workspace Onboarding';
                             final body = lang == 'ar'
-                                ? 'يتم تفعيل مساحات المدارس الخاصة من قبل فريق Wasel Edu. للتواصل: privacy@waseledu.dz'
+                                ? 'يتم تفعيل مساحات المدارس الخاصة من قبل فريق WaselEdu. للتواصل: privacy@waseledu.dz'
                                 : lang == 'fr'
-                                    ? 'Les espaces établissements sont activés par l’équipe Wasel Edu. Contactez votre conseiller ou écrivez à privacy@waseledu.dz.'
-                                    : 'School workspaces are provisioned by the Wasel Edu onboarding team. Please contact your school representative or email privacy@waseledu.dz.';
+                                    ? 'Les espaces établissements sont activés par l’équipe WaselEdu. Contactez votre conseiller ou écrivez à privacy@waseledu.dz.'
+                                    : 'School workspaces are provisioned by the WaselEdu onboarding team. Please contact your school representative or email privacy@waseledu.dz.';
                             showDialog<void>(
                               context: context,
                               builder: (ctx) => AlertDialog(

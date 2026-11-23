@@ -1,4 +1,4 @@
-# Wasel Edu
+# WaselEdu
 
 A school management platform for private schools in Algeria: administration,
 teachers and parents connected on the web and on phones, in Arabic, French and

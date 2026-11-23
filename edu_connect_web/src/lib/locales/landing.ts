@@ -37,9 +37,9 @@ export const landingTranslations: TranslationMap = {
     en: 'Contact: {email}',
   },
   'legal.warning': {
-    fr: 'Ce modèle doit être relu par un conseil juridique avant publication officielle. Remplacez les champs Wasel Edu, email, adresse, hébergeur et durées de conservation par vos informations finales.',
-    ar: 'يجب أن يراجَع هذا النموذج من طرف مستشار قانوني قبل النشر الرسمي. استبدلوا اسم Wasel Edu والبريد والعنوان والمضيف ومدد الاحتفاظ بمعلوماتكم النهائية.',
-    en: 'This template must be reviewed by legal counsel before official publication. Replace Wasel Edu, email, address, host, and retention periods with your final information.',
+    fr: 'Ce modèle doit être relu par un conseil juridique avant publication officielle. Remplacez les champs WaselEdu, email, adresse, hébergeur et durées de conservation par vos informations finales.',
+    ar: 'يجب أن يراجَع هذا النموذج من طرف مستشار قانوني قبل النشر الرسمي. استبدلوا اسم WaselEdu والبريد والعنوان والمضيف ومدد الاحتفاظ بمعلوماتكم النهائية.',
+    en: 'This template must be reviewed by legal counsel before official publication. Replace WaselEdu, email, address, host, and retention periods with your final information.',
   },
   'legal.controller.title': {
     fr: 'Responsable du traitement',
@@ -222,9 +222,9 @@ export const landingTranslations: TranslationMap = {
     en: 'This code matches no published report card, or the school withdrew it. Contact the school.',
   },
   'verify.home': {
-    fr: 'Aller sur Wasel Edu',
-    ar: 'الذهاب إلى Wasel Edu',
-    en: 'Go to Wasel Edu',
+    fr: 'Aller sur WaselEdu',
+    ar: 'الذهاب إلى WaselEdu',
+    en: 'Go to WaselEdu',
   },
   'pricing.kicker': {
     fr: 'Pour les écoles privées',
@@ -497,9 +497,9 @@ export const landingTranslations: TranslationMap = {
     en: 'Yes. Every school is strictly isolated at the database level (Row-Level Security). Health sheets are encrypted with recorded parent consent, sessions can be revoked in one click and data is never sold or shared.',
   },
   'pricing.faq.q2': {
-    fr: 'Comment convaincre les parents de quitter WhatsApp pour installer Wasel Edu ?',
-    ar: 'كيف يقتنع الأولياء بالانتقال من واتساب إلى تطبيق Wasel Edu؟',
-    en: 'How do parents adopt Wasel Edu instead of WhatsApp groups?',
+    fr: 'Comment convaincre les parents de quitter WhatsApp pour installer WaselEdu ?',
+    ar: 'كيف يقتنع الأولياء بالانتقال من واتساب إلى تطبيق WaselEdu؟',
+    en: 'How do parents adopt WaselEdu instead of WhatsApp groups?',
   },
   'pricing.faq.a2': {
     fr: 'La mise en route est immédiate : la direction imprime les cartes QR/PIN de chaque élève, le parent scanne la carte dans l\'application (en arabe, français ou anglais) et reçoit aussitôt les absences, devoirs, menus de cantine, reçus et bulletins. Les parents ne voient jamais les numéros des profs ni les messages des autres familles.',
@@ -727,9 +727,9 @@ export const landingTranslations: TranslationMap = {
     en: 'Explore each role\'s workspace in one click',
   },
   'landing.preview.subtitle': {
-    fr: 'Cliquez sur un rôle ci-dessous et manipulez l\'aperçu pour voir comment Wasel Edu simplifie le quotidien de toute votre école.',
-    ar: 'اختر الدور أدناه وجرّب المعاينة التفاعلية لترى كيف يبسّط Wasel Edu العمل اليومي لمدرستك.',
-    en: 'Select a role below and interact with the preview to see how Wasel Edu streamlines your school\'s daily work.',
+    fr: 'Cliquez sur un rôle ci-dessous et manipulez l\'aperçu pour voir comment WaselEdu simplifie le quotidien de toute votre école.',
+    ar: 'اختر الدور أدناه وجرّب المعاينة التفاعلية لترى كيف يبسّط WaselEdu العمل اليومي لمدرستك.',
+    en: 'Select a role below and interact with the preview to see how WaselEdu streamlines your school\'s daily work.',
   },
   'landing.preview.tab.director': {
     fr: 'Direction',
@@ -1022,9 +1022,9 @@ export const landingTranslations: TranslationMap = {
     en: 'BEFORE / AFTER',
   },
   'landing.compare.title': {
-    fr: 'Pourquoi quitter WhatsApp et Excel pour Wasel Edu ?',
-    ar: 'لماذا تنتقل من واتساب وإكسل إلى Wasel Edu؟',
-    en: 'Why move from WhatsApp & Excel to Wasel Edu?',
+    fr: 'Pourquoi quitter WhatsApp et Excel pour WaselEdu ?',
+    ar: 'لماذا تنتقل من واتساب وإكسل إلى WaselEdu؟',
+    en: 'Why move from WhatsApp & Excel to WaselEdu?',
   },
   'landing.compare.colTopic': {
     fr: 'Domaine',
@@ -1037,9 +1037,9 @@ export const landingTranslations: TranslationMap = {
     en: 'Fragmented setup (WhatsApp + Excel)',
   },
   'landing.compare.colNew': {
-    fr: 'Avec Wasel Edu',
-    ar: 'مع Wasel Edu',
-    en: 'With Wasel Edu',
+    fr: 'Avec WaselEdu',
+    ar: 'مع WaselEdu',
+    en: 'With WaselEdu',
   },
   'landing.compare.r1Topic': {
     fr: 'Vie privée & Messagerie',

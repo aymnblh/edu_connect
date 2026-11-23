@@ -14,7 +14,7 @@ class SplashScreen extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     final fontFamily = isArabic ? 'Cairo' : 'Inter';
-    final appTitle = AppLocalizations.of(context)?.appTitle ?? 'Wasel Edu';
+    final appTitle = AppLocalizations.of(context)?.appTitle ?? 'WaselEdu';
 
     return Scaffold(
       body: Container(

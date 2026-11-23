@@ -4,7 +4,7 @@
 
 | Role | Who | What they can do |
 | --- | --- | --- |
-| **Platform administrator** (`system_admin`) | The company running Wasel Edu | Create and activate schools, record subscription payments, see platform health. Not tied to a school. |
+| **Platform administrator** (`system_admin`) | The company running WaselEdu | Create and activate schools, record subscription payments, see platform health. Not tied to a school. |
 | **Director** (`principal`) | Head of a school | Everything for their school: team, classes, students, parents, fees, report cards, announcements, analytics, activity log, logo, referral, optional canteen and transport switches. |
 | **Secretary** (`secretary`) | Administration staff | Same as the director except inviting/managing secretaries, nurses, canteen and driver accounts, changing the logo/modules, and the automatic-reminder setting. |
 | **Teacher** (`teacher`) | Teaching staff | Only the classes and **subjects** they are assigned: grades, attendance, homework, lessons, remarks, meeting slots, messages. |

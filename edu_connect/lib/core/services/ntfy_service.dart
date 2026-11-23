@@ -29,8 +29,8 @@ class NtfyService {
   static const AndroidNotificationChannel _androidChannel =
       AndroidNotificationChannel(
     'wasel_edu_notifications',
-    'Wasel Edu',
-    description: 'Notifications scolaires Wasel Edu',
+    'WaselEdu',
+    description: 'Notifications scolaires WaselEdu',
     importance: Importance.high,
   );
 
@@ -141,7 +141,7 @@ class NtfyService {
           rawMessage is String ? rawMessage.trim() : rawMessage.toString();
       final resolvedBody = body?.isNotEmpty == true ? body! : fallbackBody;
       await _showLocalNotificationFromParts(
-        title: title?.isNotEmpty == true ? title : 'Wasel Edu',
+        title: title?.isNotEmpty == true ? title : 'WaselEdu',
         body: resolvedBody,
       );
     } catch (e) {
@@ -157,7 +157,7 @@ class NtfyService {
     if (resolvedBody.isEmpty) return;
 
     final resolvedTitle =
-        title?.trim().isNotEmpty == true ? title!.trim() : 'Wasel Edu';
+        title?.trim().isNotEmpty == true ? title!.trim() : 'WaselEdu';
     _rememberRecentNotification(resolvedTitle, resolvedBody);
 
     await _localNotifications.show(
@@ -167,8 +167,8 @@ class NtfyService {
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'wasel_edu_notifications',
-          'Wasel Edu',
-          channelDescription: 'Notifications scolaires Wasel Edu',
+          'WaselEdu',
+          channelDescription: 'Notifications scolaires WaselEdu',
           importance: Importance.high,
           priority: Priority.high,
           icon: 'ic_notification',
@@ -245,7 +245,7 @@ class NtfyService {
 
   bool _wasRecentlyShown(String? title, String body) {
     final resolvedTitle =
-        title?.trim().isNotEmpty == true ? title!.trim() : 'Wasel Edu';
+        title?.trim().isNotEmpty == true ? title!.trim() : 'WaselEdu';
     final shownAt = _recentLocalNotifications[_notificationKey(
       resolvedTitle,
       body.trim(),

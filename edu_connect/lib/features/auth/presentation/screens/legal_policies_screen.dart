@@ -282,10 +282,10 @@ class _LegalText {
           ? 'Icône de confidentialité'
           : 'Privacy icon';
   String get notice => _ar
-      ? 'تنطبق هذه السياسة على منصة Wasel Edu بأكملها. يمكن لكل مؤسسة أن تكملها بنظامها الداخلي وقواعد الاحتفاظ الخاصة بها، مع احترام القانون الجزائري المعمول به.'
+      ? 'تنطبق هذه السياسة على منصة WaselEdu بأكملها. يمكن لكل مؤسسة أن تكملها بنظامها الداخلي وقواعد الاحتفاظ الخاصة بها، مع احترام القانون الجزائري المعمول به.'
       : _fr
-          ? 'Cette politique s’applique à l’ensemble de la plateforme Wasel Edu. Chaque établissement peut la compléter par son règlement intérieur et ses propres règles de conservation, dans le respect du droit algérien applicable.'
-          : 'This policy applies to the whole Wasel Edu platform. Each school may supplement it with its own internal rules and retention practices, in line with applicable Algerian law.';
+          ? 'Cette politique s’applique à l’ensemble de la plateforme WaselEdu. Chaque établissement peut la compléter par son règlement intérieur et ses propres règles de conservation, dans le respect du droit algérien applicable.'
+          : 'This policy applies to the whole WaselEdu platform. Each school may supplement it with its own internal rules and retention practices, in line with applicable Algerian law.';
   String get contactTitle => _ar
       ? 'التواصل والنسخة الويب'
       : _fr
@@ -345,10 +345,10 @@ class _LegalText {
     switch (id) {
       case 'legalFrame':
         return _ar
-            ? 'يعالج Wasel Edu البيانات الشخصية وفقا للقانون الجزائري رقم 18-07 المؤرخ في 10 يونيو 2018 المتعلق بحماية الأشخاص الطبيعيين في معالجة البيانات ذات الطابع الشخصي، كما عُدل وتمم بالقانون رقم 25-11 المؤرخ في 24 يوليو 2025.'
+            ? 'يعالج WaselEdu البيانات الشخصية وفقا للقانون الجزائري رقم 18-07 المؤرخ في 10 يونيو 2018 المتعلق بحماية الأشخاص الطبيعيين في معالجة البيانات ذات الطابع الشخصي، كما عُدل وتمم بالقانون رقم 25-11 المؤرخ في 24 يوليو 2025.'
             : _fr
-                ? 'Wasel Edu traite les données personnelles conformément à la loi algérienne n° 18-07 du 10 juin 2018 relative à la protection des personnes physiques dans le traitement des données à caractère personnel, modifiée et complétée par la loi n° 25-11 du 24 juillet 2025.'
-                : 'Wasel Edu processes personal data in accordance with Algerian Law No. 18-07 of June 10, 2018 on the protection of individuals in personal data processing, as amended and supplemented by Law No. 25-11 of July 24, 2025.';
+                ? 'WaselEdu traite les données personnelles conformément à la loi algérienne n° 18-07 du 10 juin 2018 relative à la protection des personnes physiques dans le traitement des données à caractère personnel, modifiée et complétée par la loi n° 25-11 du 24 juillet 2025.'
+                : 'WaselEdu processes personal data in accordance with Algerian Law No. 18-07 of June 10, 2018 on the protection of individuals in personal data processing, as amended and supplemented by Law No. 25-11 of July 24, 2025.';
       case 'schoolData':
         return _ar
             ? 'يمكن للمنصة معالجة الهوية والأدوار والبريد الإلكتروني ورقم الهاتف والأقسام وروابط ولي الأمر بالطالب والحضور والدرجات والواجبات والملاحظات والرسائل والإشعارات وسجلات الأمان والمعرفات التقنية اللازمة للخدمة المدرسية. المصاريف المدرسية: عناوين ومبالغ المستحقات لكل تلميذ، الدفعات المستلمة (المبلغ، الطريقة، رقم الوصل)، الآجال والتذكيرات المرسلة للأولياء، وتطلع عليها فقط الإدارة والأمانة وأولياء التلميذ.'
@@ -363,10 +363,10 @@ class _LegalText {
                 : 'Data about minor students is limited to school purposes. It is not resold and is not used for behavioral advertising or commercial profiling. Health and emergency (sensitive, optional): emergency contacts, allergies, conditions, treatment, blood group, doctor and instructions, only with the parent\'s explicit consent. Access is limited to the school administration, the school nurse and the student\'s parents; the class\'s teachers only see a short alert. Every staff view is logged. The parent can withdraw consent at any time, which erases the record.';
       case 'security':
         return _ar
-            ? 'يستخدم Wasel Edu تشفير TLS وكلمات مرور مجزأة ورموز جلسة وعزلا حسب المؤسسة وضوابط أدوار وسجلات تدقيق. يجب استضافة بيانات الإنتاج في بيئة مضبوطة داخل الجزائر، إلا إذا وُجد أساس قانوني أو ترخيص قابل للتطبيق.'
+            ? 'يستخدم WaselEdu تشفير TLS وكلمات مرور مجزأة ورموز جلسة وعزلا حسب المؤسسة وضوابط أدوار وسجلات تدقيق. يجب استضافة بيانات الإنتاج في بيئة مضبوطة داخل الجزائر، إلا إذا وُجد أساس قانوني أو ترخيص قابل للتطبيق.'
             : _fr
-                ? 'Wasel Edu utilise le chiffrement TLS, des mots de passe hachés, des jetons de session, une isolation par établissement, des contrôles de rôles et des journaux d’audit. Les données de production doivent être hébergées dans un environnement contrôlé situé en Algérie, sauf base légale ou autorisation applicable.'
-                : 'Wasel Edu uses TLS encryption, hashed passwords, session tokens, school-level isolation, role controls, and audit logs. Production data should be hosted in a controlled environment located in Algeria, unless a legal basis or authorization applies.';
+                ? 'WaselEdu utilise le chiffrement TLS, des mots de passe hachés, des jetons de session, une isolation par établissement, des contrôles de rôles et des journaux d’audit. Les données de production doivent être hébergées dans un environnement contrôlé situé en Algérie, sauf base légale ou autorisation applicable.'
+                : 'WaselEdu uses TLS encryption, hashed passwords, session tokens, school-level isolation, role controls, and audit logs. Production data should be hosted in a controlled environment located in Algeria, unless a legal basis or authorization applies.';
       case 'rights':
         return _ar
             ? 'يمكن للأشخاص المعنيين طلب المعلومات والوصول والتصحيح والاعتراض لسبب مشروع، وعندما يكون ذلك متوافقا مع الالتزامات المدرسية أو القانونية، حذف بعض البيانات أو تقييدها.'

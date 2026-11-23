@@ -152,10 +152,10 @@ class _SubscriptionExpiredText {
           ? 'Accès établissement suspendu'
           : 'School Access Suspended';
   String get description => _ar
-      ? 'تم تعليق وصول مدرستك إلى Wasel Edu من قبل المسؤول. لإعادة تفعيل الخدمة، يرجى الاتصال بإدارة مدرستك.'
+      ? 'تم تعليق وصول مدرستك إلى WaselEdu من قبل المسؤول. لإعادة تفعيل الخدمة، يرجى الاتصال بإدارة مدرستك.'
       : _fr
-          ? 'L\'accès de votre école à Wasel Edu est actuellement suspendu. Pour réactiver le service, veuillez contacter la direction de votre établissement.'
-          : 'Your school\'s access to Wasel Edu is currently suspended. To reactivate the service, please contact your school administration.';
+          ? 'L\'accès de votre école à WaselEdu est actuellement suspendu. Pour réactiver le service, veuillez contacter la direction de votre établissement.'
+          : 'Your school\'s access to WaselEdu is currently suspended. To reactivate the service, please contact your school administration.';
   String get backToLogin => _ar
       ? 'العودة لتسجيل الدخول'
       : _fr
@@ -167,15 +167,15 @@ class _SubscriptionExpiredText {
           ? 'Voir les contacts de support'
           : 'View Support Information';
   String get supportDialogTitle => _ar
-      ? 'دعم Wasel Edu'
+      ? 'دعم WaselEdu'
       : _fr
-          ? 'Support Wasel Edu'
-          : 'Wasel Edu Support';
+          ? 'Support WaselEdu'
+          : 'WaselEdu Support';
   String get supportDialogBody => _ar
       ? 'يرجى التواصل مع إدارة مدرستك أو مراسلة فريق الدعم على: privacy@waseledu.dz'
       : _fr
-          ? 'Veuillez contacter la direction de votre établissement ou écrire au support Wasel Edu : privacy@waseledu.dz.'
-          : 'Please contact your school administration or email Wasel Edu support at privacy@waseledu.dz.';
+          ? 'Veuillez contacter la direction de votre établissement ou écrire au support WaselEdu : privacy@waseledu.dz.'
+          : 'Please contact your school administration or email WaselEdu support at privacy@waseledu.dz.';
   String get viewPolicies => _ar
       ? 'الخصوصية والشروط'
       : _fr

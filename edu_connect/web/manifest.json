@@ -1,11 +1,11 @@
 ﻿{
-    "name": "Wasel Edu",
-    "short_name": "Wasel Edu",
+    "name": "WaselEdu",
+    "short_name": "WaselEdu",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#087F6F",
     "theme_color": "#087F6F",
-    "description": "Wasel Edu school communication platform.",
+    "description": "WaselEdu school communication platform.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

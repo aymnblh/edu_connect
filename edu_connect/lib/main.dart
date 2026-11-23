@@ -79,7 +79,7 @@ class _WaselEduAppState extends ConsumerState<WaselEduApp>
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
-      title: 'Wasel Edu',
+      title: 'WaselEdu',
       debugShowCheckedModeBanner: false,
       locale: locale,
       localizationsDelegates: const [

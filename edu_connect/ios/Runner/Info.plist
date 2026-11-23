@@ -9,7 +9,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Wasel Edu</string>
+	<string>WaselEdu</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
@@ -23,7 +23,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Wasel Edu</string>
+	<string>WaselEdu</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -58,8 +58,8 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>Wasel Edu uses the camera to scan student QR codes for account linking.</string>
+	<string>WaselEdu uses the camera to scan student QR codes for account linking.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Wasel Edu accesses your photo library only when you choose a file or image to attach.</string>
+	<string>WaselEdu accesses your photo library only when you choose a file or image to attach.</string>
 </dict>
 </plist>

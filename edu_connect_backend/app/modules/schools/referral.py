@@ -88,10 +88,10 @@ async def apply_activation_benefits(db: AsyncSession, school: School, now: datet
             applied["sponsor"] = sponsor.name
             await _notify_directors(
                 db, sponsor.id, "Parrainage récompensé",
-                f"{school.name} a rejoint Wasel Edu grâce à vous : {REFERRAL_REWARD_MONTHS} mois offerts sur votre abonnement. Merci !",
+                f"{school.name} a rejoint WaselEdu grâce à vous : {REFERRAL_REWARD_MONTHS} mois offerts sur votre abonnement. Merci !",
             )
             await _notify_directors(
-                db, school.id, "Bienvenue sur Wasel Edu",
+                db, school.id, "Bienvenue sur WaselEdu",
                 f"Parrainé par {sponsor.name} : {REFERRAL_REWARD_MONTHS} mois offerts en plus de votre premier trimestre.",
             )
     return applied

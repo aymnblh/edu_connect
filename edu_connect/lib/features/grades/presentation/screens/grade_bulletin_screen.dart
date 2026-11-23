@@ -141,7 +141,7 @@ class GradeBulletinScreen extends ConsumerWidget {
               isRtl ? pw.CrossAxisAlignment.end : pw.CrossAxisAlignment.start,
           children: [
             pw.Text(
-              'Wasel Edu - ${l10n.gradeBulletin}',
+              'WaselEdu - ${l10n.gradeBulletin}',
               style: pw.TextStyle(
                 fontSize: 22,
                 fontWeight: pw.FontWeight.bold,

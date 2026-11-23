@@ -1,6 +1,6 @@
 {
   "@@locale": "ar",
-  "appTitle": "Wasel Edu",
+  "appTitle": "WaselEdu",
   "login": "تسجيل الدخول",
   "email": "البريد الإلكتروني",
   "password": "كلمة المرور",
@@ -49,7 +49,7 @@
   "completed": "مكتمل",
 
   "createAccount": "إنشاء حساب",
-  "joinEduConnect": "انضم إلى Wasel Edu اليوم",
+  "joinEduConnect": "انضم إلى WaselEdu اليوم",
   "fullName": "الاسم الكامل",
   "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
   "signIn": "تسجيل الدخول",

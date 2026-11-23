@@ -1,6 +1,6 @@
 # Operations guide
 
-How to put Wasel Edu online and keep it running. This page is the map and the
+How to put WaselEdu online and keep it running. This page is the map and the
 essential procedures; the step-by-step detail lives in:
 
 - [`DEPLOIEMENT_VPS_LOCAL.md`](../DEPLOIEMENT_VPS_LOCAL.md) — renting and installing the server (French).

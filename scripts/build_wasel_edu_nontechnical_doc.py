@@ -227,7 +227,7 @@ def set_header_footer(doc):
     header = section.header.paragraphs[0]
     header.text = ""
     header.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    r = header.add_run("Wasel Edu | Presentation et benefices pour les etablissements")
+    r = header.add_run("WaselEdu | Presentation et benefices pour les etablissements")
     set_run_font(r, size=8.5, color=MUTED)
 
     footer = section.footer.paragraphs[0]
@@ -238,7 +238,7 @@ def set_header_footer(doc):
 
 
 def add_cover(doc):
-    add_para(doc, "Wasel Edu", size=13, color=TEAL, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, after=10)
+    add_para(doc, "WaselEdu", size=13, color=TEAL, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, after=10)
     p = add_para(
         doc,
         "Une application scolaire moderne pour rapprocher l'etablissement, les enseignants et les familles",
@@ -260,7 +260,7 @@ def add_cover(doc):
     add_callout(
         doc,
         "Idee principale:",
-        "Wasel Edu donne a l'ecole une image plus organisee, plus proche des parents et plus moderne, tout en simplifiant le suivi quotidien des eleves.",
+        "WaselEdu donne a l'ecole une image plus organisee, plus proche des parents et plus moderne, tout en simplifiant le suivi quotidien des eleves.",
     )
     add_para(
         doc,
@@ -317,7 +317,7 @@ def build_doc():
     )
     add_para(
         doc,
-        "Wasel Edu centralise les informations importantes dans un seul espace. L'etablissement garde le controle, les enseignants communiquent plus simplement, et les parents suivent la scolarite de leurs enfants sans attendre la fin du trimestre.",
+        "WaselEdu centralise les informations importantes dans un seul espace. L'etablissement garde le controle, les enseignants communiquent plus simplement, et les parents suivent la scolarite de leurs enfants sans attendre la fin du trimestre.",
     )
 
     add_callout(
@@ -337,7 +337,7 @@ def build_doc():
     ]:
         add_numbered(doc, item)
 
-    add_heading(doc, "3. Ce que Wasel Edu change pour chaque personne", 1)
+    add_heading(doc, "3. Ce que WaselEdu change pour chaque personne", 1)
     add_benefit_table(doc)
 
     add_heading(doc, "4. Benefices pour les parents", 1)
@@ -357,7 +357,7 @@ def build_doc():
     add_heading(doc, "5. Benefices pour l'etablissement", 1)
     add_para(
         doc,
-        "Pour l'etablissement, Wasel Edu n'est pas seulement une application. C'est un outil d'organisation et d'image. Il montre que l'ecole prend au serieux la communication, la securite des donnees scolaires et la relation avec les familles.",
+        "Pour l'etablissement, WaselEdu n'est pas seulement une application. C'est un outil d'organisation et d'image. Il montre que l'ecole prend au serieux la communication, la securite des donnees scolaires et la relation avec les familles.",
     )
     for item in [
         "une administration plus fluide et moins dependante du papier ;",
@@ -371,7 +371,7 @@ def build_doc():
     add_heading(doc, "6. Pourquoi c'est particulierement utile en Algerie", 1)
     add_para(
         doc,
-        "En Algerie, les familles accordent une grande importance au suivi scolaire et a la reputation de l'etablissement. Une application comme Wasel Edu repond a un besoin tres concret : garder un lien regulier entre l'ecole et la maison, sans compliquer la vie des parents.",
+        "En Algerie, les familles accordent une grande importance au suivi scolaire et a la reputation de l'etablissement. Une application comme WaselEdu repond a un besoin tres concret : garder un lien regulier entre l'ecole et la maison, sans compliquer la vie des parents.",
     )
     add_para(
         doc,
@@ -390,7 +390,7 @@ def build_doc():
     add_callout(
         doc,
         "Image percue:",
-        "une ecole equipee de Wasel Edu parait plus moderne, plus transparente, plus organisee et plus proche des familles.",
+        "une ecole equipee de WaselEdu parait plus moderne, plus transparente, plus organisee et plus proche des familles.",
     )
     add_para(
         doc,
@@ -416,7 +416,7 @@ def build_doc():
     table = doc.add_table(rows=1, cols=2)
     set_table_width(table, [3000, 6360])
     set_cell_margins(table, top=120, bottom=120, start=140, end=140)
-    for idx, header in enumerate(["Situation", "Ce que Wasel Edu apporte"]):
+    for idx, header in enumerate(["Situation", "Ce que WaselEdu apporte"]):
         cell = table.cell(0, idx)
         set_cell_shading(cell, LIGHT_FILL)
         p = cell.paragraphs[0]
@@ -434,12 +434,12 @@ def build_doc():
     add_heading(doc, "9. Message de conclusion pour presenter l'application", 1)
     add_para(
         doc,
-        "Wasel Edu aide l'etablissement a gagner du temps, a mieux informer les familles et a donner une image plus professionnelle. Pour les parents, c'est un moyen simple de rester proches de la scolarite de leurs enfants. Pour les enseignants, c'est un outil qui facilite les gestes du quotidien. Pour la direction, c'est une preuve d'organisation et de modernite.",
+        "WaselEdu aide l'etablissement a gagner du temps, a mieux informer les familles et a donner une image plus professionnelle. Pour les parents, c'est un moyen simple de rester proches de la scolarite de leurs enfants. Pour les enseignants, c'est un outil qui facilite les gestes du quotidien. Pour la direction, c'est une preuve d'organisation et de modernite.",
     )
     add_callout(
         doc,
         "En une phrase:",
-        "Wasel Edu transforme la communication scolaire en un service clair, moderne et rassurant pour toute la communaute educative.",
+        "WaselEdu transforme la communication scolaire en un service clair, moderne et rassurant pour toute la communaute educative.",
     )
 
     doc.save(OUT)

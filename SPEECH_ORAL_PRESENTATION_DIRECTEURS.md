@@ -1,4 +1,4 @@
-# Speech Oral Express (6 min) — Présentation PowerPoint Directeurs (Wasel Edu)
+# Speech Oral Express (6 min) — Présentation PowerPoint Directeurs (WaselEdu)
 
 Ce script accompagne le PowerPoint **[Presentation_Directeurs_Wasel_Edu.pptx](Presentation_Directeurs_Wasel_Edu.pptx)** (**6 slides**, 16:9).  
 Le speech de chaque slide est également intégré dans les **Notes du présentateur** du fichier `.pptx` (visible directement en *Mode Présentateur* dans PowerPoint).
@@ -22,7 +22,7 @@ Le speech de chaque slide est également intégré dans les **Notes du présenta
 
 > « Bonjour Monsieur le Directeur / Madame la Directrice, merci pour votre accueil. Je sais que votre temps est précieux : ma présentation dure **6 minutes chrono**.
 >
-> Nous avons conçu **Wasel Edu** spécialement pour les écoles privées algériennes afin de remplacer les groupes WhatsApp ingérables et les fichiers Excel dispersés par **une seule application sécurisée** — en arabe, français et anglais, pensée à 100 % pour notre système : semaine dimanche–jeudi, 3 trimestres, barème sur 20 et paiements au guichet en dinars. »
+> Nous avons conçu **WaselEdu** spécialement pour les écoles privées algériennes afin de remplacer les groupes WhatsApp ingérables et les fichiers Excel dispersés par **une seule application sécurisée** — en arabe, français et anglais, pensée à 100 % pour notre système : semaine dimanche–jeudi, 3 trimestres, barème sur 20 et paiements au guichet en dinars. »
 
 ---
 
@@ -65,7 +65,7 @@ Le speech de chaque slide est également intégré dans les **Notes du présenta
 >
 > **Côté sécurité :** personne ne peut s'inscrire seul, tout part d'un code remis par votre administration. Votre base de données est totalement isolée des autres écoles. Si un enseignant quitte l'établissement, **un clic le déconnecte instantanément de tous ses appareils**. Zéro publicité, zéro revente : vos données restent à 100 % votre propriété.
 >
-> **Côté mise en place :** pas besoin d'attendre septembre ni de mobiliser un informaticien. En **24 heures**, c'est prêt : on importe ensemble votre fichier Excel d'élèves et d'enseignants, vous imprimez les petites cartes QR parents par classe — chaque parent scanne et choisit sa langue en 30 secondes — et dès le lendemain matin votre école tourne sur Wasel Edu. »
+> **Côté mise en place :** pas besoin d'attendre septembre ni de mobiliser un informaticien. En **24 heures**, c'est prêt : on importe ensemble votre fichier Excel d'élèves et d'enseignants, vous imprimez les petites cartes QR parents par classe — chaque parent scanne et choisit sa langue en 30 secondes — et dès le lendemain matin votre école tourne sur WaselEdu. »
 
 ---
 
@@ -76,7 +76,7 @@ Le speech de chaque slide est également intégré dans les **Notes du présenta
 >
 > Vous comptez environ combien d'élèves cette année ? *[Ex. 200 élèves → `(150 × 2 000) + (50 × 1 700) = 385 000 DA HT/an`, soit ~160 DA/élève/mois — et **308 000 DA HT** la 1re année avec notre offre **10 Écoles Pionnières (−20 %)**.]*
 >
-> Cela représente **moins de 2 % d'une mensualité**. Très concrètement, il suffit que les rappels automatiques vous aident à récupérer **2 ou 3 retards d'écolage dans l'année** pour que Wasel Edu soit entièrement rentabilisé. Et si vous recommandez un confrère, **vous gagnez chacun 2 mois offerts** dès son premier règlement. »
+> Cela représente **moins de 2 % d'une mensualité**. Très concrètement, il suffit que les rappels automatiques vous aident à récupérer **2 ou 3 retards d'écolage dans l'année** pour que WaselEdu soit entièrement rentabilisé. Et si vous recommandez un confrère, **vous gagnez chacun 2 mois offerts** dès son premier règlement. »
 
 ---
 

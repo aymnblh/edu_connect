@@ -250,7 +250,7 @@ class _StudentManagementScreenState
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             children: [
               pw.Text(
-                'Wasel Edu',
+                'WaselEdu',
                 textAlign: pw.TextAlign.center,
                 style: pw.TextStyle(
                   color: PdfColor.fromHex('#087F6F'),
@@ -576,9 +576,9 @@ class _StudentLinkingCopy {
       );
 
   String get qrHelp => pick(
-        'يمكن لولي الأمر مسح هذا الرمز من تطبيق Wasel Edu لربط حسابه بالتلميذ. الرمز يستعمل مرة واحدة فقط.',
-        'Le parent peut scanner ce code dans Wasel Edu pour lier son compte à l’élève. Ce code est à usage unique.',
-        'The parent can scan this code in Wasel Edu to link their account to the student. This code is one-time use.',
+        'يمكن لولي الأمر مسح هذا الرمز من تطبيق WaselEdu لربط حسابه بالتلميذ. الرمز يستعمل مرة واحدة فقط.',
+        'Le parent peut scanner ce code dans WaselEdu pour lier son compte à l’élève. Ce code est à usage unique.',
+        'The parent can scan this code in WaselEdu to link their account to the student. This code is one-time use.',
       );
 
   String get print => pick('طباعة', 'Imprimer', 'Print');
@@ -592,9 +592,9 @@ class _StudentLinkingCopy {
       );
 
   String get pdfInstructions => pick(
-        'افتح تطبيق Wasel Edu، اختر تسجيل الدخول بالرمز أو QR، ثم امسح هذا الرمز لإكمال ربط الحساب.',
-        'Ouvrez l’application Wasel Edu, choisissez la connexion par code ou QR, puis scannez ce code pour finaliser la liaison du compte.',
-        'Open the Wasel Edu app, choose code or QR sign-in, then scan this code to finish linking the account.',
+        'افتح تطبيق WaselEdu، اختر تسجيل الدخول بالرمز أو QR، ثم امسح هذا الرمز لإكمال ربط الحساب.',
+        'Ouvrez l’application WaselEdu, choisissez la connexion par code ou QR, puis scannez ce code pour finaliser la liaison du compte.',
+        'Open the WaselEdu app, choose code or QR sign-in, then scan this code to finish linking the account.',
       );
 
   String get pdfSecurityNote => pick(

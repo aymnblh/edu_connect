@@ -1,6 +1,6 @@
-# Wasel Edu — documentation
+# WaselEdu — documentation
 
-Wasel Edu (code name *EduConnect*) is a school management platform for private
+WaselEdu (code name *EduConnect*) is a school management platform for private
 schools in Algeria. It connects the school administration, teachers and parents
 on the web and on phones, in Arabic, French and English.
 

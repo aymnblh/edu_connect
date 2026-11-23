@@ -2,9 +2,9 @@ import type { TranslationMap } from './types';
 
 export const commonTranslations: TranslationMap = {
   'common.appName': {
-    fr: 'Wasel Edu',
-    ar: 'Wasel Edu',
-    en: 'Wasel Edu',
+    fr: 'WaselEdu',
+    ar: 'WaselEdu',
+    en: 'WaselEdu',
   },
   'common.loading': {
     fr: 'Chargement...',
@@ -227,9 +227,9 @@ export const commonTranslations: TranslationMap = {
     en: 'Absences, homework, announcements, meetings, and receipts arrive in one place.',
   },
   'login.title': {
-    fr: 'Connexion Wasel Edu',
-    ar: 'تسجيل الدخول إلى Wasel Edu',
-    en: 'Wasel Edu sign in',
+    fr: 'Connexion WaselEdu',
+    ar: 'تسجيل الدخول إلى WaselEdu',
+    en: 'WaselEdu sign in',
   },
   'login.welcome': {
     fr: 'Bienvenue',
@@ -297,9 +297,9 @@ export const commonTranslations: TranslationMap = {
     en: 'school access',
   },
   'activate.heroCopy': {
-    fr: "Utilisez le code remis par l'administration pour définir votre mot de passe et rejoindre votre espace Wasel Edu.",
-    ar: 'استعملوا رمز الدعوة الذي قدمته الإدارة لتحديد كلمة المرور والدخول إلى فضاء Wasel Edu.',
-    en: 'Use the invite code from school administration to set your password and enter Wasel Edu.',
+    fr: "Utilisez le code remis par l'administration pour définir votre mot de passe et rejoindre votre espace WaselEdu.",
+    ar: 'استعملوا رمز الدعوة الذي قدمته الإدارة لتحديد كلمة المرور والدخول إلى فضاء WaselEdu.',
+    en: 'Use the invite code from school administration to set your password and enter WaselEdu.',
   },
   'activate.title': {
     fr: 'Activation du compte',
@@ -387,9 +387,9 @@ export const commonTranslations: TranslationMap = {
     en: 'Register a school',
   },
   'register.subtitle': {
-    fr: 'Créez votre espace scolaire sur EduConnect',
-    ar: 'أنشئ فضاءك المدرسي على EduConnect',
-    en: 'Create your school workspace on EduConnect',
+    fr: 'Créez votre espace scolaire sur WaselEdu',
+    ar: 'أنشئ فضاءك المدرسي على WaselEdu',
+    en: 'Create your school workspace on WaselEdu',
   },
   'register.schoolName': {
     fr: 'Nom de l\'établissement',
@@ -712,9 +712,9 @@ export const commonTranslations: TranslationMap = {
     en: 'PIN code',
   },
   'codes.instructions': {
-    fr: 'Installez l\'application Wasel Edu, choisissez « Code ou QR », saisissez l\'identifiant et le PIN, puis créez votre mot de passe.',
-    ar: 'ثبّت تطبيق Wasel Edu، اختر «رمز أو QR»، أدخل المعرّف والرمز السري، ثم أنشئ كلمة مرورك.',
-    en: 'Install the Wasel Edu app, choose “Code or QR”, enter the ID and PIN, then create your password.',
+    fr: 'Installez l\'application WaselEdu, choisissez « Code ou QR », saisissez l\'identifiant et le PIN, puis créez votre mot de passe.',
+    ar: 'ثبّت تطبيق WaselEdu، اختر «رمز أو QR»، أدخل المعرّف والرمز السري، ثم أنشئ كلمة مرورك.',
+    en: 'Install the WaselEdu app, choose “Code or QR”, enter the ID and PIN, then create your password.',
   },
   'nav.monthlyReport': {
     fr: 'Bilan mensuel',

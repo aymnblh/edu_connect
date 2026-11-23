@@ -837,9 +837,9 @@ export const directorTranslations: TranslationMap = {
     en: 'expires on {date}',
   },
   'director.qr.scanCopy': {
-    fr: "Scannez ce QR depuis l'application mobile Wasel Edu avec un compte parent.",
-    ar: 'امسحوا هذا الرمز من تطبيق Wasel Edu بحساب ولي.',
-    en: 'Scan this QR from the Wasel Edu mobile app with a parent account.',
+    fr: "Scannez ce QR depuis l'application mobile WaselEdu avec un compte parent.",
+    ar: 'امسحوا هذا الرمز من تطبيق WaselEdu بحساب ولي.',
+    en: 'Scan this QR from the WaselEdu mobile app with a parent account.',
   },
   'director.qr.validUntil': {
     fr: "Valable jusqu'au {date}",
@@ -872,9 +872,9 @@ export const directorTranslations: TranslationMap = {
     en: 'Student: {name}',
   },
   'director.qr.shareInstructions': {
-    fr: "Ouvrez l'application mobile Wasel Edu, connectez-vous comme parent, puis utilisez la liaison par QR/token.",
-    ar: 'افتحوا تطبيق Wasel Edu، سجلوا الدخول كولي، ثم استعملوا الربط عبر QR أو الرمز.',
-    en: 'Open the Wasel Edu mobile app, sign in as a parent, then use QR/token linking.',
+    fr: "Ouvrez l'application mobile WaselEdu, connectez-vous comme parent, puis utilisez la liaison par QR/token.",
+    ar: 'افتحوا تطبيق WaselEdu، سجلوا الدخول كولي، ثم استعملوا الربط عبر QR أو الرمز.',
+    en: 'Open the WaselEdu mobile app, sign in as a parent, then use QR/token linking.',
   },
   'director.qr.parentToken': {
     fr: 'Token parent : {token}',
@@ -882,9 +882,9 @@ export const directorTranslations: TranslationMap = {
     en: 'Parent token: {token}',
   },
   'director.qr.shareTitle': {
-    fr: 'QR parent Wasel Edu',
-    ar: 'QR ولي Wasel Edu',
-    en: 'Wasel Edu parent QR',
+    fr: 'QR parent WaselEdu',
+    ar: 'QR ولي WaselEdu',
+    en: 'WaselEdu parent QR',
   },
   'director.toast.justificationApproved': {
     fr: "Justification validée. L'absence sort du tableau de suivi.",
@@ -1172,9 +1172,9 @@ export const directorTranslations: TranslationMap = {
     en: 'The codes are shown only once: print this page or hand each code to its teacher now. A lost code is renewed with “Reset access”.',
   },
   'teacherImport.instructions': {
-    fr: 'Ouvrez Wasel Edu, choisissez « Activer un compte », saisissez votre email et ce code, puis choisissez votre mot de passe.',
-    ar: 'افتح Wasel Edu، اختر «تفعيل حساب»، أدخل بريدك وهذا الرمز، ثم اختر كلمة مرورك.',
-    en: 'Open Wasel Edu, choose “Activate an account”, enter your email and this code, then choose your password.',
+    fr: 'Ouvrez WaselEdu, choisissez « Activer un compte », saisissez votre email et ce code, puis choisissez votre mot de passe.',
+    ar: 'افتح WaselEdu، اختر «تفعيل حساب»، أدخل بريدك وهذا الرمز، ثم اختر كلمة مرورك.',
+    en: 'Open WaselEdu, choose “Activate an account”, enter your email and this code, then choose your password.',
   },
   'teacherImport.skipped': {
     fr: '{count} ligne(s) non importée(s)',

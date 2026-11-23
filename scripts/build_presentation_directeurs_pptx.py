@@ -1,4 +1,4 @@
-"""Generate an executive 6-slide PowerPoint presentation for school directors (Wasel Edu)."""
+"""Generate an executive 6-slide PowerPoint presentation for school directors (WaselEdu)."""
 from pathlib import Path
 from pptx import Presentation
 from pptx.dml.color import RGBColor
@@ -10,7 +10,7 @@ ROOT = Path("d:/Aymen/edu")
 LOGO_PATH = ROOT / "edu_connect/assets/images/wasel_edu_logo.png"
 OUT_PATH = ROOT / "Presentation_Directeurs_Wasel_Edu.pptx"
 
-# Wasel Edu Brand Palette
+# WaselEdu Brand Palette
 DEEP = RGBColor(0x12, 0x3B, 0x36)       # #123b36
 DEEP_DARK = RGBColor(0x0C, 0x2B, 0x27)  # #0c2b27
 PRIMARY = RGBColor(0x0D, 0x65, 0x5D)    # #0d655d
@@ -144,7 +144,7 @@ def add_header_footer(slide, kicker, title, subtitle, slide_num, total=6):
     add_rect(slide, Inches(0), Inches(7.08), Inches(13.333), Inches(0.42), SURFACE)
     add_rect(slide, Inches(0), Inches(7.06), Inches(13.333), Inches(0.02), BORDER)
     add_textbox(slide, Inches(0.6), Inches(7.14), Inches(9.0), Inches(0.28),
-                "Wasel Edu  ·  Plateforme de gestion scolaire pour les écoles privées en Algérie",
+                "WaselEdu  ·  Plateforme de gestion scolaire pour les écoles privées en Algérie",
                 font_size=9.5, color=MUTED)
     add_textbox(slide, Inches(11.6), Inches(7.14), Inches(1.15), Inches(0.28),
                 f"{slide_num} / {total}", font_size=10, bold=True, color=DEEP, align=PP_ALIGN.RIGHT)
@@ -193,7 +193,7 @@ def build_deck():
     if LOGO_PATH.exists():
         s1.shapes.add_picture(str(LOGO_PATH), Inches(0.75), Inches(0.65), width=Inches(0.95))
     add_textbox(s1, Inches(1.88), Inches(0.72), Inches(4.5), Inches(0.45),
-                "Wasel Edu", font_size=26, bold=True, color=WHITE)
+                "WaselEdu", font_size=26, bold=True, color=WHITE)
     add_textbox(s1, Inches(1.88), Inches(1.18), Inches(5.0), Inches(0.32),
                 "PLATEFORME SCOLAIRE ALGÉRIE", font_size=10.5, bold=True, color=GOLD)
 
@@ -258,7 +258,7 @@ def build_deck():
     set_notes(s1, """[0:00 - 0:45 | ACCROCHE]
 « Bonjour Monsieur le Directeur / Madame la Directrice, merci pour votre accueil. Je sais que votre temps est précieux : cette présentation dure 6 minutes chrono.
 
-Nous avons conçu Wasel Edu spécialement pour les écoles privées algériennes afin de remplacer les groupes WhatsApp ingérables et les fichiers Excel dispersés par une seule application sécurisée — en arabe, français et anglais, sur semaine dimanche-jeudi, 3 trimestres, barème sur 20 et paiements au guichet en dinars. »""")
+Nous avons conçu WaselEdu spécialement pour les écoles privées algériennes afin de remplacer les groupes WhatsApp ingérables et les fichiers Excel dispersés par une seule application sécurisée — en arabe, français et anglais, sur semaine dimanche-jeudi, 3 trimestres, barème sur 20 et paiements au guichet en dinars. »""")
 
     # =========================================================================
     # SLIDE 2 — AVANT vs APRÈS (CONSTAT & IMPACT)
@@ -412,7 +412,7 @@ Avant d'aller plus loin, parmi ces 4 points, lequel vous prend le plus d'énergi
                     items, font_size=11, bullet_color=accent, space_after=4.5)
 
     set_notes(s3, """[2:00 - 3:45 | LES 4 PILIERS + EFFET WAOUH QR]
-« Concrètement, Wasel Edu repose sur 4 piliers simples :
+« Concrètement, WaselEdu repose sur 4 piliers simples :
 
 1. Pédagogie & Image : appel en 20 secondes avec alerte parent, validation des notes par votre direction avant publication, et bulletins trimestriels avec votre logo et un QR code anti-falsification.
 [GESTE FORT : Tendez un bulletin papier imprimé au directeur et invitez-le à scanner le QR code avec son téléphone !]
@@ -501,7 +501,7 @@ Avant d'aller plus loin, parmi ces 4 points, lequel vous prend le plus d'énergi
 
 Sur la sécurité : personne ne peut s'inscrire seul, votre base est totalement isolée des autres écoles, si un prof quitte votre établissement vous le déconnectez partout en un clic, et nous ne revendons jamais aucune donnée.
 
-Sur la mise en place : pas besoin d'attendre septembre. En 24 heures vous êtes opérationnels : nous importons avec vous votre fichier Excel élèves et profs, vous imprimez les petites cartes QR parents par classe — chaque parent scanne et choisit sa langue en 30 secondes — et dès le lendemain matin l'école tourne sur Wasel Edu. »""")
+Sur la mise en place : pas besoin d'attendre septembre. En 24 heures vous êtes opérationnels : nous importons avec vous votre fichier Excel élèves et profs, vous imprimez les petites cartes QR parents par classe — chaque parent scanne et choisit sa langue en 30 secondes — et dès le lendemain matin l'école tourne sur WaselEdu. »""")
 
     # =========================================================================
     # SLIDE 5 — TARIFICATION & ROI
@@ -570,7 +570,7 @@ Sur la mise en place : pas besoin d'attendre septembre. En 24 heures vous êtes 
     add_textbox(
         s5, Inches(0.88), Inches(5.82), Inches(7.15), Inches(0.75),
         "Moins de 2 % d'une mensualité : il suffit de récupérer 2 à 3 retards d'écolage grâce aux rappels automatiques "
-        "(ou d'éviter quelques repas gaspillés à la cantine) pour que Wasel Edu soit 100 % autofinancé.",
+        "(ou d'éviter quelques repas gaspillés à la cantine) pour que WaselEdu soit 100 % autofinancé.",
         font_size=11.8, color=CREAM, line_spacing=1.25
     )
 
@@ -582,7 +582,7 @@ Sur la mise en place : pas besoin d'attendre septembre. En 24 heures vous êtes 
                 "+ 2 mois offerts", font_size=24, bold=True, color=DEEP)
     add_textbox(
         s5, Inches(8.8), Inches(5.85), Inches(3.7), Inches(0.75),
-        "Recommandez Wasel Edu à un confrère directeur : dès son premier règlement, 2 mois gratuits sont offerts à votre école et à la sienne.",
+        "Recommandez WaselEdu à un confrère directeur : dès son premier règlement, 2 mois gratuits sont offerts à votre école et à la sienne.",
         font_size=11.3, color=INK, line_spacing=1.22
     )
 
@@ -603,7 +603,7 @@ Cela représente moins de 2 % d'une mensualité. Concrètement, il suffit de ré
     if LOGO_PATH.exists():
         s6.shapes.add_picture(str(LOGO_PATH), Inches(0.75), Inches(0.55), width=Inches(0.72))
     add_textbox(s6, Inches(1.62), Inches(0.62), Inches(4.0), Inches(0.36),
-                "Wasel Edu", font_size=21, bold=True, color=WHITE)
+                "WaselEdu", font_size=21, bold=True, color=WHITE)
     add_textbox(s6, Inches(1.62), Inches(0.96), Inches(4.5), Inches(0.28),
                 "OFFRE DE LANCEMENT  ·  ZÉRO RISQUE", font_size=10, bold=True, color=GOLD)
 
@@ -616,7 +616,7 @@ Cela représente moins de 2 % d'une mensualité. Concrètement, il suffit de ré
     pc = tf_c.paragraphs[0]
     pc.line_spacing = 1.12
     for txt, col in [
-        ("Testez Wasel Edu dans votre école\n", WHITE),
+        ("Testez WaselEdu dans votre école\n", WHITE),
         ("avant de payer 1 seul dinar.", GOLD),
     ]:
         r = pc.add_run()

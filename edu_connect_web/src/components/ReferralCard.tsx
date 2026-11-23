@@ -10,7 +10,7 @@ interface Referral {
   schools: Array<{ name: string; active: boolean; rewarded: boolean }>;
 }
 
-/** "Recommend Wasel Edu to another school": the code, a link to share, and who joined. */
+/** "Recommend WaselEdu to another school": the code, a link to share, and who joined. */
 export default function ReferralCard() {
   const { t } = useLocale();
   const [copied, setCopied] = useState(false);

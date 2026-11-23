@@ -105,7 +105,7 @@ class _HomeAppBar extends ConsumerWidget implements PreferredSizeWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            firstName.isEmpty ? 'Wasel Edu' : firstName,
+            firstName.isEmpty ? 'WaselEdu' : firstName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1519,8 +1519,8 @@ class _ClassListText {
       );
 
   // ── Parent onboarding strings ─────────────────────────────────────────────
-  String get onboardingWelcome => pick('مرحباً بك في Wasel Edu',
-      'Bienvenue sur Wasel Edu', 'Welcome to Wasel Edu');
+  String get onboardingWelcome => pick('مرحباً بك في WaselEdu',
+      'Bienvenue sur WaselEdu', 'Welcome to WaselEdu');
   String get onboardingSubtitle => pick(
       'ابدأ بربط طفلك للوصول إلى معلوماته المدرسية.',
       "Commencez par lier votre enfant pour accéder à son suivi scolaire.",

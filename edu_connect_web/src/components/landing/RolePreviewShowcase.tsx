@@ -30,7 +30,7 @@ const ROLE_TABS: Array<{ id: PreviewRole; icon: typeof Building2; labelKey: stri
   { id: 'services', icon: Bus, labelKey: 'landing.preview.tab.services' },
 ];
 
-/** Interactive 4-role workspace preview allowing visitors to click live Wasel Edu scenarios. */
+/** Interactive 4-role workspace preview allowing visitors to click live WaselEdu scenarios. */
 export default function RolePreviewShowcase() {
   const { locale, t } = useLocale();
   const [activeTab, setActiveTab] = useState<PreviewRole>('director');
@@ -274,7 +274,7 @@ export default function RolePreviewShowcase() {
               <div className="preview-phone-frame">
                 <div className="preview-phone-notch">
                   <Smartphone size={14} aria-hidden="true" />
-                  <span>Wasel Edu · Mobile</span>
+                  <span>WaselEdu · Mobile</span>
                 </div>
 
                 <div className="preview-child-switch">

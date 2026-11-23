@@ -1,6 +1,6 @@
 {
   "@@locale": "fr",
-  "appTitle": "Wasel Edu",
+  "appTitle": "WaselEdu",
   "login": "Connexion",
   "email": "E-mail",
   "password": "Mot de passe",
@@ -49,7 +49,7 @@
   "completed": "Terminé",
 
   "createAccount": "Créer un compte",
-  "joinEduConnect": "Rejoignez Wasel Edu aujourd'hui",
+  "joinEduConnect": "Rejoignez WaselEdu aujourd'hui",
   "fullName": "Nom complet",
   "alreadyHaveAccount": "Vous avez déjà un compte ?",
   "signIn": "Se connecter",

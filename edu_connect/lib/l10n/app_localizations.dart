@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Wasel Edu'**
+  /// **'WaselEdu'**
   String get appTitle;
 
   /// No description provided for @login.
@@ -391,7 +391,7 @@ abstract class AppLocalizations {
   /// No description provided for @joinEduConnect.
   ///
   /// In en, this message translates to:
-  /// **'Join Wasel Edu today'**
+  /// **'Join WaselEdu today'**
   String get joinEduConnect;
 
   /// No description provided for @fullName.

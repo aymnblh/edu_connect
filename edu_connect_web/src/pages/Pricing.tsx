@@ -18,7 +18,7 @@ export default function Pricing() {
     <main className="pricing-page">
       <div className="pricing-top">
         <Link to="/accueil" className="pricing-brand">
-          <img src="/wasel-edu-logo.svg" alt="" /> Wasel Edu
+          <img src="/wasel-edu-logo.svg" alt="" /> WaselEdu
         </Link>
         <div className="pricing-top-actions">
           <Link to="/accueil" className="link-hover-primary">{t('pricing.discoverLink')}</Link>

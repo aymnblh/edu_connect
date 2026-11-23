@@ -52,8 +52,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Wasel Edu API",
-    description="Private backend for Wasel Edu - Local JWT Auth + PostgreSQL data",
+    title="WaselEdu API",
+    description="Private backend for WaselEdu - Local JWT Auth + PostgreSQL data",
     version="1.0.0",
     lifespan=lifespan,
     # The interactive docs map every endpoint; keep them off in production.

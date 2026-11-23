@@ -1,6 +1,6 @@
 # Guide de publication — Google Play Store & Apple App Store
 
-Application mobile officielle : **Wasel Edu** (Flutter native dans `edu_connect/`).
+Application mobile officielle : **WaselEdu** (Flutter native dans `edu_connect/`).
 Identifiant unifie Android & iOS : **`dz.waseledu.app`**.
 
 > Ne change jamais `dz.waseledu.app` apres la premiere publication sur Google Play ou App Store Connect.
@@ -94,5 +94,5 @@ Le workflow `.github/workflows/mobile-store-release.yml` compile l'app Android (
 - **Suppression de compte** : deja integree dans l'ecran Profil de l'app (obligatoire Apple 5.1.1(v) et Google Play).
 - **Acces pour les reviewers** : fournir un compte de test valide et signaler que le mode demo (*Decouvrir sans compte*) est accessible directement depuis l'ecran de connexion.
 - **Public cible Google Play** : declarer **Parents / Adultes (18+ ou 13+)**, jamais « Enfants < 13 ans » (l'app est destinee aux parents et au personnel scolaire).
-- **Modele economique (Apple 3.1.1)** : preciser dans les *App Review Notes* que Wasel Edu est un SaaS B2B souscrit directement par les etablissements hors de l'application (aucun paiement dans l'app).
+- **Modele economique (Apple 3.1.1)** : preciser dans les *App Review Notes* que WaselEdu est un SaaS B2B souscrit directement par les etablissements hors de l'application (aucun paiement dans l'app).
 - **Moderation UGC (Apple 1.2)** : le signalement et le blocage sont actifs dans les discussions de classe et messages prives.

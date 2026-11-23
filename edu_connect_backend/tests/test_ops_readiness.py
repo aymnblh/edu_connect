@@ -967,7 +967,7 @@ def test_validate_launch_evidence_accepts_complete_evidence_set(tmp_path):
 - Reviewer name: Boulahia Walid
 - Reviewer role / organization: Avocat, Walid Boulahia
 - Jurisdictions reviewed: Algeria
-- Applicable school contracts reviewed: Standard Wasel Edu school SaaS contract
+- Applicable school contracts reviewed: Standard WaselEdu school SaaS contract
 - Algerian Law 18-07 / ANPDP obligations reviewed: YES
 - Data processing roles documented: YES
 - Data retention policy approved: YES

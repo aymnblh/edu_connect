@@ -9,7 +9,7 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appTitle => 'Wasel Edu';
+  String get appTitle => 'WaselEdu';
 
   @override
   String get login => 'تسجيل الدخول';
@@ -153,7 +153,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get createAccount => 'إنشاء حساب';
 
   @override
-  String get joinEduConnect => 'انضم إلى Wasel Edu اليوم';
+  String get joinEduConnect => 'انضم إلى WaselEdu اليوم';
 
   @override
   String get fullName => 'الاسم الكامل';

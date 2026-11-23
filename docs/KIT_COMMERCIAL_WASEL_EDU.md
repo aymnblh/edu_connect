@@ -1,12 +1,12 @@
-# Kit Commercial & Playbook de Vente — Wasel Edu
+# Kit Commercial & Playbook de Vente — WaselEdu
 
-Ce guide rassemble les scripts d'appel, messages de prospection (WhatsApp Business & Email), le scénario de démonstration terrain en 10 minutes et le traitement des objections pour les équipes commerciales de **Wasel Edu** auprès des écoles privées en Algérie.
+Ce guide rassemble les scripts d'appel, messages de prospection (WhatsApp Business & Email), le scénario de démonstration terrain en 10 minutes et le traitement des objections pour les équipes commerciales de **WaselEdu** auprès des écoles privées en Algérie.
 
 ---
 
 ## 1. Pitch Éclair (30 secondes)
 
-> « Bonjour [Prénom / Monsieur le Directeur / Madame la Directrice], je m'appelle [Votre Nom] de **Wasel Edu**.
+> « Bonjour [Prénom / Monsieur le Directeur / Madame la Directrice], je m'appelle [Votre Nom] de **WaselEdu**.
 >
 > Nous aidons les écoles privées algériennes à remplacer les groupes WhatsApp ingérables et les fichiers Excel dispersés par **une seule application sécurisée** — en arabe, français et anglais — qui relie la direction, les enseignants, les parents, la cantine, l'infirmerie et les chauffeurs de bus.
 >
@@ -22,7 +22,7 @@ Ce guide rassemble les scripts d'appel, messages de prospection (WhatsApp Busine
 
 **Objectif** : Obtenir le nom du décisionnaire (Directeur / Fondateur), son créneau de disponibilité et idéalement son WhatsApp professionnel ou email pour envoyer la brochure.
 
-- **Commercial** : « Bonjour Madame/Monsieur, [Votre Nom] de la plateforme Wasel Edu. Je souhaite m'entretenir brièvement avec la direction concernant la digitalisation du suivi scolaire et la sécurisation des bulletins et du transport de votre établissement. Est-ce que Monsieur/Madame le Directeur(trice) est disponible en ce moment ? »
+- **Commercial** : « Bonjour Madame/Monsieur, [Votre Nom] de la plateforme WaselEdu. Je souhaite m'entretenir brièvement avec la direction concernant la digitalisation du suivi scolaire et la sécurisation des bulletins et du transport de votre établissement. Est-ce que Monsieur/Madame le Directeur(trice) est disponible en ce moment ? »
 - *Si le secrétariat demande de quoi il s'agit* :
   - **Commercial** : « Nous accompagnons déjà des établissements privés en Algérie sur la gestion complète des notes, des bulletins avec QR code vérifiable, de l'écolage avec reçus PDF et du pointage bus/cantine — avec le premier trimestre offert. À quel nom dois-je adresser la brochure de présentation, et à quelle heure passe-t-il/elle généralement au bureau ? »
 - *Si le secrétariat propose d'envoyer un email* :
@@ -32,12 +32,12 @@ Ce guide rassemble les scripts d'appel, messages de prospection (WhatsApp Busine
 
 **Objectif** : Identifier 1 douleur prioritaire (impayés d'écolage, groupes WhatsApp, charge des bulletins, sécurité bus/cantine) et décrocher un rendez-vous de 10–15 minutes sur place.
 
-- **Commercial** : « Bonjour Monsieur/Madame [Nom], je sais que votre emploi du temps est chargé, je vais être très bref : 30 secondes. Je travaille avec les écoles privées algériennes sur **Wasel Edu**, une application web et mobile trilingue (arabe, français, anglais) pensée pour le système algérien (semaine dimanche–jeudi, 3 trimestres, barème sur 20). »
+- **Commercial** : « Bonjour Monsieur/Madame [Nom], je sais que votre emploi du temps est chargé, je vais être très bref : 30 secondes. Je travaille avec les écoles privées algériennes sur **WaselEdu**, une application web et mobile trilingue (arabe, français, anglais) pensée pour le système algérien (semaine dimanche–jeudi, 3 trimestres, barème sur 20). »
 - **Question d'accroche (choisir selon le profil de l'école)** :
   - *Pour un Collège / Lycée* : « Aujourd'hui, comment gérez-vous la validation des notes avant les bulletins, les relances d'écolage en retard et les groupes WhatsApp entre parents et professeurs ? »
   - *Pour une Maternelle / Primaire* : « Aujourd'hui, comment vos parents sont-ils prévenus en temps réel quand leur enfant monte ou descend du bus scolaire, et comment votre cuisine connaît-elle le nombre exact de repas à préparer dès l'appel du matin ? »
 - *Rebond sur la réponse* :
-  - **Commercial** : « Justement : sur Wasel Edu, l'appel du matin déduit automatiquement les absents de la cantine, le chauffeur pointe la montée et la descente même sans connexion réseau et ne peut pas clôturer le trajet si un enfant reste pointé à bord, et les rappels d'écolage partent automatiquement avec édition de reçu CCP/BaridiMob/espèces en 1 clic. Le premier trimestre est totalement gratuit. Je suis dans votre secteur [jour] matin : est-ce que 10 minutes à [heure] ou [heure] vous conviennent pour que je vous montre un exemple de bulletin QR code imprimé avec le logo de votre école ? »
+  - **Commercial** : « Justement : sur WaselEdu, l'appel du matin déduit automatiquement les absents de la cantine, le chauffeur pointe la montée et la descente même sans connexion réseau et ne peut pas clôturer le trajet si un enfant reste pointé à bord, et les rappels d'écolage partent automatiquement avec édition de reçu CCP/BaridiMob/espèces en 1 clic. Le premier trimestre est totalement gratuit. Je suis dans votre secteur [jour] matin : est-ce que 10 minutes à [heure] ou [heure] vous conviennent pour que je vous montre un exemple de bulletin QR code imprimé avec le logo de votre école ? »
 
 ---
 
@@ -49,7 +49,7 @@ Ce guide rassemble les scripts d'appel, messages de prospection (WhatsApp Busine
 >
 > Je me permets de vous écrire au sujet de **[Nom de l'école]**.
 >
-> Nous avons conçu **Wasel Edu**, la plateforme algérienne tout-en-un pour les écoles privées (Web pour la direction + Application mobile iOS/Android pour les parents, enseignants, cantine et chauffeurs, en Arabe, Français et Anglais).
+> Nous avons conçu **WaselEdu**, la plateforme algérienne tout-en-un pour les écoles privées (Web pour la direction + Application mobile iOS/Android pour les parents, enseignants, cantine et chauffeurs, en Arabe, Français et Anglais).
 >
 > En résumé, ce que vous automatisez dès la première semaine :
 > - **Bulletins trimestriels PDF** avec logo de votre école, mentions (*Tableau d'honneur, Encouragements, Félicitations*) et **QR code anti-falsification**.
@@ -62,7 +62,7 @@ Ce guide rassemble les scripts d'appel, messages de prospection (WhatsApp Busine
 > Le **1er trimestre est offert** pour votre établissement. Souhaitez-vous que je passe vous présenter la solution en 10 minutes cette semaine ?
 >
 > Bien cordialement,
-> [Votre Nom] — Wasel Edu | [Téléphone]
+> [Votre Nom] — WaselEdu | [Téléphone]
 
 ---
 
@@ -72,7 +72,7 @@ Ce guide rassemble les scripts d'appel, messages de prospection (WhatsApp Busine
 >
 > Deux inquiétudes reviennent chez tous les directeurs d'écoles primaires et maternelles que nous rencontrons : **la sécurité dans le transport scolaire** et **le gaspillage / les allergies à la cantine**.
 >
-> Avec **Wasel Edu** (application conçue pour les écoles privées en Algérie) :
+> Avec **WaselEdu** (application conçue pour les écoles privées en Algérie) :
 > - **Zéro enfant oublié dans le bus** : le chauffeur pointe la montée et la descente (même hors connexion), prévient les parents d'un retard de +15 min en 1 tap, et le système bloque la clôture du trajet si un enfant monté n'a pas été pointé descendu (avec alerte sécurité immédiate à la direction).
 > - **Effectif cuisine exact chaque matin** : les élèves marqués absents lors de l'appel en classe sont automatiquement déduits de la liste cantine du jour, avec affichage des régimes (*sans gluten, diabétique…*) et alertes santé.
 > - **Fiches santé chiffrées** avec consentement parental et accès dédié pour l'infirmerie.
@@ -89,7 +89,7 @@ Bonjour Madame/Monsieur le Directeur / Fondateur,
 
 La coordination entre la direction, le secrétariat, le corps enseignant et les familles devient complexe dès qu'un établissement dépasse quelques centaines d'élèves : multiplicité des groupes WhatsApp, ressaisie des notes sur Excel, suivi manuel des paiements d'écolage et gestion quotidienne de la cantine ou du transport.
 
-Nous avons développé **Wasel Edu** spécifiquement pour le fonctionnement des **écoles privées en Algérie** (semaine du dimanche au jeudi, découpage en 3 trimestres, calcul des moyennes sur 20 avec coefficients par classe, interface trilingue Arabe / Français / Anglais) :
+Nous avons développé **WaselEdu** spécifiquement pour le fonctionnement des **écoles privées en Algérie** (semaine du dimanche au jeudi, découpage en 3 trimestres, calcul des moyennes sur 20 avec coefficients par classe, interface trilingue Arabe / Français / Anglais) :
 
 1. **Pilotage & Vigilance Pédagogique** : validation des notes par la direction avant publication, détection automatique des élèves en difficulté (moyenne < 10, chute de ≥ 2 points, absences répétées) et **Bilan mensuel PDF** généré le 1er de chaque mois.
 2. **Bulletins certifiés par QR Code** : chaque bulletin imprimé avec le logo de votre école dispose d'un QR code permettant de vérifier son authenticité en ligne.
@@ -105,18 +105,18 @@ Seriez-vous disponible pour une présentation de 15 minutes dans vos locaux cett
 
 Bien cordialement,
 **[Votre Nom]**
-Wasel Edu — `[Téléphone]` | `[Email]`
+WaselEdu — `[Téléphone]` | `[Email]`
 
 ---
 
 ### Séquence de Suivi (Relances)
 
 - **J+3 (WhatsApp)** :
-  > « Bonjour Monsieur/Madame [Nom], avez-vous eu 2 minutes pour cliquer sur la démo publique de Wasel Edu (*"Découvrir sans compte"*) ? Si vous le souhaitez, je peux vous préparer une démonstration personnalisée avec un exemple de bulletin portant le logo de **[Nom de l'école]**. »
+  > « Bonjour Monsieur/Madame [Nom], avez-vous eu 2 minutes pour cliquer sur la démo publique de WaselEdu (*"Découvrir sans compte"*) ? Si vous le souhaitez, je peux vous préparer une démonstration personnalisée avec un exemple de bulletin portant le logo de **[Nom de l'école]**. »
 - **J+7 (Appel ou WhatsApp vocal court de 30s)** :
-  > « Bonjour [Nom], je passe dans votre quartier [Jour] matin. Je peux vous déposer la brochure papier et vous montrer en 5 minutes comment une école de [Nombre] élèves imprime ses codes parents et encaisse ses reçus sur Wasel Edu. Êtes-vous au bureau vers [Heure] ? »
+  > « Bonjour [Nom], je passe dans votre quartier [Jour] matin. Je peux vous déposer la brochure papier et vous montrer en 5 minutes comment une école de [Nombre] élèves imprime ses codes parents et encaisse ses reçus sur WaselEdu. Êtes-vous au bureau vers [Heure] ? »
 - **Relance fin de trimestre (2–3 semaines avant les conseils de classe / vacances)** :
-  > « Bonjour [Nom], les examens et la préparation des bulletins approchent. Si vous activez Wasel Edu maintenant, vous terminez ce trimestre gratuitement — ou le suivant complet s'il reste moins de 30 jours — et vous publiez vos prochains bulletins avec QR code en un clic. On planifie l'import de votre fichier Excel cette semaine ? »
+  > « Bonjour [Nom], les examens et la préparation des bulletins approchent. Si vous activez WaselEdu maintenant, vous terminez ce trimestre gratuitement — ou le suivant complet s'il reste moins de 30 jours — et vous publiez vos prochains bulletins avec QR code en un clic. On planifie l'import de votre fichier Excel cette semaine ? »
 
 ---
 
@@ -124,7 +124,7 @@ Wasel Edu — `[Téléphone]` | `[Email]`
 
 ### Préparation avant de quitter le bureau
 1. Laptop/tablette chargé (ouvert sur l'environnement de démo en mode **Directeur** + un 2e onglet sur `/pricing`).
-2. Smartphone avec l'application **Wasel Edu** connectée en mode **Parent** et **Enseignant** (ou **Chauffeur**).
+2. Smartphone avec l'application **WaselEdu** connectée en mode **Parent** et **Enseignant** (ou **Chauffeur**).
 3. **3 documents papier imprimés** (idéalement avec le logo de l'école prospectée) :
    - Un **Bulletin trimestriel PDF** avec son QR code de vérification.
    - Une **planche de Cartes d'accès Parents** (ID élève + code PIN 6 chiffres / QR).
@@ -145,7 +145,7 @@ Wasel Edu — `[Téléphone]` | `[Email]`
 ## 5. Guide de Réponse aux 8 Objections Fréquentes
 
 ### 1. « On utilise déjà des groupes WhatsApp et ça marche bien, c'est gratuit. »
-> « WhatsApp est gratuit, mais il vous coûte très cher en image et en charge mentale : les numéros personnels de vos professeurs sont exposés, les parents écrivent le soir, tout le monde voit les échanges, et vous n'avez aucune traçabilité ni sur les absences ni sur les paiements. Avec Wasel Edu, **les parents ne peuvent jamais s'écrire entre eux ni obtenir les numéros des profs**, tout reste dans le cadre professionnel de votre école avec votre logo, et les bulletins comme les reçus sont archivés. »
+> « WhatsApp est gratuit, mais il vous coûte très cher en image et en charge mentale : les numéros personnels de vos professeurs sont exposés, les parents écrivent le soir, tout le monde voit les échanges, et vous n'avez aucune traçabilité ni sur les absences ni sur les paiements. Avec WaselEdu, **les parents ne peuvent jamais s'écrire entre eux ni obtenir les numéros des profs**, tout reste dans le cadre professionnel de votre école avec votre logo, et les bulletins comme les reçus sont archivés. »
 
 ### 2. « Nos parents ne savent pas se servir d'une application ou ne vont pas la télécharger. »
 > « C'est justement pour cela qu'il n'y a aucun formulaire compliqué : la direction imprime une petite carte papier par élève avec un QR code et un code PIN à 6 chiffres. Le parent télécharge l'app, scanne la carte de son enfant, choisit son mot de passe et c'est terminé. La langue bascule en 1 clic entre **l'arabe, le français et l'anglais**. En général, dès qu'ils savent que les absences, les devoirs, les menus cantine et les bulletins sortent dessus, plus de 80 % des parents se connectent la première semaine. »
@@ -163,7 +163,7 @@ Wasel Edu — `[Téléphone]` | `[Email]`
 > « Le module transport a été pensé pour le terrain : l'interface chauffeur possède une **file d'attente hors-ligne**. Il pointe la montée et la descente des élèves même sans réseau, et tout se synchronise automatiquement dès que le téléphone retrouve du signal, sans doublon. Et en plus, il n'y a aucun traceur GPS intrusif sur le bus, uniquement la sécurité de savoir exactement qui est monté et qui est descendu. »
 
 ### 7. « Les parents ne paient pas par carte CIB/Edahabia chez nous, tout se fait au secrétariat. »
-> « C'est parfait : Wasel Edu ne vous impose aucun paiement en ligne et ne prend aucune commission sur vos encaissements. Vos parents continuent de payer comme d'habitude au secrétariat — **espèces, virement, CCP/BaridiMob ou chèque** — et la secrétaire enregistre le paiement en 5 secondes pour sortir le reçu officiel avec votre logo, visible immédiatement par les parents sur leur téléphone. »
+> « C'est parfait : WaselEdu ne vous impose aucun paiement en ligne et ne prend aucune commission sur vos encaissements. Vos parents continuent de payer comme d'habitude au secrétariat — **espèces, virement, CCP/BaridiMob ou chèque** — et la secrétaire enregistre le paiement en 5 secondes pour sortir le reçu officiel avec votre logo, visible immédiatement par les parents sur leur téléphone. »
 
 ### 8. « C'est trop cher pour notre budget. »
-> « Le tarif annuel est calculé au prorata du nombre d'élèves — cela représente environ 80 à 125 DA par élève et par mois, soit moins de 2 % d'une mensualité moyenne en école privée. Concrètement : grâce aux **rappels automatiques d'écolage** et à la réduction du gaspillage à la cantine, il suffit de récupérer 2 ou 3 retards de paiement sur l'année pour que Wasel Edu soit entièrement rentabilisé. Et vous le vérifiez gratuitement pendant tout le 1er trimestre avant de payer quoi que ce soit. »
+> « Le tarif annuel est calculé par tranches progressives selon le nombre d'élèves — cela représente environ 117 à 167 DA HT par élève et par mois (avec −20 % la 1re année pour nos 10 Écoles Pionnières), soit moins de 2 % d'une mensualité moyenne en école privée. Concrètement : grâce aux **rappels automatiques d'écolage** et à la réduction du gaspillage à la cantine, il suffit de récupérer 2 ou 3 retards de paiement sur l'année pour que WaselEdu soit entièrement rentabilisé. Et vous le vérifiez gratuitement pendant tout le 1er trimestre avant de payer quoi que ce soit. »

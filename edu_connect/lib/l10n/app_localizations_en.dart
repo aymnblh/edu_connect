@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Wasel Edu';
+  String get appTitle => 'WaselEdu';
 
   @override
   String get login => 'Login';
@@ -155,7 +155,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAccount => 'Create Account';
 
   @override
-  String get joinEduConnect => 'Join Wasel Edu today';
+  String get joinEduConnect => 'Join WaselEdu today';
 
   @override
   String get fullName => 'Full Name';

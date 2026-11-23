@@ -3,7 +3,7 @@ import { useWorkspace } from '../contexts/useWorkspace';
 import { type Locale, useLocale } from '../lib/i18n';
 
 const supportEmail = 'privacy@waseledu.dz';
-const legalEntity = 'Wasel Edu';
+const legalEntity = 'WaselEdu';
 const lastUpdatedAt = new Date(2026, 9, 24);
 const locales: Locale[] = ['fr', 'ar', 'en'];
 
@@ -43,20 +43,20 @@ const policyCopy: Record<Locale, PolicyCopy> = {
     back: 'Retour',
     title: "Politique de confidentialité, protection des données et conditions d'utilisation",
     intro:
-      "Cette page décrit la manière dont Wasel Edu collecte, utilise, protège, conserve et partage les données personnelles traitées dans un contexte scolaire. Elle s'adresse aux établissements, directions, enseignants, parents, élèves et administrateurs autorisés.",
+      "Cette page décrit la manière dont WaselEdu collecte, utilise, protège, conserve et partage les données personnelles traitées dans un contexte scolaire. Elle s'adresse aux établissements, directions, enseignants, parents, élèves et administrateurs autorisés.",
     lastUpdatedLabel: 'Dernière mise à jour',
     hostingLabel: 'Hébergement visé',
     contactLabel: 'Contact confidentialité',
     hostingLocation: 'Algérie',
     notice:
-      "Cette politique s'applique à l'ensemble de la plateforme Wasel Edu. Chaque établissement peut la compléter par son règlement intérieur et ses propres règles de conservation, dans le respect du droit algérien applicable.",
+      "Cette politique s'applique à l'ensemble de la plateforme WaselEdu. Chaque établissement peut la compléter par son règlement intérieur et ses propres règles de conservation, dans le respect du droit algérien applicable.",
     sections: [
       {
         id: 'responsibilities',
         title: '1. Identité du service et responsabilités',
         paragraphs: [
-          "Wasel Edu fournit une plateforme de communication et de suivi scolaire permettant aux écoles de gérer des comptes, des classes, des messages, des absences, des notes, des notifications et des documents pédagogiques.",
-          "Lorsqu'un établissement utilise Wasel Edu pour ses propres élèves, parents et équipes pédagogiques, l'établissement reste responsable de l'exactitude des données qu'il importe, valide ou modifie. Wasel Edu agit comme fournisseur technique pour exécuter les instructions de l'établissement, sauf lorsqu'il traite certaines données pour la sécurité, la facturation, l'administration de la plateforme ou le respect d'obligations légales.",
+          "WaselEdu fournit une plateforme de communication et de suivi scolaire permettant aux écoles de gérer des comptes, des classes, des messages, des absences, des notes, des notifications et des documents pédagogiques.",
+          "Lorsqu'un établissement utilise WaselEdu pour ses propres élèves, parents et équipes pédagogiques, l'établissement reste responsable de l'exactitude des données qu'il importe, valide ou modifie. WaselEdu agit comme fournisseur technique pour exécuter les instructions de l'établissement, sauf lorsqu'il traite certaines données pour la sécurité, la facturation, l'administration de la plateforme ou le respect d'obligations légales.",
           "L'accès à la plateforme est réservé aux utilisateurs autorisés. Un compte parent, enseignant ou personnel administratif ne doit pas être créé librement par le public sans validation de l'établissement concerné.",
         ],
       },
@@ -64,23 +64,23 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         id: 'algeria',
         title: '2. Adaptation au marché algérien',
         paragraphs: [
-          "Wasel Edu est conçu en priorité pour les établissements opérant en Algérie. L'interface, les notifications et les documents destinés aux familles doivent rester compréhensibles en français et en arabe, avec une attention particulière aux habitudes locales des écoles privées et publiques.",
+          "WaselEdu est conçu en priorité pour les établissements opérant en Algérie. L'interface, les notifications et les documents destinés aux familles doivent rester compréhensibles en français et en arabe, avec une attention particulière aux habitudes locales des écoles privées et publiques.",
           "Les paramètres commerciaux et administratifs de la plateforme doivent utiliser le dinar algérien pour les montants, les abonnements et les reçus. Les informations de facturation doivent pouvoir être adaptées aux données de l'établissement ou de l'entité exploitante, notamment la dénomination, l'adresse, le NIF, le NIS, le registre de commerce lorsque cela est applicable, et les coordonnées de contact.",
           "La conformité visée est le droit algérien applicable aux données personnelles, notamment la loi n° 18-07 du 10 juin 2018, modifiée et complétée par la loi n° 25-11 du 24 juillet 2025, ainsi que les instructions et espaces de l'Autorité Nationale de Protection des Données à caractère Personnel (ANPDP).",
-          "Pour le marché algérien, Wasel Edu privilégie un hébergement et des sauvegardes situés en Algérie lorsque cela est disponible et contractuellement retenu. Tout transfert ou accès technique depuis l'étranger doit être identifié, documenté, limité et encadré selon les exigences applicables.",
+          "Pour le marché algérien, WaselEdu privilégie un hébergement et des sauvegardes situés en Algérie lorsque cela est disponible et contractuellement retenu. Tout transfert ou accès technique depuis l'étranger doit être identifié, documenté, limité et encadré selon les exigences applicables.",
         ],
         bullets: [
           "Registre des traitements : tenir une cartographie des traitements scolaires, des catégories de données, des destinataires, des durées de conservation et des mesures de sécurité.",
           "Référent ou délégué à la protection des données : désigner une personne joignable pour les questions de confidentialité, les demandes d'exercice de droits et les incidents.",
           "ANPDP : vérifier si une déclaration, une formalité, une autorisation ou une mise à jour est requise avant le lancement ou lors d'un changement majeur.",
-          "Contrats école-plateforme : préciser les responsabilités de l'établissement, de Wasel Edu et des éventuels sous-traitants techniques.",
+          "Contrats école-plateforme : préciser les responsabilités de l'établissement, de WaselEdu et des éventuels sous-traitants techniques.",
         ],
       },
       {
         id: 'data',
         title: '3. Données personnelles traitées',
         paragraphs: [
-          "Wasel Edu limite la collecte aux données nécessaires au fonctionnement scolaire et à la sécurité du service. Les données peuvent varier selon les modules activés par l'établissement.",
+          "WaselEdu limite la collecte aux données nécessaires au fonctionnement scolaire et à la sécurité du service. Les données peuvent varier selon les modules activés par l'établissement.",
         ],
         bullets: [
           "Identité et compte : nom, prénom, email, identifiant interne, langue préférée, photo de profil, rôle actif, statut du compte et informations de connexion.",
@@ -109,7 +109,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         paragraphs: [
           "Les données sont utilisées pour authentifier les utilisateurs, fournir les services scolaires, permettre la communication entre l'école et les familles, gérer les classes, produire des bulletins, suivre les absences, sécuriser la plateforme, assurer l'assistance technique, gérer les abonnements et respecter les obligations légales ou contractuelles applicables.",
           "Selon le contexte, les traitements peuvent reposer sur l'exécution du service demandé par l'établissement, l'intérêt légitime de sécurité et de continuité pédagogique, le respect d'obligations légales, ou le consentement lorsqu'il est requis par la loi ou la politique interne de l'établissement.",
-          "Wasel Edu ne vend pas les données personnelles, n'utilise pas les données des élèves pour de la publicité comportementale et ne crée pas de profils commerciaux à partir des informations scolaires.",
+          "WaselEdu ne vend pas les données personnelles, n'utilise pas les données des élèves pour de la publicité comportementale et ne crée pas de profils commerciaux à partir des informations scolaires.",
         ],
       },
       {
@@ -138,7 +138,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         id: 'security',
         title: '8. Sécurité, audit et contrôle',
         paragraphs: [
-          "Wasel Edu applique des mesures de protection adaptées aux données scolaires : chiffrement des échanges, mots de passe hachés, jetons d'authentification, séparation par établissement, contrôle d'accès basé sur les relations, limitation des privilèges, sauvegardes et surveillance des erreurs.",
+          "WaselEdu applique des mesures de protection adaptées aux données scolaires : chiffrement des échanges, mots de passe hachés, jetons d'authentification, séparation par établissement, contrôle d'accès basé sur les relations, limitation des privilèges, sauvegardes et surveillance des erreurs.",
           "Les actions sensibles doivent être auditées : création ou modification d'une note, correction d'une absence, consultation administrative exceptionnelle, changement de rôle, liaison ou suppression d'un parent, export, suppression, connexion suspecte et modification d'un paramètre de sécurité.",
           "Les journaux d'audit doivent indiquer au minimum l'utilisateur, l'établissement, l'action, la date, l'objet concerné, le résultat et, lorsque c'est pertinent, l'adresse IP ou l'appareil. Ces journaux servent à la sécurité, aux enquêtes internes, à la preuve de conformité et à la détection d'abus.",
         ],
@@ -157,8 +157,8 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         title: '10. Droits des personnes concernées',
         paragraphs: [
           "Conformément à la loi algérienne n° 18-07 relative à la protection des personnes physiques dans le traitement des données à caractère personnel, telle que modifiée et complétée, les personnes concernées peuvent demander des informations sur les traitements, l'accès à leurs données, la rectification des informations inexactes ou incomplètes, et l'opposition lorsque la loi le permet.",
-          "Les demandes peuvent être adressées à l'établissement concerné ou à Wasel Edu via l'adresse de contact indiquée sur cette page. Une vérification d'identité peut être demandée avant toute communication, export, rectification ou suppression.",
-          "Pour les données scolaires d'un mineur, Wasel Edu peut rediriger la demande vers l'établissement afin de vérifier le droit d'accès du parent ou du représentant légal.",
+          "Les demandes peuvent être adressées à l'établissement concerné ou à WaselEdu via l'adresse de contact indiquée sur cette page. Une vérification d'identité peut être demandée avant toute communication, export, rectification ou suppression.",
+          "Pour les données scolaires d'un mineur, WaselEdu peut rediriger la demande vers l'établissement afin de vérifier le droit d'accès du parent ou du représentant légal.",
         ],
       },
       {
@@ -176,7 +176,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         paragraphs: [
           "Chaque utilisateur doit protéger ses identifiants, ne pas partager son compte, utiliser la plateforme uniquement pour des finalités scolaires légitimes et signaler toute erreur d'accès, message abusif, usurpation ou suspicion de fuite de données.",
           "Il est interdit de publier ou transmettre du contenu illicite, injurieux, discriminatoire, menaçant, contraire à l'ordre public, portant atteinte à la vie privée, ou sans lien avec la mission éducative.",
-          "Wasel Edu ou l'établissement peut suspendre un compte, limiter une fonctionnalité ou supprimer un contenu lorsqu'il existe un risque de sécurité, une violation des règles, une demande officielle, une erreur de rattachement ou une utilisation abusive.",
+          "WaselEdu ou l'établissement peut suspendre un compte, limiter une fonctionnalité ou supprimer un contenu lorsqu'il existe un risque de sécurité, une violation des règles, une demande officielle, une erreur de rattachement ou une utilisation abusive.",
         ],
       },
       {
@@ -184,7 +184,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         title: '13. Modifications et contact',
         paragraphs: [
           "Cette politique peut être mise à jour pour refléter une évolution du service, une exigence légale, une demande d'établissement ou une amélioration de sécurité. La date de mise à jour indique la dernière version publiée.",
-          "Pour toute question relative à la confidentialité, à la sécurité, aux droits des personnes ou à l'exercice d'une demande, contactez Wasel Edu à l'adresse indiquée en haut de cette page.",
+          "Pour toute question relative à la confidentialité, à la sécurité, aux droits des personnes ou à l'exercice d'une demande, contactez WaselEdu à l'adresse indiquée en haut de cette page.",
         ],
       },
     ],
@@ -203,20 +203,20 @@ const policyCopy: Record<Locale, PolicyCopy> = {
     back: 'رجوع',
     title: 'سياسة الخصوصية وحماية البيانات وشروط الاستخدام',
     intro:
-      'توضح هذه الصفحة كيف تقوم Wasel Edu بجمع البيانات الشخصية واستخدامها وحمايتها والاحتفاظ بها ومشاركتها في سياق مدرسي. وهي موجهة للمؤسسات التعليمية والإدارة والمعلمين وأولياء الأمور والطلاب والمستخدمين المصرح لهم.',
+      'توضح هذه الصفحة كيف تقوم WaselEdu بجمع البيانات الشخصية واستخدامها وحمايتها والاحتفاظ بها ومشاركتها في سياق مدرسي. وهي موجهة للمؤسسات التعليمية والإدارة والمعلمين وأولياء الأمور والطلاب والمستخدمين المصرح لهم.',
     lastUpdatedLabel: 'آخر تحديث',
     hostingLabel: 'موقع الاستضافة المستهدف',
     contactLabel: 'التواصل بخصوص الخصوصية',
     hostingLocation: 'الجزائر',
     notice:
-      'تنطبق هذه السياسة على منصة Wasel Edu بأكملها. يمكن لكل مؤسسة أن تكملها بنظامها الداخلي وقواعد الاحتفاظ الخاصة بها، مع احترام القانون الجزائري المعمول به.',
+      'تنطبق هذه السياسة على منصة WaselEdu بأكملها. يمكن لكل مؤسسة أن تكملها بنظامها الداخلي وقواعد الاحتفاظ الخاصة بها، مع احترام القانون الجزائري المعمول به.',
     sections: [
       {
         id: 'responsibilities',
         title: '1. هوية الخدمة والمسؤوليات',
         paragraphs: [
-          'توفر Wasel Edu منصة للتواصل والمتابعة المدرسية، تشمل الحسابات والأقسام والرسائل والغيابات والدرجات والإشعارات والوثائق التربوية.',
-          'عندما تستخدم مؤسسة تعليمية المنصة لإدارة بيانات طلابها وأولياء الأمور والطاقم التربوي، تبقى المؤسسة مسؤولة عن دقة البيانات التي تدخلها أو تعدلها أو تعتمدها. تعمل Wasel Edu كمزود تقني لتنفيذ تعليمات المؤسسة، إلا في بعض المعالجات المتعلقة بالأمن أو الفوترة أو إدارة المنصة أو الالتزامات القانونية.',
+          'توفر WaselEdu منصة للتواصل والمتابعة المدرسية، تشمل الحسابات والأقسام والرسائل والغيابات والدرجات والإشعارات والوثائق التربوية.',
+          'عندما تستخدم مؤسسة تعليمية المنصة لإدارة بيانات طلابها وأولياء الأمور والطاقم التربوي، تبقى المؤسسة مسؤولة عن دقة البيانات التي تدخلها أو تعدلها أو تعتمدها. تعمل WaselEdu كمزود تقني لتنفيذ تعليمات المؤسسة، إلا في بعض المعالجات المتعلقة بالأمن أو الفوترة أو إدارة المنصة أو الالتزامات القانونية.',
           'الوصول إلى المنصة مخصص للمستخدمين المصرح لهم فقط. لا ينبغي إنشاء حساب ولي أمر أو معلم أو إداري دون تحقق من المؤسسة المعنية.',
         ],
       },
@@ -224,23 +224,23 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         id: 'algeria',
         title: '2. تكييف المنصة مع السوق الجزائري',
         paragraphs: [
-          'صممت Wasel Edu أساسا للمؤسسات التعليمية العاملة في الجزائر. يجب أن تبقى الواجهة والإشعارات والوثائق الموجهة للعائلات مفهومة بالعربية والفرنسية، مع مراعاة عادات المدارس الخاصة والعمومية محليا.',
+          'صممت WaselEdu أساسا للمؤسسات التعليمية العاملة في الجزائر. يجب أن تبقى الواجهة والإشعارات والوثائق الموجهة للعائلات مفهومة بالعربية والفرنسية، مع مراعاة عادات المدارس الخاصة والعمومية محليا.',
           'يجب أن تستعمل الإعدادات التجارية والإدارية الدينار الجزائري للمبالغ والاشتراكات والوصولات. كما يجب أن تكون معلومات الفوترة قابلة للتكييف مع بيانات المؤسسة أو الكيان المشغل، مثل التسمية، العنوان، رقم التعريف الجبائي، رقم التعريف الإحصائي، السجل التجاري عند الاقتضاء، وبيانات التواصل.',
           'الإطار القانوني المستهدف هو القانون الجزائري المتعلق بحماية المعطيات الشخصية، ولا سيما القانون رقم 18-07 المؤرخ في 10 جوان 2018، المعدل والمتمم بالقانون رقم 25-11 المؤرخ في 24 جويلية 2025، إضافة إلى تعليمات وفضاءات السلطة الوطنية لحماية المعطيات ذات الطابع الشخصي.',
-          'بالنسبة للسوق الجزائري، تفضل Wasel Edu الاستضافة والنسخ الاحتياطي داخل الجزائر عندما يكون ذلك متاحا ومثبتا تعاقديا. أي نقل أو وصول تقني من خارج الجزائر يجب أن يكون محددا وموثقا ومحدودا ومؤطرا حسب المتطلبات المطبقة.',
+          'بالنسبة للسوق الجزائري، تفضل WaselEdu الاستضافة والنسخ الاحتياطي داخل الجزائر عندما يكون ذلك متاحا ومثبتا تعاقديا. أي نقل أو وصول تقني من خارج الجزائر يجب أن يكون محددا وموثقا ومحدودا ومؤطرا حسب المتطلبات المطبقة.',
         ],
         bullets: [
           'سجل المعالجات: إعداد خريطة للمعالجات المدرسية، فئات البيانات، المستلمين، مدد الاحتفاظ وتدابير الأمن.',
           'مكلف أو ممثل لحماية المعطيات: تعيين شخص يمكن التواصل معه بخصوص الخصوصية وطلبات ممارسة الحقوق والحوادث.',
           'السلطة الوطنية لحماية المعطيات: التحقق مما إذا كان التصريح أو الإجراء أو الترخيص أو التحديث مطلوبا قبل الإطلاق أو عند أي تغيير مهم.',
-          'العقود مع المدارس: توضيح مسؤوليات المؤسسة و Wasel Edu وأي معالج تقني من الباطن.',
+          'العقود مع المدارس: توضيح مسؤوليات المؤسسة و WaselEdu وأي معالج تقني من الباطن.',
         ],
       },
       {
         id: 'data',
         title: '3. البيانات الشخصية المعالجة',
         paragraphs: [
-          'تقتصر Wasel Edu على البيانات الضرورية لتشغيل الخدمة المدرسية وحماية الحسابات. قد تختلف البيانات حسب الوحدات التي تفعلها المؤسسة.',
+          'تقتصر WaselEdu على البيانات الضرورية لتشغيل الخدمة المدرسية وحماية الحسابات. قد تختلف البيانات حسب الوحدات التي تفعلها المؤسسة.',
         ],
         bullets: [
           'الهوية والحساب: الاسم، البريد الإلكتروني، المعرف الداخلي، اللغة، صورة الملف الشخصي، الدور النشط، حالة الحساب ومعلومات الدخول.',
@@ -268,7 +268,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         paragraphs: [
           'تستخدم البيانات للمصادقة، تقديم الخدمات المدرسية، إدارة الأقسام، التواصل، إعداد الكشوف، متابعة الغياب، حماية المنصة، الدعم التقني، إدارة الاشتراكات، والوفاء بالالتزامات القانونية أو التعاقدية.',
           'حسب الحالة، يمكن أن تستند المعالجة إلى تنفيذ الخدمة المطلوبة من المؤسسة، المصلحة المشروعة في الأمن واستمرارية الخدمة، الالتزام القانوني، أو الموافقة عندما تكون مطلوبة.',
-          'لا تبيع Wasel Edu البيانات الشخصية، ولا تستخدم بيانات الطلاب للإعلانات السلوكية أو لإنشاء ملفات تجارية.',
+          'لا تبيع WaselEdu البيانات الشخصية، ولا تستخدم بيانات الطلاب للإعلانات السلوكية أو لإنشاء ملفات تجارية.',
         ],
       },
       {
@@ -297,7 +297,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         id: 'security',
         title: '8. الأمن والتدقيق والرقابة',
         paragraphs: [
-          'تطبق Wasel Edu تدابير حماية مناسبة للبيانات المدرسية، مثل تشفير الاتصالات، تجزئة كلمات المرور، رموز المصادقة، العزل حسب المؤسسة، التحكم في الوصول، الحد من الصلاحيات، النسخ الاحتياطي ومراقبة الأخطاء.',
+          'تطبق WaselEdu تدابير حماية مناسبة للبيانات المدرسية، مثل تشفير الاتصالات، تجزئة كلمات المرور، رموز المصادقة، العزل حسب المؤسسة، التحكم في الوصول، الحد من الصلاحيات، النسخ الاحتياطي ومراقبة الأخطاء.',
           'يجب تدقيق العمليات الحساسة مثل تعديل درجة، تصحيح غياب، تغيير دور، ربط أو حذف ولي أمر، تصدير بيانات، حذف سجل، دخول مشبوه، أو تغيير إعداد أمني.',
           'يجب أن تتضمن سجلات التدقيق المستخدم، المؤسسة، العملية، التاريخ، الكائن المتأثر، النتيجة، وعند الحاجة عنوان IP أو الجهاز.',
         ],
@@ -316,8 +316,8 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         title: '10. حقوق الأشخاص المعنيين',
         paragraphs: [
           'وفقا للقانون الجزائري رقم 18-07 المتعلق بحماية الأشخاص الطبيعيين في معالجة البيانات ذات الطابع الشخصي، كما عُدل وتمم، يمكن للأشخاص المعنيين طلب معلومات حول المعالجة، الوصول إلى بياناتهم، تصحيح البيانات غير الدقيقة أو غير المكتملة، والاعتراض عندما يسمح القانون بذلك.',
-          'يمكن إرسال الطلبات إلى المؤسسة المعنية أو إلى Wasel Edu عبر عنوان التواصل في هذه الصفحة. قد يطلب التحقق من الهوية قبل أي اطلاع أو تصدير أو تصحيح أو حذف.',
-          'بالنسبة لبيانات طالب قاصر، يمكن لـ Wasel Edu تحويل الطلب إلى المؤسسة للتحقق من حق ولي الأمر أو الممثل القانوني.',
+          'يمكن إرسال الطلبات إلى المؤسسة المعنية أو إلى WaselEdu عبر عنوان التواصل في هذه الصفحة. قد يطلب التحقق من الهوية قبل أي اطلاع أو تصدير أو تصحيح أو حذف.',
+          'بالنسبة لبيانات طالب قاصر، يمكن لـ WaselEdu تحويل الطلب إلى المؤسسة للتحقق من حق ولي الأمر أو الممثل القانوني.',
         ],
       },
       {
@@ -335,7 +335,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         paragraphs: [
           'يجب على كل مستخدم حماية بيانات الدخول، عدم مشاركة الحساب، استخدام المنصة لأغراض مدرسية مشروعة فقط، والإبلاغ عن أي خطأ وصول أو إساءة أو انتحال أو تسريب محتمل.',
           'يحظر نشر أو إرسال محتوى غير قانوني أو مسيء أو تمييزي أو مهدد أو مخالف للنظام العام أو ماس بالخصوصية أو غير مرتبط بالمهمة التعليمية.',
-          'يمكن لـ Wasel Edu أو المؤسسة تعليق حساب أو تقييد ميزة أو حذف محتوى عند وجود خطر أمني أو مخالفة أو طلب رسمي أو خطأ ربط أو استخدام تعسفي.',
+          'يمكن لـ WaselEdu أو المؤسسة تعليق حساب أو تقييد ميزة أو حذف محتوى عند وجود خطر أمني أو مخالفة أو طلب رسمي أو خطأ ربط أو استخدام تعسفي.',
         ],
       },
       {
@@ -343,7 +343,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         title: '13. التعديلات والتواصل',
         paragraphs: [
           'يمكن تحديث هذه السياسة لتعكس تطور الخدمة أو متطلبا قانونيا أو طلب مؤسسة أو تحسينات أمنية. يشير تاريخ التحديث إلى آخر نسخة منشورة.',
-          'لأي سؤال حول الخصوصية أو الأمن أو حقوق الأشخاص أو ممارسة طلب، يرجى التواصل مع Wasel Edu عبر العنوان المذكور أعلى الصفحة.',
+          'لأي سؤال حول الخصوصية أو الأمن أو حقوق الأشخاص أو ممارسة طلب، يرجى التواصل مع WaselEdu عبر العنوان المذكور أعلى الصفحة.',
         ],
       },
     ],
@@ -362,20 +362,20 @@ const policyCopy: Record<Locale, PolicyCopy> = {
     back: 'Back',
     title: 'Privacy policy, data protection and terms of use',
     intro:
-      'This page explains how Wasel Edu collects, uses, protects, retains and shares personal data processed in a school environment. It is intended for schools, administrators, teachers, parents, students and authorized platform users.',
+      'This page explains how WaselEdu collects, uses, protects, retains and shares personal data processed in a school environment. It is intended for schools, administrators, teachers, parents, students and authorized platform users.',
     lastUpdatedLabel: 'Last updated',
     hostingLabel: 'Target hosting location',
     contactLabel: 'Privacy contact',
     hostingLocation: 'Algeria',
     notice:
-      'This policy applies to the whole Wasel Edu platform. Each school may supplement it with its own internal rules and retention practices, in line with applicable Algerian law.',
+      'This policy applies to the whole WaselEdu platform. Each school may supplement it with its own internal rules and retention practices, in line with applicable Algerian law.',
     sections: [
       {
         id: 'responsibilities',
         title: '1. Service identity and responsibilities',
         paragraphs: [
-          'Wasel Edu provides a school communication and student monitoring platform for accounts, classes, messages, attendance, grades, notifications and educational documents.',
-          'When a school uses Wasel Edu for its students, families and staff, the school remains responsible for the accuracy of the data it imports, validates or changes. Wasel Edu acts as a technical provider following the school’s instructions, except where it processes data for security, billing, platform administration or legal compliance.',
+          'WaselEdu provides a school communication and student monitoring platform for accounts, classes, messages, attendance, grades, notifications and educational documents.',
+          'When a school uses WaselEdu for its students, families and staff, the school remains responsible for the accuracy of the data it imports, validates or changes. WaselEdu acts as a technical provider following the school’s instructions, except where it processes data for security, billing, platform administration or legal compliance.',
           'Platform access is limited to authorized users. Parent, teacher and staff accounts should not be freely created by the public without validation by the relevant school.',
         ],
       },
@@ -383,23 +383,23 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         id: 'algeria',
         title: '2. Algerian market adaptation',
         paragraphs: [
-          'Wasel Edu is designed first for schools operating in Algeria. The interface, notifications and family-facing documents should remain understandable in Arabic and French, with attention to local operating habits in private and public schools.',
+          'WaselEdu is designed first for schools operating in Algeria. The interface, notifications and family-facing documents should remain understandable in Arabic and French, with attention to local operating habits in private and public schools.',
           'Commercial and administrative settings should use Algerian dinars for amounts, subscriptions and receipts. Billing information should be adaptable to the school or operating entity, including legal name, address, tax identification, statistical identification, commercial register information where applicable, and contact details.',
           'The target compliance framework is Algerian personal data law, including Law No. 18-07 of June 10, 2018, as amended and supplemented by Law No. 25-11 of July 24, 2025, together with the guidance and portals of the National Personal Data Protection Authority.',
-          'For the Algerian market, Wasel Edu prioritizes hosting and backups located in Algeria where available and contractually selected. Any transfer or technical access from outside Algeria should be identified, documented, limited and governed under applicable requirements.',
+          'For the Algerian market, WaselEdu prioritizes hosting and backups located in Algeria where available and contractually selected. Any transfer or technical access from outside Algeria should be identified, documented, limited and governed under applicable requirements.',
         ],
         bullets: [
           'Processing register: maintain a map of school processing activities, data categories, recipients, retention periods and security measures.',
           'Privacy representative or data protection officer: designate a reachable person for privacy questions, rights requests and incidents.',
           'ANPDP: verify whether a declaration, formality, authorization or update is required before launch or after a major change.',
-          'School-platform contracts: define the responsibilities of the school, Wasel Edu and any technical processors.',
+          'School-platform contracts: define the responsibilities of the school, WaselEdu and any technical processors.',
         ],
       },
       {
         id: 'data',
         title: '3. Personal data processed',
         paragraphs: [
-          'Wasel Edu limits collection to data needed for school operations and service security. The exact data depends on the modules enabled by each school.',
+          'WaselEdu limits collection to data needed for school operations and service security. The exact data depends on the modules enabled by each school.',
         ],
         bullets: [
           'Identity and account data: name, email, internal identifier, preferred language, profile picture, active role, account status and sign-in information.',
@@ -428,7 +428,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         paragraphs: [
           'Data is used to authenticate users, provide school services, enable school-family communication, manage classes, produce reports, track attendance, secure the platform, provide support, manage subscriptions and meet applicable legal or contractual obligations.',
           'Depending on the context, processing may rely on performance of the school service, legitimate security and educational continuity interests, legal obligations, or consent where required by law or school policy.',
-          'Wasel Edu does not sell personal data, use student data for behavioral advertising, or build commercial profiles from school information.',
+          'WaselEdu does not sell personal data, use student data for behavioral advertising, or build commercial profiles from school information.',
         ],
       },
       {
@@ -457,7 +457,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         id: 'security',
         title: '8. Security, audit and control',
         paragraphs: [
-          'Wasel Edu applies safeguards suitable for school data: encrypted transport, hashed passwords, authentication tokens, tenant isolation by school, relationship-based access control, least privilege, backups and error monitoring.',
+          'WaselEdu applies safeguards suitable for school data: encrypted transport, hashed passwords, authentication tokens, tenant isolation by school, relationship-based access control, least privilege, backups and error monitoring.',
           'Sensitive actions should be audited, including grade creation or changes, attendance corrections, exceptional administrative access, role changes, parent linking or removal, exports, deletion, suspicious login and security setting changes.',
           'Audit logs should include at least the user, school, action, date, affected object, result and, where relevant, IP address or device. These logs support security, internal investigations, compliance evidence and abuse detection.',
         ],
@@ -476,8 +476,8 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         title: '10. Data subject rights',
         paragraphs: [
           'Under Algerian Law No. 18-07 on the protection of individuals in personal data processing, as amended and supplemented, data subjects may request information about processing, access to their data, correction of inaccurate or incomplete data, and objection where the law allows.',
-          'Requests can be sent to the relevant school or to Wasel Edu using the contact address on this page. Identity verification may be required before disclosure, export, correction or deletion.',
-          'For school data concerning a minor, Wasel Edu may redirect the request to the school so it can verify the parent or legal representative’s access rights.',
+          'Requests can be sent to the relevant school or to WaselEdu using the contact address on this page. Identity verification may be required before disclosure, export, correction or deletion.',
+          'For school data concerning a minor, WaselEdu may redirect the request to the school so it can verify the parent or legal representative’s access rights.',
         ],
       },
       {
@@ -495,7 +495,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         paragraphs: [
           'Each user must protect credentials, avoid account sharing, use the platform only for legitimate school purposes and report access mistakes, abusive messages, impersonation or suspected data leaks.',
           'It is prohibited to publish or transmit unlawful, abusive, discriminatory, threatening, public-order violating, privacy-infringing or non-educational content.',
-          'Wasel Edu or the school may suspend an account, limit a feature or remove content when there is a security risk, rule violation, official request, relationship error or abusive use.',
+          'WaselEdu or the school may suspend an account, limit a feature or remove content when there is a security risk, rule violation, official request, relationship error or abusive use.',
         ],
       },
       {
@@ -503,7 +503,7 @@ const policyCopy: Record<Locale, PolicyCopy> = {
         title: '13. Changes and contact',
         paragraphs: [
           'This policy may be updated to reflect service changes, legal requirements, school requests or security improvements. The update date shows the latest published version.',
-          'For privacy, security, rights or request questions, contact Wasel Edu using the address shown at the top of this page.',
+          'For privacy, security, rights or request questions, contact WaselEdu using the address shown at the top of this page.',
         ],
       },
     ],

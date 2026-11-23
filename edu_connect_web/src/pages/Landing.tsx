@@ -96,7 +96,7 @@ export default function Landing() {
         <div className="landing-nav-inner">
           <Link to="/accueil" className="landing-brand">
             <img src="/wasel-edu-logo.svg" alt="" />
-            <span>Wasel Edu</span>
+            <span>WaselEdu</span>
           </Link>
 
           <nav className={`landing-nav-links ${mobileMenuOpen ? 'is-open' : ''}`} aria-label="Navigation">
@@ -351,7 +351,7 @@ export default function Landing() {
           <div className="landing-footer-brand">
             <div className="landing-brand" style={{ color: '#f7f4eb' }}>
               <img src="/wasel-edu-logo.svg" alt="" />
-              <span>Wasel Edu</span>
+              <span>WaselEdu</span>
             </div>
             <p>{t('landing.footer.tagline')}</p>
             <LocaleSwitcher />
