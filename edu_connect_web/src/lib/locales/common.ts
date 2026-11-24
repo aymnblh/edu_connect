@@ -506,6 +506,16 @@ export const commonTranslations: TranslationMap = {
     ar: 'إدارة المدارس',
     en: 'School management',
   },
+  'nav.superAdminUsers': {
+    fr: 'Utilisateurs',
+    ar: 'المستخدمون',
+    en: 'Users',
+  },
+  'nav.superAdminBroadcasts': {
+    fr: 'Annonces globales',
+    ar: 'إعلانات المنصة',
+    en: 'Platform broadcasts',
+  },
   'nav.legal': {
     fr: 'Mentions légales',
     ar: 'الشروط القانونية',

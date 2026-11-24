@@ -67,6 +67,7 @@ class AuditRetentionPurgeOut(BaseModel):
 def _audit_query(
     current_user: User,
     *,
+    school_id: str | None = None,
     actor_id: str | None,
     action: str | None,
     category: str | None,
@@ -85,6 +86,10 @@ def _audit_query(
         if not current_user.school_id:
             raise HTTPException(status_code=400, detail="User is not assigned to a school.")
         stmt = stmt.where(AuditEvent.school_id == current_user.school_id)
+    elif school_id == "__platform__":
+        stmt = stmt.where(AuditEvent.school_id.is_(None))
+    elif school_id:
+        stmt = stmt.where(AuditEvent.school_id == school_id)
 
     if actor_id:
         stmt = stmt.where(AuditEvent.actor_id == actor_id)
@@ -122,6 +127,7 @@ def _with_name(event: AuditEvent, actor_name: str | None, *, hide_device: bool =
 
 @router.get("/audit-events", response_model=list[AuditEventOut])
 async def list_audit_events(
+    school_id: str | None = None,
     actor_id: str | None = None,
     action: str | None = None,
     category: str | None = Query(None, max_length=40, pattern=r"^[a-z_]+\.?$"),
@@ -137,6 +143,7 @@ async def list_audit_events(
 ):
     stmt = _audit_query(
         current_user,
+        school_id=school_id,
         actor_id=actor_id,
         action=action,
         category=category,
@@ -157,6 +164,7 @@ EXPORT_MAX_ROWS = 5000
 @router.get("/audit-events/export")
 async def export_audit_events(
     request: Request,
+    school_id: str | None = None,
     actor_id: str | None = None,
     action: str | None = None,
     category: str | None = Query(None, max_length=40, pattern=r"^[a-z_]+\.?$"),
@@ -171,6 +179,7 @@ async def export_audit_events(
     """CSV of the filtered audit log (newest first, at most 5000 rows). The export is itself audited."""
     stmt = _audit_query(
         current_user,
+        school_id=school_id,
         actor_id=actor_id,
         action=action,
         category=category,

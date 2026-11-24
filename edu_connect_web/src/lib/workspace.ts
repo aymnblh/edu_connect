@@ -186,5 +186,7 @@ export function clearWorkspaceStorage(): void {
   workspaceSessionKeys.forEach(removeWorkspaceSessionItem);
   safeLocalStorage()?.removeItem?.(rememberedSessionHintKey);
   safeLocalStorage()?.removeItem?.(driverOfflineQueueKey);
+  safeSessionStorage()?.removeItem?.('superadmin_impersonation_meta');
+  safeSessionStorage()?.removeItem?.('superadmin_return_user');
   notifyWorkspaceSessionChanged();
 }

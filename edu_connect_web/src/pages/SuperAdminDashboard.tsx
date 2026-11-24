@@ -1,355 +1,75 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { isAxiosError } from 'axios';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
-import { useLocale, type Locale } from '../lib/i18n';
+import { useCallback, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   Activity,
-  AlertTriangle,
   Building,
-  Calendar,
-  CheckCircle2,
-  Clock,
-  Database,
-  DollarSign,
-  MessageSquare,
+  Megaphone,
   PlusCircle,
-  Server,
-  ShieldAlert,
+  ScrollText,
   Users,
 } from 'lucide-react';
-
-interface School {
-  id: string;
-  name: string;
-  is_active: boolean;
-  subscription_expires_at: string | null;
-  created_at?: string | null;
-  user_count: number;
-  teacher_count: number;
-  parent_count: number;
-  principal_count: number;
-  secretary_count: number;
-  student_count: number;
-  class_count: number;
-  course_count: number;
-  active_session_count: number;
-  pending_parent_link_count: number;
-  used_parent_link_count: number;
-  grade_count: number;
-  approved_grade_count: number;
-  pending_grade_count: number;
-  attendance_count: number;
-  absence_count: number;
-  homework_count: number;
-  class_message_count: number;
-  direct_message_count: number;
-  audit_event_count_24h: number;
-  failed_auth_count_24h: number;
-  server_error_count_24h: number;
-  payment_count: number;
-  total_revenue: number;
-  last_payment_amount?: number | null;
-  last_payment_at?: string | null;
-  last_login_at?: string | null;
-  last_audit_at?: string | null;
-  last_message_at?: string | null;
-  last_grade_at?: string | null;
-  last_attendance_at?: string | null;
-  days_until_expiry?: number | null;
-  health_status: 'healthy' | 'watch' | 'risk' | 'suspended' | 'subscription_expired' | string;
-  health_score: number;
-  role_counts?: Record<string, number>;
-}
-
-interface AppReadiness {
-  status: 'ready' | 'degraded' | string;
-  checks?: Record<string, string>;
-  db_pool?: Record<string, number | null>;
-}
-
-interface Toast {
-  id: number;
-  message: string;
-  type: 'success' | 'error' | 'warning';
-  exiting?: boolean;
-}
+import { api } from '../lib/api';
+import { useLocale } from '../lib/i18n';
+import SuperAdminAuditTab from '../components/superadmin/SuperAdminAuditTab';
+import SuperAdminBroadcastsTab from '../components/superadmin/SuperAdminBroadcastsTab';
+import SuperAdminSchoolsTab from '../components/superadmin/SuperAdminSchoolsTab';
+import SuperAdminUsersTab from '../components/superadmin/SuperAdminUsersTab';
+import type { AppReadiness, School, SuperAdminTab, Toast } from '../components/superadmin/types';
 
 let toastId = 0;
 
-function localeToIntl(locale: Locale) {
-  if (locale === 'ar') return 'ar-DZ';
-  if (locale === 'en') return 'en-US';
-  return 'fr-DZ';
-}
+const TABS: Array<{
+  id: SuperAdminTab;
+  route: string;
+  labelKey: string;
+  icon: typeof Building;
+}> = [
+  { id: 'schools', route: '/superadmin', labelKey: 'nav.schoolManagement', icon: Building },
+  { id: 'users', route: '/superadmin/users', labelKey: 'nav.superAdminUsers', icon: Users },
+  { id: 'broadcasts', route: '/superadmin/broadcasts', labelKey: 'nav.superAdminBroadcasts', icon: Megaphone },
+  { id: 'audit', route: '/superadmin/audit', labelKey: 'nav.auditLog', icon: ScrollText },
+];
 
-function formatDate(value: string, locale: Locale) {
-  return new Intl.DateTimeFormat(localeToIntl(locale), {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value));
-}
-
-function formatDateTime(value: string | null | undefined, locale: Locale) {
-  if (!value) return '-';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '-';
-  return new Intl.DateTimeFormat(localeToIntl(locale), {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(parsed);
-}
-
-function formatNumber(value: number | null | undefined, locale: Locale) {
-  return new Intl.NumberFormat(localeToIntl(locale)).format(value ?? 0);
-}
-
-function formatCurrency(value: number | null | undefined, locale: Locale) {
-  return new Intl.NumberFormat(localeToIntl(locale), {
-    maximumFractionDigits: 0,
-  }).format(value ?? 0);
-}
-
-function healthBadgeClass(status: string) {
-  if (status === 'healthy') return 'status-badge--active';
-  if (status === 'watch') return 'status-badge--warning';
-  return 'status-badge--danger';
-}
-
-function readinessBadgeClass(status?: string) {
-  return status === 'ready' ? 'status-badge--active' : 'status-badge--warning';
-}
-
-function buildSchoolSignals(school: School, t: (key: string, values?: Record<string, string | number>) => string) {
-  const signals: Array<{ key: string; label: string; tone: 'danger' | 'warning' | 'success' }> = [];
-  if (!school.is_active) {
-    signals.push({ key: 'suspended', label: t('superadmin.signalSuspended'), tone: 'danger' });
-  }
-  if (school.days_until_expiry !== null && school.days_until_expiry !== undefined && school.days_until_expiry <= 7) {
-    signals.push({
-      key: 'expiry',
-      label: t('superadmin.signalExpiry', { days: school.days_until_expiry }),
-      tone: school.days_until_expiry < 0 ? 'danger' : 'warning',
-    });
-  }
-  if (school.server_error_count_24h > 0) {
-    signals.push({
-      key: 'server-errors',
-      label: t('superadmin.signalServerErrors', { count: school.server_error_count_24h }),
-      tone: 'danger',
-    });
-  }
-  if (school.failed_auth_count_24h >= 3) {
-    signals.push({
-      key: 'failed-auth',
-      label: t('superadmin.signalFailedAuth', { count: school.failed_auth_count_24h }),
-      tone: 'warning',
-    });
-  }
-  if (school.pending_grade_count > 0) {
-    signals.push({
-      key: 'pending-grades',
-      label: t('superadmin.signalPendingGrades', { count: school.pending_grade_count }),
-      tone: 'warning',
-    });
-  }
-  if (signals.length === 0) {
-    signals.push({ key: 'ok', label: t('superadmin.signalHealthy'), tone: 'success' });
-  }
-  return signals;
+function tabFromPath(pathname: string): SuperAdminTab {
+  if (pathname.startsWith('/superadmin/users')) return 'users';
+  if (pathname.startsWith('/superadmin/broadcasts')) return 'broadcasts';
+  if (pathname.startsWith('/superadmin/audit')) return 'audit';
+  return 'schools';
 }
 
 export default function SuperAdminDashboard() {
-  const queryClient = useQueryClient();
-  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { t } = useLocale();
+  const activeTab = tabFromPath(location.pathname);
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newSchoolName, setNewSchoolName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [months, setMonths] = useState('12');
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const paymentModalRef = useRef<HTMLDivElement>(null);
-  const createModalRef = useRef<HTMLDivElement>(null);
-  const { locale, t } = useLocale();
 
   const addToast = useCallback((message: string, type: Toast['type']) => {
     const id = ++toastId;
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
-      setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
-      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 300);
-    }, 3500);
+      setToasts((prev) => prev.map((item) => (item.id === id ? { ...item, exiting: true } : item)));
+      setTimeout(() => setToasts((prev) => prev.filter((item) => item.id !== id)), 300);
+    }, 3800);
   }, []);
 
   const dismissToast = useCallback((id: number) => {
-    setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 300);
+    setToasts((prev) => prev.map((item) => (item.id === id ? { ...item, exiting: true } : item)));
+    setTimeout(() => setToasts((prev) => prev.filter((item) => item.id !== id)), 300);
   }, []);
-
-  useEffect(() => {
-    if (!selectedSchool) return;
-    const firstFocusable = paymentModalRef.current?.querySelector<HTMLElement>(
-      'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])'
-    );
-    firstFocusable?.focus();
-  }, [selectedSchool]);
-
-  useEffect(() => {
-    if (!isCreateModalOpen) return;
-    const firstFocusable = createModalRef.current?.querySelector<HTMLElement>(
-      'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])'
-    );
-    firstFocusable?.focus();
-  }, [isCreateModalOpen]);
-
-  const handlePaymentModalKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape') {
-      setSelectedSchool(null);
-      return;
-    }
-
-    if (event.key !== 'Tab' || !paymentModalRef.current) {
-      return;
-    }
-
-    const focusable = Array.from(
-      paymentModalRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
-      )
-    );
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (!first || !last) return;
-
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
 
   const { data: schools, isLoading, error } = useQuery<School[]>({
     queryKey: ['schools'],
-    queryFn: async () => {
-      const res = await api.get('/system/schools');
-      return res.data;
-    }
+    queryFn: async () => (await api.get('/system/schools')).data,
   });
 
   const readinessQuery = useQuery<AppReadiness>({
     queryKey: ['platform-readiness'],
     refetchInterval: 30000,
-    queryFn: async () => {
-      const res = await api.get('/health/ready', { validateStatus: () => true });
-      return res.data;
-    },
-  });
-
-  const schoolList = useMemo(() => schools ?? [], [schools]);
-  const platformTotals = useMemo(() => {
-    return schoolList.reduce(
-      (totals, school) => ({
-        activeSchools: totals.activeSchools + (school.is_active ? 1 : 0),
-        expiredSchools: totals.expiredSchools + (
-          !school.subscription_expires_at || new Date(school.subscription_expires_at) < new Date() ? 1 : 0
-        ),
-        users: totals.users + school.user_count,
-        students: totals.students + school.student_count,
-        activeSessions: totals.activeSessions + school.active_session_count,
-        audits24h: totals.audits24h + school.audit_event_count_24h,
-        serverErrors24h: totals.serverErrors24h + school.server_error_count_24h,
-        revenue: totals.revenue + school.total_revenue,
-      }),
-      {
-        activeSchools: 0,
-        expiredSchools: 0,
-        users: 0,
-        students: 0,
-        activeSessions: 0,
-        audits24h: 0,
-        serverErrors24h: 0,
-        revenue: 0,
-      },
-    );
-  }, [schoolList]);
-
-  const paymentMutation = useMutation({
-    mutationFn: async (data: { school_id: string; amount: number; months_added: number }) => {
-      return api.post(`/system/schools/${data.school_id}/subscription`, {
-        amount: data.amount,
-        months_added: data.months_added,
-        payment_method: 'cash'
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['schools'] });
-      setSelectedSchool(null);
-      setAmount('');
-      setMonths('12');
-      addToast(t('superadmin.toastPaymentSuccess'), 'success');
-    },
-    onError: (err: unknown) => {
-      const message = isAxiosError(err)
-        ? err.response?.data?.detail || err.message
-        : t('auth.connectionError');
-      addToast(t('superadmin.toastPaymentError', { message }), 'error');
-    }
-  });
-
-  const createSchoolMutation = useMutation({
-    mutationFn: async (name: string) => {
-      return api.post('/admin/schools', { name });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['schools'] });
-      setIsCreateModalOpen(false);
-      setNewSchoolName('');
-      addToast(t('superadmin.toastSchoolCreated'), 'success');
-    },
-    onError: (err: unknown) => {
-      const message = isAxiosError(err)
-        ? err.response?.data?.detail || err.message
-        : t('auth.connectionError');
-      addToast(t('superadmin.toastSchoolCreateError') + ': ' + message, 'error');
-    }
-  });
-
-  const activateSchoolMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return api.post(`/system/schools/${id}/activate`);
-    },
-    onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['schools'] });
-      // The server says what came with activation (free trimester, referral months).
-      const detail = typeof res.data?.message === 'string' ? res.data.message : '';
-      addToast(detail || t('superadmin.toastActivated'), 'success');
-    },
-    onError: (err: unknown) => {
-      const message = isAxiosError(err)
-        ? err.response?.data?.detail || err.message
-        : t('auth.connectionError');
-      addToast(t('common.errorGeneric') + ': ' + message, 'error');
-    }
-  });
-
-  const suspendSchoolMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return api.post(`/system/schools/${id}/deactivate`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['schools'] });
-      addToast(t('superadmin.toastSuspended'), 'success');
-    },
-    onError: (err: unknown) => {
-      const message = isAxiosError(err)
-        ? err.response?.data?.detail || err.message
-        : t('auth.connectionError');
-      addToast(t('common.errorGeneric') + ': ' + message, 'error');
-    }
+    queryFn: async () => (await api.get('/health/ready', { validateStatus: () => true })).data,
   });
 
   if (isLoading) {
@@ -369,12 +89,13 @@ export default function SuperAdminDashboard() {
     );
   }
 
+  const schoolList = schools ?? [];
+
   return (
     <div className="container animate-fade-in">
-      {/* Toast container */}
       {toasts.length > 0 && (
         <div className="toast-container" aria-live="polite">
-          {toasts.map(toast => (
+          {toasts.map((toast) => (
             <div
               key={toast.id}
               className={`toast toast-${toast.type} ${toast.exiting ? 'toast-exit' : ''}`}
@@ -387,7 +108,7 @@ export default function SuperAdminDashboard() {
         </div>
       )}
 
-      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <header className="dashboard-header superadmin-header">
         <div>
           <div className="badge dashboard-eyebrow">
             <Activity size={14} /> {t('superadmin.eyebrow')}
@@ -395,346 +116,48 @@ export default function SuperAdminDashboard() {
           <h1>{t('superadmin.title')}</h1>
           <p>{t('superadmin.subtitle')}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsCreateModalOpen(true)}>
-          <PlusCircle size={18} /> {t('superadmin.createSchool')}
-        </button>
+        {activeTab === 'schools' && (
+          <button type="button" className="btn btn-primary" onClick={() => setIsCreateModalOpen(true)}>
+            <PlusCircle size={18} /> {t('superadmin.createSchool')}
+          </button>
+        )}
       </header>
 
-      <section className="glass-card dashboard-card-pad superadmin-platform-panel">
-        <div className="dashboard-toolbar">
-          <div>
-            <h2 className="dashboard-section-title dashboard-section-title--plain">{t('superadmin.platformTitle')}</h2>
-            <p className="dashboard-section-copy">{t('superadmin.platformCopy')}</p>
-          </div>
-          <span className={`status-badge ${readinessBadgeClass(readinessQuery.data?.status)}`}>
-            {readinessQuery.isLoading ? t('common.loading') : t(`superadmin.readiness.${readinessQuery.data?.status || 'unknown'}`)}
-          </span>
-        </div>
-
-        <div className="superadmin-kpi-grid">
-          <div className="superadmin-kpi">
-            <Building size={18} />
-            <span>{t('superadmin.kpiSchools')}</span>
-            <strong>{formatNumber(schoolList.length, locale)}</strong>
-          </div>
-          <div className="superadmin-kpi">
-            <CheckCircle2 size={18} />
-            <span>{t('superadmin.kpiActiveSchools')}</span>
-            <strong>{formatNumber(platformTotals.activeSchools, locale)}</strong>
-          </div>
-          <div className="superadmin-kpi">
-            <Users size={18} />
-            <span>{t('superadmin.kpiUsers')}</span>
-            <strong>{formatNumber(platformTotals.users, locale)}</strong>
-          </div>
-          <div className="superadmin-kpi">
-            <Activity size={18} />
-            <span>{t('superadmin.kpiSessions')}</span>
-            <strong>{formatNumber(platformTotals.activeSessions, locale)}</strong>
-          </div>
-          <div className="superadmin-kpi">
-            <ShieldAlert size={18} />
-            <span>{t('superadmin.kpiAudits')}</span>
-            <strong>{formatNumber(platformTotals.audits24h, locale)}</strong>
-          </div>
-          <div className="superadmin-kpi">
-            <DollarSign size={18} />
-            <span>{t('superadmin.kpiRevenue')}</span>
-            <strong>{formatCurrency(platformTotals.revenue, locale)} DA</strong>
-          </div>
-        </div>
-
-        <div className="platform-health-grid">
-          <div className="platform-health-item">
-            <Database size={16} />
-            <span>{t('superadmin.checkDatabase')}</span>
-            <strong>{readinessQuery.data?.checks?.database || '-'}</strong>
-          </div>
-          <div className="platform-health-item">
-            <Server size={16} />
-            <span>{t('superadmin.checkRedis')}</span>
-            <strong>{readinessQuery.data?.checks?.redis || '-'}</strong>
-          </div>
-          <div className="platform-health-item">
-            <Activity size={16} />
-            <span>{t('superadmin.dbPool')}</span>
-            <strong>
-              {formatNumber(readinessQuery.data?.db_pool?.checkedout ?? 0, locale)}
-              /
-              {formatNumber(readinessQuery.data?.db_pool?.size ?? 0, locale)}
-            </strong>
-          </div>
-          <div className="platform-health-item">
-            <AlertTriangle size={16} />
-            <span>{t('superadmin.kpiErrors')}</span>
-            <strong>{formatNumber(platformTotals.serverErrors24h, locale)}</strong>
-          </div>
-        </div>
-      </section>
-
-      <div className="grid-2 superadmin-school-grid">
-        {schoolList.map(school => {
-          const isExpired = !school.subscription_expires_at || new Date(school.subscription_expires_at) < new Date();
-          const signals = buildSchoolSignals(school, t);
-          
+      <nav className="superadmin-tab-bar" aria-label={t('nav.main')}>
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isCurrent = activeTab === tab.id;
           return (
-            <div key={school.id} className="school-card school-card--ops">
-              <div className="school-card-header">
-                <div>
-                  <h3 className="school-card-title">
-                    <Building size={20} color="var(--primary)" /> {school.name}
-                  </h3>
-                  <span className="school-card-id">{t('superadmin.schoolId', { id: school.id })}</span>
-                </div>
-                <div className="school-status-stack">
-                  <span className={`badge ${isExpired ? 'badge-danger' : 'badge-success'}`}>
-                    {isExpired ? t('superadmin.statusExpired') : t('superadmin.statusActive')}
-                  </span>
-                  <span className={`status-badge ${healthBadgeClass(school.health_status)}`}>
-                    {t(`superadmin.health.${school.health_status}`)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="school-expiration">
-                <Calendar size={16} />
-                <span>
-                  {t('superadmin.expiration', {
-                    date: school.subscription_expires_at
-                      ? formatDate(school.subscription_expires_at, locale)
-                      : t('superadmin.never'),
-                  })}
-                </span>
-              </div>
-
-              <div className="school-ops-summary">
-                <div>
-                  <span>{t('superadmin.healthScore')}</span>
-                  <strong>{school.health_score}/100</strong>
-                </div>
-                <div>
-                  <span>{t('superadmin.createdAt')}</span>
-                  <strong>{formatDateTime(school.created_at, locale)}</strong>
-                </div>
-                <div>
-                  <span>{t('superadmin.lastLogin')}</span>
-                  <strong>{formatDateTime(school.last_login_at, locale)}</strong>
-                </div>
-              </div>
-
-              <div className="school-detail-section">
-                <h4>{t('superadmin.sectionPopulation')}</h4>
-                <div className="school-mini-grid">
-                  <span>{t('superadmin.metricUsers')} <strong>{formatNumber(school.user_count, locale)}</strong></span>
-                  <span>{t('superadmin.metricStudents')} <strong>{formatNumber(school.student_count, locale)}</strong></span>
-                  <span>{t('superadmin.metricClasses')} <strong>{formatNumber(school.class_count, locale)}</strong></span>
-                  <span>{t('superadmin.metricCourses')} <strong>{formatNumber(school.course_count, locale)}</strong></span>
-                </div>
-                <div className="role-chip-row">
-                  <span>{t('role.principal')}: {formatNumber(school.principal_count, locale)}</span>
-                  <span>{t('role.secretary')}: {formatNumber(school.secretary_count, locale)}</span>
-                  <span>{t('role.teacher')}: {formatNumber(school.teacher_count, locale)}</span>
-                  <span>{t('role.parent')}: {formatNumber(school.parent_count, locale)}</span>
-                </div>
-              </div>
-
-              <div className="school-detail-section">
-                <h4>{t('superadmin.sectionUsage')}</h4>
-                <div className="school-mini-grid">
-                  <span><Activity size={13} /> {t('superadmin.metricSessions')} <strong>{formatNumber(school.active_session_count, locale)}</strong></span>
-                  <span><MessageSquare size={13} /> {t('superadmin.metricMessages')} <strong>{formatNumber(school.class_message_count + school.direct_message_count, locale)}</strong></span>
-                  <span>{t('superadmin.metricGrades')} <strong>{formatNumber(school.grade_count, locale)}</strong></span>
-                  <span>{t('superadmin.metricAbsences')} <strong>{formatNumber(school.absence_count, locale)}</strong></span>
-                  <span>{t('superadmin.metricHomework')} <strong>{formatNumber(school.homework_count, locale)}</strong></span>
-                  <span>{t('superadmin.metricLinks')} <strong>{formatNumber(school.used_parent_link_count, locale)}</strong></span>
-                </div>
-              </div>
-
-              <div className="school-detail-section">
-                <h4>{t('superadmin.sectionObservability')}</h4>
-                <div className="school-mini-grid">
-                  <span><ShieldAlert size={13} /> {t('superadmin.metricAudit24h')} <strong>{formatNumber(school.audit_event_count_24h, locale)}</strong></span>
-                  <span>{t('superadmin.metricFailedAuth')} <strong>{formatNumber(school.failed_auth_count_24h, locale)}</strong></span>
-                  <span>{t('superadmin.metricServerErrors')} <strong>{formatNumber(school.server_error_count_24h, locale)}</strong></span>
-                  <span>{t('superadmin.metricPendingLinks')} <strong>{formatNumber(school.pending_parent_link_count, locale)}</strong></span>
-                </div>
-                <div className="school-timeline">
-                  <span><Clock size={13} /> {t('superadmin.lastAudit')}: {formatDateTime(school.last_audit_at, locale)}</span>
-                  <span>{t('superadmin.lastMessage')}: {formatDateTime(school.last_message_at, locale)}</span>
-                  <span>{t('superadmin.lastGrade')}: {formatDateTime(school.last_grade_at, locale)}</span>
-                  <span>{t('superadmin.lastAttendance')}: {formatDateTime(school.last_attendance_at, locale)}</span>
-                </div>
-              </div>
-
-              <div className="school-signal-list">
-                {signals.map((signal) => (
-                  <span key={signal.key} className={`school-signal school-signal--${signal.tone}`}>
-                    {signal.label}
-                  </span>
-                ))}
-              </div>
-
-              <div className="school-billing-row">
-                <span>
-                  {t('superadmin.paymentsCount', { count: school.payment_count })}
-                  {school.last_payment_at && ` - ${formatDateTime(school.last_payment_at, locale)}`}
-                </span>
-                <strong>
-                  {school.last_payment_amount !== null && school.last_payment_amount !== undefined
-                    ? `${formatCurrency(school.last_payment_amount, locale)} DA`
-                    : t('superadmin.noPayment')}
-                </strong>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                <button 
-                  className="btn btn-primary" 
-                  style={{ flex: 1 }}
-                  onClick={() => setSelectedSchool(school)}
-                  aria-label={t('superadmin.addPaymentFor', { school: school.name })}
-                >
-                  <DollarSign size={18} /> {t('superadmin.addPayment')}
-                </button>
-                <button
-                  className={`btn ${school.is_active ? 'btn-danger' : 'btn-success'}`}
-                  style={{ flex: 1 }}
-                  onClick={() => {
-                    if (school.is_active) {
-                      if (window.confirm(t('superadmin.confirmSuspend'))) {
-                        suspendSchoolMutation.mutate(school.id);
-                      }
-                    } else {
-                      activateSchoolMutation.mutate(school.id);
-                    }
-                  }}
-                  disabled={suspendSchoolMutation.isPending || activateSchoolMutation.isPending}
-                >
-                  {school.is_active ? t('superadmin.suspendSchool') : t('superadmin.activateSchool')}
-                </button>
-              </div>
-            </div>
+            <button
+              key={tab.id}
+              type="button"
+              className={`superadmin-tab-btn ${isCurrent ? 'superadmin-tab-btn--active' : ''}`}
+              onClick={() => navigate(tab.route)}
+              aria-current={isCurrent ? 'page' : undefined}
+            >
+              <Icon size={16} />
+              <span>{t(tab.labelKey)}</span>
+            </button>
           );
         })}
-      </div>
+      </nav>
 
-      {/* Payment Modal */}
-      {selectedSchool && (
-        <div
-          className="workspace-modal-backdrop"
-          onClick={(e) => { if (e.target === e.currentTarget) setSelectedSchool(null); }}
-        >
-          <div
-            ref={paymentModalRef}
-            className="workspace-modal payment-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="payment-modal-title"
-            onKeyDown={handlePaymentModalKeyDown}
-          >
-            <h2 id="payment-modal-title" className="payment-modal-title">{t('superadmin.paymentTitle')}</h2>
-            <p className="payment-school-copy">
-              {t('superadmin.schoolLabel')} <strong className="payment-school-name">{selectedSchool.name}</strong>
-            </p>
-
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              if (!amount) return;
-              paymentMutation.mutate({ 
-                school_id: selectedSchool.id, 
-                amount: parseFloat(amount), 
-                months_added: parseInt(months) 
-              });
-            }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="payment-amount">{t('superadmin.amountLabel')}</label>
-                <input 
-                  id="payment-amount"
-                  type="number" 
-                  className="input-field" 
-                  value={amount} 
-                  onChange={e => setAmount(e.target.value)} 
-                  placeholder={t('superadmin.amountPlaceholder')}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="payment-months">{t('superadmin.monthsLabel')}</label>
-                <input 
-                  id="payment-months"
-                  type="number" 
-                  className="input-field" 
-                  value={months} 
-                  onChange={e => setMonths(e.target.value)} 
-                  required
-                />
-              </div>
-
-              <div className="payment-actions">
-                <button type="button" className="btn btn-outline" onClick={() => setSelectedSchool(null)} aria-label={t('superadmin.cancelPaymentAria')}>{t('superadmin.cancelPayment')}</button>
-                <button 
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={paymentMutation.isPending || !amount}
-                  aria-label={t('superadmin.validatePaymentAria')}
-                  aria-busy={paymentMutation.isPending}
-                >
-                  <PlusCircle size={18} /> {t('superadmin.validatePayment')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {activeTab === 'schools' && (
+        <SuperAdminSchoolsTab
+          schools={schoolList}
+          readiness={readinessQuery.data}
+          readinessLoading={readinessQuery.isLoading}
+          isCreateModalOpen={isCreateModalOpen}
+          setIsCreateModalOpen={setIsCreateModalOpen}
+          addToast={addToast}
+        />
       )}
 
-      {/* Create School Modal */}
-      {isCreateModalOpen && (
-        <div
-          className="workspace-modal-backdrop"
-          onClick={(e) => { if (e.target === e.currentTarget) setIsCreateModalOpen(false); }}
-        >
-          <div
-            ref={createModalRef}
-            className="workspace-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-modal-title"
-          >
-            <h2 id="create-modal-title" className="payment-modal-title">{t('superadmin.createSchool')}</h2>
-            
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              if (!newSchoolName.trim()) return;
-              createSchoolMutation.mutate(newSchoolName);
-            }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="new-school-name">{t('superadmin.schoolNameLabel')}</label>
-                <input 
-                  id="new-school-name"
-                  type="text" 
-                  className="input-field" 
-                  value={newSchoolName} 
-                  onChange={e => setNewSchoolName(e.target.value)} 
-                  required
-                />
-              </div>
+      {activeTab === 'users' && <SuperAdminUsersTab schools={schoolList} addToast={addToast} />}
 
-              <div className="payment-actions">
-                <button type="button" className="btn btn-outline" onClick={() => setIsCreateModalOpen(false)}>
-                  Annuler
-                </button>
-                <button 
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={createSchoolMutation.isPending || !newSchoolName.trim()}
-                  aria-busy={createSchoolMutation.isPending}
-                >
-                  <PlusCircle size={18} /> {createSchoolMutation.isPending ? t('superadmin.creating') : t('superadmin.createSchoolSubmit')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {activeTab === 'broadcasts' && <SuperAdminBroadcastsTab schools={schoolList} addToast={addToast} />}
+
+      {activeTab === 'audit' && <SuperAdminAuditTab schools={schoolList} addToast={addToast} />}
     </div>
   );
 }

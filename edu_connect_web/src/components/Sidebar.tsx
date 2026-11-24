@@ -78,6 +78,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
       case 'system_admin':
         return [
           { to: '/superadmin', label: t('nav.schoolManagement'), icon: ShieldCheck },
+          { to: '/superadmin/users', label: t('nav.superAdminUsers'), icon: Users },
+          { to: '/superadmin/broadcasts', label: t('nav.superAdminBroadcasts'), icon: Megaphone },
+          { to: '/superadmin/audit', label: t('nav.auditLog'), icon: ScrollText },
           { to: '/policies', label: t('nav.legal'), icon: FileText },
         ];
       case 'principal':
@@ -191,6 +194,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             <NavLink
               key={link.to}
               to={link.to}
+              end={link.to === '/superadmin' || link.to === '/director'}
               state={link.to === '/policies' ? { from: currentPath } : undefined}
               className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
               title={collapsed ? link.label : undefined}

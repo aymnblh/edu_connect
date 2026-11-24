@@ -173,6 +173,9 @@ class SchoolActivationMiddleware(BaseHTTPMiddleware):
         if not payload:
             return await call_next(request)  # let auth deps raise 401
 
+        if payload.get("impersonator_role") == "system_admin":
+            return await call_next(request)
+
         user_id = payload.get("sub")
         if user_id:
             async with AsyncSessionLocal() as db:

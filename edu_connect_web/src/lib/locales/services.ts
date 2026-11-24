@@ -431,6 +431,601 @@ export const servicesTranslations: TranslationMap = {
     ar: 'تأكيد الدفع',
     en: 'Confirm payment',
   },
+  'superadmin.impersonationBanner': {
+    fr: 'Mode inspection Super Admin — Établissement : {school}',
+    ar: 'وضع معاينة المشرف العام — المؤسسة: {school}',
+    en: 'Super Admin inspection mode — School: {school}',
+  },
+  'superadmin.exitInspection': {
+    fr: 'Quitter l\'inspection',
+    ar: 'إنهاء المعاينة',
+    en: 'Exit inspection',
+  },
+  'superadmin.inspectSchool': {
+    fr: 'Inspecter',
+    ar: 'معاينة',
+    en: 'Inspect',
+  },
+  'superadmin.manageSchool': {
+    fr: 'Gérer',
+    ar: 'إدارة',
+    en: 'Manage',
+  },
+  'superadmin.manageSchoolTitle': {
+    fr: 'Configurer {school}',
+    ar: 'إعدادات {school}',
+    en: 'Configure {school}',
+  },
+  'superadmin.saveChanges': {
+    fr: 'Enregistrer',
+    ar: 'حفظ التغييرات',
+    en: 'Save changes',
+  },
+  'superadmin.searchSchoolsPlaceholder': {
+    fr: 'Rechercher une école, préfixe, code parrainage…',
+    ar: 'ابحث عن مدرسة، بادئة أو رمز إحالة…',
+    en: 'Search school, prefix, referral code…',
+  },
+  'superadmin.sortLabel': {
+    fr: 'Trier les établissements',
+    ar: 'ترتيب المؤسسات',
+    en: 'Sort schools',
+  },
+  'superadmin.filter.all': {
+    fr: 'Toutes',
+    ar: 'الكل',
+    en: 'All',
+  },
+  'superadmin.filter.active': {
+    fr: 'Actives',
+    ar: 'النشطة',
+    en: 'Active',
+  },
+  'superadmin.filter.suspended': {
+    fr: 'Suspendues',
+    ar: 'المعلقة',
+    en: 'Suspended',
+  },
+  'superadmin.filter.expired': {
+    fr: 'Expirées',
+    ar: 'المنتهية',
+    en: 'Expired',
+  },
+  'superadmin.filter.risk': {
+    fr: 'À surveiller',
+    ar: 'تحت المراقبة',
+    en: 'At risk',
+  },
+  'superadmin.sort.newest': {
+    fr: 'Plus récentes',
+    ar: 'الأحدث',
+    en: 'Newest',
+  },
+  'superadmin.sort.name': {
+    fr: 'Nom (A-Z)',
+    ar: 'الاسم (أ-ي)',
+    en: 'Name (A-Z)',
+  },
+  'superadmin.sort.health': {
+    fr: 'Santé (priorité alertes)',
+    ar: 'الصحة (الأولوية للتنبيهات)',
+    en: 'Health (alerts first)',
+  },
+  'superadmin.sort.expiry': {
+    fr: 'Expiration proche',
+    ar: 'الأقرب للانتهاء',
+    en: 'Expiring soonest',
+  },
+  'superadmin.sort.revenue': {
+    fr: 'Revenus décroissants',
+    ar: 'الأعلى إيراداً',
+    en: 'Highest revenue',
+  },
+  'superadmin.noMatchingSchools': {
+    fr: 'Aucun établissement ne correspond aux filtres sélectionnés.',
+    ar: 'لا توجد مؤسسات تطابق معايير البحث المحددة.',
+    en: 'No schools match the selected filters.',
+  },
+  'superadmin.referralCode': {
+    fr: 'Parrainage',
+    ar: 'رمز الإحالة',
+    en: 'Referral',
+  },
+  'superadmin.prefixLabel': {
+    fr: 'Préfixe ID élève',
+    ar: 'بادئة معرف التلميذ',
+    en: 'Student ID prefix',
+  },
+  'superadmin.planLabel': {
+    fr: 'Offre / Plan',
+    ar: 'الباقة / الخطة',
+    en: 'Plan',
+  },
+  'superadmin.initialMonthsLabel': {
+    fr: 'Mois d\'abonnement initiaux',
+    ar: 'أشهر الاشتراك الأولية',
+    en: 'Initial subscription months',
+  },
+  'superadmin.maxParentsLabel': {
+    fr: 'Parents max / élève',
+    ar: 'أقصى عدد أولياء / تلميذ',
+    en: 'Max parents / student',
+  },
+  'superadmin.expiryDateLabel': {
+    fr: 'Date d\'expiration',
+    ar: 'تاريخ انتهاء الاشتراك',
+    en: 'Expiration date',
+  },
+  'superadmin.activateImmediately': {
+    fr: 'Activer immédiatement',
+    ar: 'تفعيل فوري',
+    en: 'Activate immediately',
+  },
+  'superadmin.createInitialPrincipal': {
+    fr: 'Créer un compte directeur initial',
+    ar: 'إنشاء حساب مدير أولي',
+    en: 'Create initial director account',
+  },
+  'superadmin.paymentMethodLabel': {
+    fr: 'Mode de paiement',
+    ar: 'طريقة الدفع',
+    en: 'Payment method',
+  },
+  'superadmin.paymentNotesLabel': {
+    fr: 'Notes (optionnel)',
+    ar: 'ملاحظات (اختياري)',
+    en: 'Notes (optional)',
+  },
+  'superadmin.paymentHistoryTitle': {
+    fr: 'Historique des paiements',
+    ar: 'سجل المدفوعات',
+    en: 'Payment history',
+  },
+  'superadmin.monthsUnit': {
+    fr: 'mois',
+    ar: 'أشهر',
+    en: 'months',
+  },
+  'superadmin.deletePayment': {
+    fr: 'Supprimer ce paiement',
+    ar: 'حذف هذه الدفعة',
+    en: 'Delete this payment',
+  },
+  'superadmin.confirmDeletePayment': {
+    fr: 'Supprimer cet enregistrement de paiement ?',
+    ar: 'هل تريد حذف سجل هذه الدفعة؟',
+    en: 'Delete this payment record?',
+  },
+  'superadmin.toastPaymentDeleted': {
+    fr: 'Paiement supprimé.',
+    ar: 'تم حذف الدفعة.',
+    en: 'Payment deleted.',
+  },
+  'superadmin.toastSchoolUpdated': {
+    fr: 'Établissement mis à jour.',
+    ar: 'تم تحديث إعدادات المؤسسة.',
+    en: 'School updated.',
+  },
+  'superadmin.toastSchoolDeleted': {
+    fr: 'Établissement supprimé définitivement.',
+    ar: 'تم حذف المؤسسة نهائياً.',
+    en: 'School permanently deleted.',
+  },
+  'superadmin.toastSchoolSessionsRevoked': {
+    fr: 'Toutes les sessions de l\'établissement ont été déconnectées.',
+    ar: 'تم إنهاء جميع جلسات المؤسسة.',
+    en: 'All sessions for this school have been revoked.',
+  },
+  'superadmin.dangerZoneTitle': {
+    fr: 'Sécurité et zone sensible',
+    ar: 'الأمان والمنطقة الحساسة',
+    en: 'Security & danger zone',
+  },
+  'superadmin.revokeSchoolSessionsDesc': {
+    fr: 'Déconnecter tous les utilisateurs actifs de cet établissement.',
+    ar: 'تسجيل خروج جميع المستخدمين النشطين في هذه المؤسسة.',
+    en: 'Force sign-out of all active users in this school.',
+  },
+  'superadmin.revokeSchoolSessions': {
+    fr: 'Révoquer sessions',
+    ar: 'إنهاء الجلسات',
+    en: 'Revoke sessions',
+  },
+  'superadmin.confirmRevokeSchoolSessions': {
+    fr: 'Déconnecter immédiatement tous les utilisateurs de {school} ?',
+    ar: 'هل تريد إنهاء جلسات جميع مستخدمي {school} فوراً؟',
+    en: 'Immediately sign out all users of {school}?',
+  },
+  'superadmin.deleteSchoolWarning': {
+    fr: 'Suppression définitive : saisissez « {school} » pour confirmer la suppression de l\'école et de toutes ses données.',
+    ar: 'حذف نهائي: اكتب «{school}» لتأكيد حذف المؤسسة وجميع بياناتها.',
+    en: 'Permanent deletion: type "{school}" to confirm deleting this school and all its data.',
+  },
+  'superadmin.deleteSchool': {
+    fr: 'Supprimer l\'école',
+    ar: 'حذف المدرسة',
+    en: 'Delete school',
+  },
+  'superadmin.users.title': {
+    fr: 'Gestion globale des utilisateurs',
+    ar: 'الإدارة الشاملة للمستخدمين',
+    en: 'Global user management',
+  },
+  'superadmin.users.copy': {
+    fr: 'Consultez, créez ou dépannez n\'importe quel compte sur la plateforme (directeurs, personnel, parents, Super Admins).',
+    ar: 'استعرض وأنشئ وأدر أي حساب على المنصة (مديرون، موظفون، أولياء، مشرفون عامون).',
+    en: 'View, create, or support any account across the platform (directors, staff, parents, Super Admins).',
+  },
+  'superadmin.users.create': {
+    fr: 'Nouvel utilisateur',
+    ar: 'مستخدم جديد',
+    en: 'New user',
+  },
+  'superadmin.users.searchPlaceholder': {
+    fr: 'Rechercher par nom ou email…',
+    ar: 'ابحث بالاسم أو البريد الإلكتروني…',
+    en: 'Search by name or email…',
+  },
+  'superadmin.users.roleLabel': {
+    fr: 'Rôle',
+    ar: 'الدور',
+    en: 'Role',
+  },
+  'superadmin.users.allRoles': {
+    fr: 'Tous les rôles',
+    ar: 'جميع الأدوار',
+    en: 'All roles',
+  },
+  'superadmin.users.statusLabel': {
+    fr: 'Statut',
+    ar: 'الحالة',
+    en: 'Status',
+  },
+  'superadmin.users.statusAll': {
+    fr: 'Tous les statuts',
+    ar: 'جميع الحالات',
+    en: 'All statuses',
+  },
+  'superadmin.users.statusDeactivated': {
+    fr: 'Désactivé',
+    ar: 'معطل',
+    en: 'Deactivated',
+  },
+  'superadmin.users.empty': {
+    fr: 'Aucun utilisateur trouvé avec ces filtres.',
+    ar: 'لم يتم العثور على مستخدمين بهذه المعايير.',
+    en: 'No users found matching these filters.',
+  },
+  'superadmin.users.colUser': {
+    fr: 'Utilisateur',
+    ar: 'المستخدم',
+    en: 'User',
+  },
+  'superadmin.users.colRole': {
+    fr: 'Rôle',
+    ar: 'الدور',
+    en: 'Role',
+  },
+  'superadmin.users.colSchool': {
+    fr: 'Établissement',
+    ar: 'المؤسسة',
+    en: 'School',
+  },
+  'superadmin.users.colStatus': {
+    fr: 'Statut',
+    ar: 'الحالة',
+    en: 'Status',
+  },
+  'superadmin.users.colSessions': {
+    fr: 'Sessions',
+    ar: 'الجلسات',
+    en: 'Sessions',
+  },
+  'superadmin.users.colActions': {
+    fr: 'Actions',
+    ar: 'الإجراءات',
+    en: 'Actions',
+  },
+  'superadmin.users.edit': {
+    fr: 'Modifier',
+    ar: 'تعديل',
+    en: 'Edit',
+  },
+  'superadmin.users.resetPassword': {
+    fr: 'Réinitialiser le mot de passe',
+    ar: 'إعادة تعيين كلمة المرور',
+    en: 'Reset password',
+  },
+  'superadmin.users.revokeSessions': {
+    fr: 'Déconnecter les sessions',
+    ar: 'إنهاء الجلسات',
+    en: 'Revoke sessions',
+  },
+  'superadmin.users.confirmRevoke': {
+    fr: 'Déconnecter toutes les sessions actives de {name} ?',
+    ar: 'هل تريد إنهاء جميع جلسات {name} النشطة؟',
+    en: 'Sign out all active sessions for {name}?',
+  },
+  'superadmin.users.deactivate': {
+    fr: 'Désactiver',
+    ar: 'تعطيل',
+    en: 'Deactivate',
+  },
+  'superadmin.users.reactivate': {
+    fr: 'Réactiver',
+    ar: 'إعادة التفعيل',
+    en: 'Reactivate',
+  },
+  'superadmin.users.confirmDeactivate': {
+    fr: 'Désactiver le compte de {name} et fermer ses sessions ?',
+    ar: 'هل تريد تعطيل حساب {name} وإنهاء جلساته؟',
+    en: 'Deactivate {name}\'s account and revoke their sessions?',
+  },
+  'superadmin.users.createTitle': {
+    fr: 'Créer un compte utilisateur',
+    ar: 'إنشاء حساب مستخدم',
+    en: 'Create user account',
+  },
+  'superadmin.users.editTitle': {
+    fr: 'Modifier le compte',
+    ar: 'تعديل الحساب',
+    en: 'Edit account',
+  },
+  'superadmin.users.fullNameLabel': {
+    fr: 'Nom complet',
+    ar: 'الاسم الكامل',
+    en: 'Full name',
+  },
+  'superadmin.users.emailLabel': {
+    fr: 'Adresse email',
+    ar: 'البريد الإلكتروني',
+    en: 'Email address',
+  },
+  'superadmin.users.schoolLabel': {
+    fr: 'Établissement',
+    ar: 'المؤسسة',
+    en: 'School',
+  },
+  'superadmin.users.phoneLabel': {
+    fr: 'Téléphone (optionnel)',
+    ar: 'رقم الهاتف (اختياري)',
+    en: 'Phone (optional)',
+  },
+  'superadmin.users.passwordLabel': {
+    fr: 'Mot de passe (8 car. min.)',
+    ar: 'كلمة المرور (8 أحرف على الأقل)',
+    en: 'Password (min. 8 chars)',
+  },
+  'superadmin.users.createSubmit': {
+    fr: 'Créer le compte',
+    ar: 'إنشاء الحساب',
+    en: 'Create account',
+  },
+  'superadmin.users.accountActive': {
+    fr: 'Compte actif',
+    ar: 'الحساب نشط',
+    en: 'Account active',
+  },
+  'superadmin.users.resetPasswordTitle': {
+    fr: 'Réinitialiser le mot de passe',
+    ar: 'إعادة تعيين كلمة المرور',
+    en: 'Reset password',
+  },
+  'superadmin.users.newPasswordLabel': {
+    fr: 'Nouveau mot de passe (8 car. min.)',
+    ar: 'كلمة المرور الجديدة (8 أحرف على الأقل)',
+    en: 'New password (min. 8 chars)',
+  },
+  'superadmin.users.resetPasswordSubmit': {
+    fr: 'Appliquer',
+    ar: 'تطبيق',
+    en: 'Apply',
+  },
+  'superadmin.users.toastCreated': {
+    fr: 'Utilisateur créé avec succès.',
+    ar: 'تم إنشاء المستخدم بنجاح.',
+    en: 'User created successfully.',
+  },
+  'superadmin.users.toastUpdated': {
+    fr: 'Utilisateur mis à jour.',
+    ar: 'تم تحديث بيانات المستخدم.',
+    en: 'User updated.',
+  },
+  'superadmin.users.toastPasswordReset': {
+    fr: 'Mot de passe réinitialisé et sessions fermées.',
+    ar: 'تمت إعادة تعيين كلمة المرور وإغلاق الجلسات.',
+    en: 'Password reset and sessions revoked.',
+  },
+  'superadmin.users.toastSessionsRevoked': {
+    fr: 'Sessions de l\'utilisateur révoquées.',
+    ar: 'تم إنهاء جلسات المستخدم.',
+    en: 'User sessions revoked.',
+  },
+  'superadmin.broadcasts.composeTitle': {
+    fr: 'Diffuser une annonce plateforme',
+    ar: 'إرسال إعلان على مستوى المنصة',
+    en: 'Send a platform broadcast',
+  },
+  'superadmin.broadcasts.composeCopy': {
+    fr: 'Informez rapidement les directeurs ou les établissements d\'une maintenance, mise à jour ou information importante.',
+    ar: 'أبلغ المديرين أو المؤسسات بسرعة عن صيانة أو تحديث أو إشعار مهم.',
+    en: 'Notify directors or schools about maintenance windows, product updates, or important notices.',
+  },
+  'superadmin.broadcasts.titleLabel': {
+    fr: 'Titre de l\'annonce',
+    ar: 'عنوان الإعلان',
+    en: 'Announcement title',
+  },
+  'superadmin.broadcasts.titlePlaceholder': {
+    fr: 'Ex. Maintenance programmée vendredi à 22h',
+    ar: 'مثال: صيانة مبرمجة يوم الجمعة الساعة 22:00',
+    en: 'e.g. Scheduled maintenance Friday at 22:00',
+  },
+  'superadmin.broadcasts.bodyLabel': {
+    fr: 'Message',
+    ar: 'نص الرسالة',
+    en: 'Message',
+  },
+  'superadmin.broadcasts.bodyPlaceholder': {
+    fr: 'Détaillez votre message pour les destinataires…',
+    ar: 'اكتب تفاصيل الرسالة للمستلمين…',
+    en: 'Write the details for recipients…',
+  },
+  'superadmin.broadcasts.audienceLabel': {
+    fr: 'Destinataires',
+    ar: 'الفئة المستهدفة',
+    en: 'Audience',
+  },
+  'superadmin.broadcasts.audience.principals': {
+    fr: 'Directeurs uniquement',
+    ar: 'المديرون فقط',
+    en: 'Directors only',
+  },
+  'superadmin.broadcasts.audience.admins': {
+    fr: 'Direction (directeurs + secrétaires)',
+    ar: 'الإدارة (المديرون والكتاب)',
+    en: 'Administration (directors + secretaries)',
+  },
+  'superadmin.broadcasts.audience.staff': {
+    fr: 'Tout le personnel',
+    ar: 'جميع الموظفين',
+    en: 'All staff',
+  },
+  'superadmin.broadcasts.audience.all_users': {
+    fr: 'Toute l\'école (personnel + parents)',
+    ar: 'المدرسة بالكامل (الموظفون والأولياء)',
+    en: 'Whole school (staff + parents)',
+  },
+  'superadmin.broadcasts.targetsLabel': {
+    fr: 'Établissements ciblés',
+    ar: 'المؤسسات المستهدفة',
+    en: 'Target schools',
+  },
+  'superadmin.broadcasts.targets.active': {
+    fr: 'Écoles actives uniquement',
+    ar: 'المدارس النشطة فقط',
+    en: 'Active schools only',
+  },
+  'superadmin.broadcasts.targets.all': {
+    fr: 'Toutes les écoles',
+    ar: 'جميع المدارس',
+    en: 'All schools',
+  },
+  'superadmin.broadcasts.targets.selected': {
+    fr: 'Sélection manuelle',
+    ar: 'اختيار يدوي',
+    en: 'Manual selection',
+  },
+  'superadmin.broadcasts.categoryLabel': {
+    fr: 'Catégorie',
+    ar: 'الفئة',
+    en: 'Category',
+  },
+  'superadmin.broadcasts.pickSchools': {
+    fr: 'Sélectionnez les établissements',
+    ar: 'اختر المؤسسات',
+    en: 'Select schools',
+  },
+  'superadmin.broadcasts.publishBoardOption': {
+    fr: 'Publier aussi dans le tableau d\'annonces de chaque établissement',
+    ar: 'نشر الإعلان أيضاً في لوحة إعلانات كل مؤسسة',
+    en: 'Also publish to each school\'s announcements board',
+  },
+  'superadmin.broadcasts.targetSummary': {
+    fr: '{count} établissement(s) ciblé(s)',
+    ar: '{count} مؤسسة مستهدفة',
+    en: '{count} school(s) targeted',
+  },
+  'superadmin.broadcasts.sending': {
+    fr: 'Diffusion en cours…',
+    ar: 'جارٍ الإرسال…',
+    en: 'Sending…',
+  },
+  'superadmin.broadcasts.send': {
+    fr: 'Diffuser l\'annonce',
+    ar: 'إرسال الإعلان',
+    en: 'Send broadcast',
+  },
+  'superadmin.broadcasts.sentSuccess': {
+    fr: 'Annonce diffusée à {schools} établissement(s) ({recipients} destinataire(s)).',
+    ar: 'تم إرسال الإعلان إلى {schools} مؤسسة ({recipients} مستلم).',
+    en: 'Broadcast sent to {schools} school(s) ({recipients} recipient(s)).',
+  },
+  'superadmin.broadcasts.selectSchoolError': {
+    fr: 'Sélectionnez au moins un établissement.',
+    ar: 'يرجى اختيار مؤسسة واحدة على الأقل.',
+    en: 'Please select at least one school.',
+  },
+  'superadmin.broadcasts.historyTitle': {
+    fr: 'Historique des diffusions',
+    ar: 'سجل الإعلانات المرسلة',
+    en: 'Broadcast history',
+  },
+  'superadmin.broadcasts.historyCopy': {
+    fr: 'Derniers messages plateforme envoyés par les Super Admins.',
+    ar: 'آخر إعلانات المنصة التي أرسلها المشرفون العامون.',
+    en: 'Recent platform messages sent by Super Admins.',
+  },
+  'superadmin.broadcasts.empty': {
+    fr: 'Aucune diffusion globale envoyée pour le moment.',
+    ar: 'لم يتم إرسال أي إعلان عام بعد.',
+    en: 'No platform broadcasts sent yet.',
+  },
+  'superadmin.broadcasts.stats': {
+    fr: '{schools} école(s) · {recipients} destinataire(s)',
+    ar: '{schools} مدرسة · {recipients} مستلم',
+    en: '{schools} school(s) · {recipients} recipient(s)',
+  },
+  'superadmin.audit.title': {
+    fr: 'Journal d\'audit global & sécurité',
+    ar: 'سجل التدقيق والأمان الشامل',
+    en: 'Global security & audit log',
+  },
+  'superadmin.audit.copy': {
+    fr: 'Suivez les événements de sécurité et d\'administration de tous les établissements et de la plateforme.',
+    ar: 'تابع أحداث الأمان والإدارة لجميع المؤسسات والمنصة.',
+    en: 'Track security and administrative events across all schools and the platform.',
+  },
+  'superadmin.audit.purge': {
+    fr: 'Purger les logs expirés',
+    ar: 'تنظيف السجلات المنتهية',
+    en: 'Purge expired logs',
+  },
+  'superadmin.audit.confirmPurge': {
+    fr: 'Supprimer définitivement les événements d\'audit dépassant la durée de rétention configurée ?',
+    ar: 'هل تريد حذف سجلات التدقيق التي تجاوزت مدة الاحتفاظ نهائياً؟',
+    en: 'Permanently delete audit events older than the configured retention period?',
+  },
+  'superadmin.audit.purgeSuccess': {
+    fr: '{count} événement(s) purgé(s) (antérieurs au {cutoff}).',
+    ar: 'تم حذف {count} سجل (قبل {cutoff}).',
+    en: 'Purged {count} event(s) (before {cutoff}).',
+  },
+  'superadmin.audit.schoolFilter': {
+    fr: 'Établissement',
+    ar: 'المؤسسة',
+    en: 'School',
+  },
+  'superadmin.audit.allSchools': {
+    fr: 'Toutes les écoles',
+    ar: 'جميع المدارس',
+    en: 'All schools',
+  },
+  'superadmin.audit.platformOnly': {
+    fr: 'Plateforme uniquement',
+    ar: 'المنصة فقط',
+    en: 'Platform only',
+  },
+  'superadmin.audit.schoolColumn': {
+    fr: 'Établissement',
+    ar: 'المؤسسة',
+    en: 'School',
+  },
+  'superadmin.audit.platformBadge': {
+    fr: 'Plateforme',
+    ar: 'المنصة',
+    en: 'Platform',
+  },
   'canteen.title': {
     fr: 'Cantine scolaire',
     ar: 'المطعم المدرسي',

@@ -64,6 +64,9 @@ function App() {
               {/* Authenticated Workspace Scopes wrapped with Sidebar Layout */}
               <Route element={<AuthenticatedLayout />}>
                 <Route path="/superadmin" element={<PageTransition><WorkspaceRoute role="system_admin"><SuperAdminDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/superadmin/users" element={<PageTransition><WorkspaceRoute role="system_admin"><SuperAdminDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/superadmin/broadcasts" element={<PageTransition><WorkspaceRoute role="system_admin"><SuperAdminDashboard /></WorkspaceRoute></PageTransition>} />
+                <Route path="/superadmin/audit" element={<PageTransition><WorkspaceRoute role="system_admin"><SuperAdminDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/monthly-report" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />
                 <Route path="/director/fees" element={<PageTransition><WorkspaceRoute role={['principal', 'secretary']}><DirectorDashboard /></WorkspaceRoute></PageTransition>} />

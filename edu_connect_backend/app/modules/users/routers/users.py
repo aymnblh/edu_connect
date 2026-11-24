@@ -58,6 +58,8 @@ async def update_me(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if getattr(current_user, "_is_impersonated", False):
+        raise HTTPException(status_code=403, detail="Modification du profil indisponible en mode inspection.")
     for field, value in payload.model_dump(exclude_none=True).items():
         setattr(current_user, field, value)
     await db.commit()

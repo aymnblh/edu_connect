@@ -16,7 +16,7 @@ from app.core.rls import (
     set_request_rls_context,
 )
 from app.db.database import get_db
-from app.models import User, RefreshToken
+from app.models import School, User, UserRole, RefreshToken
 
 # ─── Password Hashing ────────────────────────────────────────────────────────
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
@@ -85,6 +85,48 @@ def session_rejection(user: User, claims: dict) -> str | None:
 def create_access_token_for_user(user: User) -> str:
     return create_access_token(access_payload_for_user(user))
 
+
+def create_impersonation_token(admin_user: User, school: School, minutes: int = 30) -> str:
+    """Issue a short-lived principal access token scoped to one school for SuperAdmin inspection."""
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": admin_user.id,
+        "role": UserRole.principal.value,
+        "school_id": school.id,
+        "tv": admin_user.token_version or 0,
+        "impersonator_id": admin_user.id,
+        "impersonator_role": UserRole.system_admin.value,
+        "impersonated_school_name": school.name,
+        "exp": now + timedelta(minutes=minutes),
+        "iat": now,
+        "typ": "access",
+        "iss": JWT_ISSUER,
+        "aud": JWT_AUDIENCE,
+    }
+    return encode_jwt(payload, settings.private_key, algorithm="RS256")
+
+
+def _make_impersonated_principal(admin_user: User, school: School) -> User:
+    """Build a detached User view acting as principal of ``school`` without mutating the DB row."""
+    proxy = User(
+        id=admin_user.id,
+        school_id=school.id,
+        email=admin_user.email,
+        full_name=admin_user.full_name,
+        role=UserRole.principal,
+        password_hash=admin_user.password_hash,
+        phone=admin_user.phone,
+        avatar_url=admin_user.avatar_url,
+        terms_accepted_at=admin_user.terms_accepted_at,
+        terms_version=admin_user.terms_version,
+        deactivated_at=None,
+        token_version=admin_user.token_version or 0,
+        created_at=admin_user.created_at,
+    )
+    proxy.school = school
+    setattr(proxy, "_is_impersonated", True)
+    return proxy
+
 def create_refresh_token(user_id: str, family_id: str) -> str:
     """Issue a long-lived refresh token (RS256)."""
     to_encode = {
@@ -145,6 +187,17 @@ async def get_current_user(
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token claims.")
 
+    is_superadmin_impersonation = (
+        claims.get("impersonator_role") == UserRole.system_admin.value
+        and claims.get("impersonator_id") == user_id
+        and claims.get("role") == UserRole.principal.value
+        and bool(claims.get("school_id"))
+    )
+    if is_superadmin_impersonation:
+        # TenantMiddleware sets app.current_school_id to the inspected school, so allow
+        # reading the super admin row by its own id via users_auth_lookup_select.
+        await set_auth_user_id(db, user_id)
+
     from sqlalchemy.orm import selectinload
     result = await db.execute(
         select(User).options(selectinload(User.school), selectinload(User.students_linking)).where(User.id == user_id)
@@ -153,6 +206,21 @@ async def get_current_user(
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
+
+    if is_superadmin_impersonation:
+        if user.role != UserRole.system_admin:
+            raise HTTPException(status_code=401, detail="Session role is no longer valid.")
+        rejection = session_rejection(user, claims)
+        if rejection == "deactivated":
+            raise HTTPException(status_code=403, detail="Account deactivated.")
+        if rejection == "password_setup_required":
+            raise HTTPException(status_code=403, detail="Password setup is required.")
+        if rejection == "revoked":
+            raise HTTPException(status_code=401, detail="Session expired. Please login again.")
+        target_school = await db.get(School, claims["school_id"])
+        if not target_school:
+            raise HTTPException(status_code=404, detail="School not found.")
+        return _make_impersonated_principal(user, target_school)
 
     expected_role = claims.get("role")
     expected_school_id = claims.get("school_id")

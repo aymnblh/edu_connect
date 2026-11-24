@@ -366,6 +366,81 @@ export const directorReportsTranslations: TranslationMap = {
     ar: 'إعدادات المؤسسة',
     en: 'School settings',
   },
+  'audit.category.system': {
+    fr: 'Administration plateforme',
+    ar: 'إدارة المنصة',
+    en: 'Platform administration',
+  },
+  'audit.action.system.school_created': {
+    fr: 'Création d\'un établissement',
+    ar: 'إنشاء مؤسسة',
+    en: 'School created',
+  },
+  'audit.action.system.school_updated': {
+    fr: 'Modification d\'un établissement',
+    ar: 'تعديل مؤسسة',
+    en: 'School updated',
+  },
+  'audit.action.system.school_deleted': {
+    fr: 'Suppression d\'un établissement',
+    ar: 'حذف مؤسسة',
+    en: 'School deleted',
+  },
+  'audit.action.system.school_activated': {
+    fr: 'Activation d\'un établissement',
+    ar: 'تفعيل مؤسسة',
+    en: 'School activated',
+  },
+  'audit.action.system.school_deactivated': {
+    fr: 'Suspension d\'un établissement',
+    ar: 'تعليق مؤسسة',
+    en: 'School suspended',
+  },
+  'audit.action.system.subscription_payment_added': {
+    fr: 'Paiement d\'abonnement enregistré',
+    ar: 'تسجيل دفعة اشتراك',
+    en: 'Subscription payment recorded',
+  },
+  'audit.action.system.payment_deleted': {
+    fr: 'Paiement d\'abonnement supprimé',
+    ar: 'حذف دفعة اشتراك',
+    en: 'Subscription payment deleted',
+  },
+  'audit.action.system.school_sessions_revoked': {
+    fr: 'Déconnexion forcée d\'un établissement',
+    ar: 'إنهاء جميع جلسات المؤسسة',
+    en: 'School sessions revoked',
+  },
+  'audit.action.system.school_impersonation_started': {
+    fr: 'Inspection d\'un établissement démarrée',
+    ar: 'بدء معاينة مؤسسة',
+    en: 'School inspection started',
+  },
+  'audit.action.system.user_created': {
+    fr: 'Utilisateur créé (Super Admin)',
+    ar: 'إنشاء مستخدم (المشرف العام)',
+    en: 'User created (Super Admin)',
+  },
+  'audit.action.system.user_updated': {
+    fr: 'Utilisateur modifié (Super Admin)',
+    ar: 'تعديل مستخدم (المشرف العام)',
+    en: 'User updated (Super Admin)',
+  },
+  'audit.action.system.user_password_reset': {
+    fr: 'Mot de passe réinitialisé (Super Admin)',
+    ar: 'إعادة تعيين كلمة المرور (المشرف العام)',
+    en: 'Password reset (Super Admin)',
+  },
+  'audit.action.system.user_sessions_revoked': {
+    fr: 'Sessions utilisateur révoquées',
+    ar: 'إنهاء جلسات المستخدم',
+    en: 'User sessions revoked',
+  },
+  'audit.action.system.broadcast_sent': {
+    fr: 'Annonce globale diffusée',
+    ar: 'إرسال إعلان عام للمنصة',
+    en: 'Platform broadcast sent',
+  },
   'audit.action.auth.login_success': {
     fr: 'Connexion',
     ar: 'تسجيل الدخول',

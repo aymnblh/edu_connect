@@ -4,6 +4,7 @@ import { useWorkspace } from '../contexts/useWorkspace';
 import { useLocale } from '../lib/i18n';
 import { Menu } from 'lucide-react';
 import DemoBanner from './DemoBanner';
+import ImpersonationBanner from './ImpersonationBanner';
 import Sidebar from './Sidebar';
 
 export default function AuthenticatedLayout() {
@@ -107,6 +108,7 @@ export default function AuthenticatedLayout() {
       
       {/* Content Canvas */}
       <main id="main-content" className="layout-content-wrapper">
+        <ImpersonationBanner />
         <DemoBanner />
         <Outlet />
       </main>
