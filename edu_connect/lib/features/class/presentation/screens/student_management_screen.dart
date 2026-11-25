@@ -474,16 +474,20 @@ class _StudentManagementScreenState
                                       : colors.warningAmber,
                                 ),
                                 const SizedBox(width: 4),
-                                Text(
-                                  isLinked
-                                      ? '${l10n.linked} (${student.parents.length})'
-                                      : l10n.notLinked,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isLinked
-                                        ? colors.successGreen
-                                        : colors.warningAmber,
-                                    fontWeight: FontWeight.w600,
+                                Expanded(
+                                  child: Text(
+                                    isLinked
+                                        ? '${l10n.linked} (${student.parents.length})'
+                                        : l10n.notLinked,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isLinked
+                                          ? colors.successGreen
+                                          : colors.warningAmber,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ],

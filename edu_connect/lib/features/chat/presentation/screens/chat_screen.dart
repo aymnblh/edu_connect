@@ -527,16 +527,20 @@ class _AnnouncementBubble extends StatelessWidget {
                 color: colors.warningAmber,
               ),
               const SizedBox(width: 6),
-              Text(
-                AppLocalizations.of(context)!.announcements,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: colors.warningAmber,
-                  letterSpacing: 0.5,
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context)!.announcements,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: colors.warningAmber,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Text(
                 DateFormatter.chatTimestamp(message.createdAt),
                 style: TextStyle(

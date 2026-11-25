@@ -374,8 +374,10 @@ class ClassHealthAlertsBanner extends ConsumerWidget {
           Row(children: [
             Icon(Icons.warning_amber_rounded, color: warning, size: 18),
             const SizedBox(width: 6),
-            Text(text.classAlerts,
-                style: const TextStyle(fontWeight: FontWeight.w800)),
+            Expanded(
+              child: Text(text.classAlerts,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
           ]),
           const SizedBox(height: 6),
           for (final a in alerts)

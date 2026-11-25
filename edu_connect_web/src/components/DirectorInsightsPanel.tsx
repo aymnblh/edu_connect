@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, ClipboardCheck, UserX } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -89,6 +89,17 @@ export default function DirectorInsightsPanel() {
   const { t, locale } = useLocale();
   const [semesterId, setSemesterId] = useState('');
   const [showTable, setShowTable] = useState(false);
+  const [compactChart, setCompactChart] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 560px)').matches,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 560px)');
+    const onChange = () => setCompactChart(mq.matches);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   const insightsQuery = useQuery<Insights>({
     queryKey: ['director-insights', semesterId],
@@ -166,7 +177,7 @@ export default function DirectorInsightsPanel() {
       </div>
       <div className="insights-chart" role="img" aria-label={t('insights.trendAria')}>
         <ResponsiveContainer width="100%" height={240}>
-          <LineChart data={weeks} margin={{ top: 12, right: 72, bottom: 4, left: 0 }}>
+          <LineChart data={weeks} margin={{ top: 12, right: compactChart ? 12 : 72, bottom: 4, left: 0 }}>
             <CartesianGrid stroke="var(--border-color)" vertical={false} />
             <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
             <YAxis
@@ -176,17 +187,17 @@ export default function DirectorInsightsPanel() {
               axisLine={false}
               allowDecimals={false}
               tickFormatter={(value: number) => `${value}%`}
-              width={44}
+              width={compactChart ? 36 : 44}
             />
             <Tooltip content={<TrendTooltip t={t} />} cursor={{ stroke: 'var(--text-muted)', strokeWidth: 1 }} />
             <Line type="linear" dataKey="absence_plot" stroke={SERIES.absence} strokeWidth={2}
               dot={{ r: 4, strokeWidth: 2, stroke: 'var(--surface-color)', fill: SERIES.absence }}
               activeDot={{ r: 6, strokeWidth: 2, stroke: 'var(--surface-color)' }}
-              label={endLabel(t('insights.absencesShort'))} isAnimationActive={false} />
+              label={compactChart ? false : endLabel(t('insights.absencesShort'))} isAnimationActive={false} />
             <Line type="linear" dataKey="late_plot" stroke={SERIES.late} strokeWidth={2}
               dot={{ r: 4, strokeWidth: 2, stroke: 'var(--surface-color)', fill: SERIES.late }}
               activeDot={{ r: 6, strokeWidth: 2, stroke: 'var(--surface-color)' }}
-              label={endLabel(t('insights.latesShort'))} isAnimationActive={false} />
+              label={compactChart ? false : endLabel(t('insights.latesShort'))} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>

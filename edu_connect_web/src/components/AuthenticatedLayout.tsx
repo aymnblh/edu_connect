@@ -81,18 +81,24 @@ export default function AuthenticatedLayout() {
         <div className="ambient-blob-2"></div>
       </div>
 
-      {/* Hamburger button for mobile */}
-      <button
-        ref={menuButtonRef}
-        type="button"
-        className="hamburger-btn"
-        onClick={() => setSidebarOpen(true)}
-        aria-label={t('layout.openMenu')}
-        aria-expanded={sidebarOpen}
-        aria-controls="app-sidebar"
-      >
-        <Menu size={20} />
-      </button>
+      {/* Mobile top bar */}
+      <div className="mobile-topbar">
+        <button
+          ref={menuButtonRef}
+          type="button"
+          className="hamburger-btn"
+          onClick={() => setSidebarOpen(true)}
+          aria-label={t('layout.openMenu')}
+          aria-expanded={sidebarOpen}
+          aria-controls="app-sidebar"
+        >
+          <Menu size={20} />
+        </button>
+        <div className="mobile-topbar-brand">
+          <img src="/wasel-edu-logo.png" alt="" aria-hidden="true" />
+          <span>{t('common.appName')}</span>
+        </div>
+      </div>
 
       {/* Sidebar overlay for mobile */}
       {sidebarOpen && (

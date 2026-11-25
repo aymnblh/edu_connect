@@ -305,9 +305,14 @@ class _TransportScreenState extends ConsumerState<TransportScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Expanded(
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 160),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -334,6 +339,7 @@ class _TransportScreenState extends ConsumerState<TransportScreen> {
                 else if (trip['status'] == 'in_progress')
                   Wrap(
                     spacing: 8,
+                    runSpacing: 8,
                     children: [
                       OutlinedButton(
                         onPressed: () async {
@@ -386,20 +392,23 @@ class _TransportScreenState extends ConsumerState<TransportScreen> {
                                 '${emergency['name']}: ${emergency['phone']}',
                             ].join(' · ')),
                             trailing: tripId != null && trip?['status'] == 'in_progress'
-                                ? Wrap(
-                                    spacing: 4,
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
+                                        visualDensity: VisualDensity.compact,
                                         tooltip: text.boarded,
                                         icon: const Icon(Icons.login),
                                         onPressed: () => _sendEvent(tripId, sid, 'boarded'),
                                       ),
                                       IconButton(
+                                        visualDensity: VisualDensity.compact,
                                         tooltip: text.dropped,
                                         icon: const Icon(Icons.check_circle_outline),
                                         onPressed: () => _sendEvent(tripId, sid, 'dropped'),
                                       ),
                                       IconButton(
+                                        visualDensity: VisualDensity.compact,
                                         tooltip: text.noShow,
                                         icon: const Icon(Icons.cancel_outlined),
                                         onPressed: () => _sendEvent(tripId, sid, 'no_show'),

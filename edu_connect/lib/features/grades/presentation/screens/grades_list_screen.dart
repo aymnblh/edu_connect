@@ -738,23 +738,27 @@ class _GradeCard extends StatelessWidget {
           if (canEdit)
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: onEdit,
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: Text(text.edit),
-                  ),
-                  TextButton.icon(
-                    onPressed: onDelete,
-                    style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.error,
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: Wrap(
+                  spacing: 4,
+                  alignment: WrapAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: Text(text.edit),
                     ),
-                    icon: const Icon(Icons.delete_outline, size: 18),
-                    label: Text(text.delete),
-                  ),
-                ],
+                    TextButton.icon(
+                      onPressed: onDelete,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: Text(text.delete),
+                    ),
+                  ],
+                ),
               ),
             ),
           if (canApprove)

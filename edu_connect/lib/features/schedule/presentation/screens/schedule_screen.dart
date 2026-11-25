@@ -664,12 +664,16 @@ class _CancelSessionSheetState extends ConsumerState<_CancelSessionSheet> {
                 children: [
                   Icon(Icons.calendar_today, size: 18, color: colors.tealDark),
                   const SizedBox(width: 10),
-                  Text(
-                    DateFormat(
-                      'EEEE d MMMM yyyy',
-                      Localizations.localeOf(context).toLanguageTag(),
-                    ).format(_selectedDate),
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  Expanded(
+                    child: Text(
+                      DateFormat(
+                        'EEEE d MMMM yyyy',
+                        Localizations.localeOf(context).toLanguageTag(),
+                      ).format(_selectedDate),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ],
               ),
@@ -830,10 +834,12 @@ class _SlotFormSheetState extends ConsumerState<_SlotFormSheet> {
                   child: Icon(Icons.schedule, color: colors.tealDark, size: 20),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  isEdit ? 'Modifier le créneau' : 'Nouveau créneau',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w700),
+                Expanded(
+                  child: Text(
+                    isEdit ? 'Modifier le créneau' : 'Nouveau créneau',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
                 ),
               ],
             ),
@@ -1029,15 +1035,21 @@ class _SlotFormSheetState extends ConsumerState<_SlotFormSheet> {
           children: [
             Icon(Icons.access_time, size: 18, color: colors.tealDark),
             const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: TextStyle(fontSize: 11, color: colors.mutedText)),
-                Text(_fmt(time),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 15)),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: colors.mutedText)),
+                  Text(_fmt(time),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 15)),
+                ],
+              ),
             ),
           ],
         ),

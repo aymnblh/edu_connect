@@ -790,17 +790,28 @@ textarea.form-input {
   }
 }
 
+@media (max-width: 640px) {
+  .monthly-bars li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0.25rem;
+  }
+
+  .monthly-bar-track {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 480px) {
   .monthly-report {
     padding: 1rem;
   }
 
   .monthly-headline {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .monthly-tile-value {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
   }
 }
 
@@ -837,6 +848,7 @@ textarea.form-input {
 
   /* Hidden chrome must not take space either, or the sheet prints offset. */
   .premium-sidebar,
+  .mobile-topbar,
   .hamburger-btn,
   .ambient-bg,
   .demo-banner {

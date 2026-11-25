@@ -477,23 +477,27 @@ class _LessonCard extends ConsumerWidget {
           if (canManage)
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: () => _edit(context, ref),
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: Text(text.edit),
-                  ),
-                  TextButton.icon(
-                    onPressed: () => _delete(context, ref),
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.error,
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: Wrap(
+                  spacing: 4,
+                  alignment: WrapAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => _edit(context, ref),
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: Text(text.edit),
                     ),
-                    icon: const Icon(Icons.delete_outline, size: 18),
-                    label: Text(text.delete),
-                  ),
-                ],
+                    TextButton.icon(
+                      onPressed: () => _delete(context, ref),
+                      style: TextButton.styleFrom(
+                        foregroundColor: colorScheme.error,
+                      ),
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: Text(text.delete),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],

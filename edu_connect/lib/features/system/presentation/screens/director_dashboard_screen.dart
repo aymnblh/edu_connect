@@ -312,39 +312,71 @@ class _KpiGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = _DashText.of(context);
     final colors = context.appColors;
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 8,
-      childAspectRatio: 1.75,
-      children: [
-        _KpiCard(
-          label: text.average,
-          value: '${data.school_avg.toStringAsFixed(2)}/20',
-          icon: Icons.timeline,
-          tone: colors.tealDark,
-        ),
-        _KpiCard(
-          label: text.absenteeism,
-          value: '${data.absence_rate.toStringAsFixed(1)}%',
-          icon: Icons.event_busy_outlined,
-          tone: colors.warningAmber,
-        ),
-        _KpiCard(
-          label: text.linkedParents,
-          value: '${data.adoption_rate.toStringAsFixed(0)}%',
-          icon: Icons.family_restroom_outlined,
-          tone: colors.successGreen,
-        ),
-        _KpiCard(
-          label: text.subjects,
-          value: '${data.subject_performance.length}',
-          icon: Icons.menu_book_outlined,
-          tone: colors.tealAccent,
-        ),
-      ],
+    final cards = [
+      _KpiCard(
+        label: text.average,
+        value: '${data.school_avg.toStringAsFixed(2)}/20',
+        icon: Icons.timeline,
+        tone: colors.tealDark,
+      ),
+      _KpiCard(
+        label: text.absenteeism,
+        value: '${data.absence_rate.toStringAsFixed(1)}%',
+        icon: Icons.event_busy_outlined,
+        tone: colors.warningAmber,
+      ),
+      _KpiCard(
+        label: text.linkedParents,
+        value: '${data.adoption_rate.toStringAsFixed(0)}%',
+        icon: Icons.family_restroom_outlined,
+        tone: colors.successGreen,
+      ),
+      _KpiCard(
+        label: text.subjects,
+        value: '${data.subject_performance.length}',
+        icon: Icons.menu_book_outlined,
+        tone: colors.tealAccent,
+      ),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 330) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < cards.length; i++) ...[
+                if (i > 0) const SizedBox(height: 8),
+                cards[i],
+              ],
+            ],
+          );
+        }
+        return Column(
+          children: [
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: cards[0]),
+                  const SizedBox(width: 8),
+                  Expanded(child: cards[1]),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: cards[2]),
+                  const SizedBox(width: 8),
+                  Expanded(child: cards[3]),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

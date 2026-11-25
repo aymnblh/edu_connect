@@ -255,7 +255,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
                       Icon(Icons.flag_outlined,
                           size: 18, color: colors.dangerRed),
                       const SizedBox(width: 8),
-                      Text(modText.reportContent),
+                      Expanded(child: Text(modText.reportContent)),
                     ],
                   ),
                 ),
@@ -271,9 +271,11 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
                         color: colors.dangerRed,
                       ),
                       const SizedBox(width: 8),
-                      Text(isTargetBlocked
-                          ? modText.unblockUser
-                          : modText.blockUser),
+                      Expanded(
+                        child: Text(isTargetBlocked
+                            ? modText.unblockUser
+                            : modText.blockUser),
+                      ),
                     ],
                   ),
                 ),

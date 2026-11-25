@@ -42,7 +42,7 @@ export default function NurseDashboard() {
   const withRecord = students.filter((student) => student.has_record).length;
 
   return (
-    <div className="animate-fade-in">
+    <div className="container dashboard-page animate-fade-in">
       <header className="dashboard-header">
         <div className="badge dashboard-eyebrow">
           <HeartPulse size={14} /> {t('role.nurse')}

@@ -555,9 +555,13 @@ class _ProgramTabState extends ConsumerState<_ProgramTab> {
                                   Icon(Icons.person,
                                       size: 12, color: colors.mutedText),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    cc.teacherName ?? 'Prof inconnu',
-                                    style: const TextStyle(fontSize: 12),
+                                  Expanded(
+                                    child: Text(
+                                      cc.teacherName ?? 'Prof inconnu',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -833,8 +837,10 @@ class _OverviewTab extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Élèves inscrits',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              const Expanded(
+                child: Text('Élèves inscrits',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              ),
               Text('${cls.members.length} total',
                   style: TextStyle(color: colors.subtitleText, fontSize: 13)),
             ],

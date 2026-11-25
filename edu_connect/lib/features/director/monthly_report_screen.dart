@@ -70,6 +70,7 @@ class _ReportView extends StatelessWidget {
     final previousName = monthLabel(report.previousMonth, lang);
 
     Widget tile(String label, String value, String change) => Card(
+          margin: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
@@ -119,28 +120,63 @@ class _ReportView extends StatelessWidget {
             child: Text(text.partial, style: theme.textTheme.bodySmall),
           ),
         const SizedBox(height: 12),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1.35,
-          children: [
-            tile(
-                text.attendance,
-                c.attendanceRate == null
-                    ? '—'
-                    : '${c.attendanceRate!.toStringAsFixed(1)} %',
-                c.attendanceRate == null || p.attendanceRate == null
-                    ? '—'
-                    : delta(c.attendanceRate!, p.attendanceRate!)),
-            tile(text.notifications, '${c.parentNotifications}',
-                delta(c.parentNotifications, p.parentNotifications)),
-            tile(text.parents, '${c.activeParents}',
-                delta(c.activeParents, p.activeParents)),
-            tile(text.grades, '${c.gradesEntered}',
-                delta(c.gradesEntered, p.gradesEntered)),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final tiles = [
+              tile(
+                  text.attendance,
+                  c.attendanceRate == null
+                      ? '—'
+                      : '${c.attendanceRate!.toStringAsFixed(1)} %',
+                  c.attendanceRate == null || p.attendanceRate == null
+                      ? '—'
+                      : delta(c.attendanceRate!, p.attendanceRate!)),
+              tile(text.notifications, '${c.parentNotifications}',
+                  delta(c.parentNotifications, p.parentNotifications)),
+              tile(text.parents, '${c.activeParents}',
+                  delta(c.activeParents, p.activeParents)),
+              tile(text.grades, '${c.gradesEntered}',
+                  delta(c.gradesEntered, p.gradesEntered)),
+            ];
+            if (constraints.maxWidth < 340) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = 0; i < tiles.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 8),
+                    tiles[i],
+                  ],
+                ],
+              );
+            }
+            return Column(
+              children: [
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: tiles[0]),
+                      const SizedBox(width: 8),
+                      Expanded(child: tiles[1]),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: tiles[2]),
+                      const SizedBox(width: 8),
+                      Expanded(child: tiles[3]),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
         ),
+        const SizedBox(height: 8),
         Card(
           child: ListTile(
             leading: const Icon(Icons.account_balance_wallet_outlined),

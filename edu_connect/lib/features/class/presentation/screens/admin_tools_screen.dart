@@ -94,8 +94,10 @@ class _AdminToolsScreenState extends ConsumerState<AdminToolsScreen> {
             children: [
               Icon(Icons.person_add_rounded, color: colors.tealDark),
               const SizedBox(width: 10),
-              Text(text.createStaffTitle,
-                  style: const TextStyle(fontSize: 18)),
+              Expanded(
+                child: Text(text.createStaffTitle,
+                    style: const TextStyle(fontSize: 18)),
+              ),
             ],
           ),
           content: Form(

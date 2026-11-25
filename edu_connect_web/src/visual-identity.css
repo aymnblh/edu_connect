@@ -783,7 +783,7 @@ html[dir='rtl'] .dashboard-action-arrow {
 .pending-attendance-panel,
 .analytics-card,
 .teacher-attendance-section {
-  scroll-margin-top: 24px;
+  scroll-margin-top: 72px;
 }
 
 .parent-primary-nav {
@@ -1502,26 +1502,125 @@ html[dir='rtl'] .dashboard-action-arrow {
     grid-template-columns: 1fr;
   }
 
-  .director-kpi-card {
-    min-height: 126px;
+  .tab-bar {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 16px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
   }
 
-  .tab-bar {
-    gap: 18px;
+  .tab-bar .tab-button {
+    flex: 0 0 auto;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .glass-card,
+  .section-card,
+  .management-card,
+  .dashboard-card-pad,
+  .analytics-card,
+  .pending-attendance-panel {
+    padding: 18px 16px;
+  }
+
+  .director-kpi-card {
+    min-height: 112px;
+    padding: 18px 16px;
+    gap: 16px;
+  }
+
+  .director-kpi-value {
+    font-size: 28px;
+  }
+
+  .dashboard-toolbar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .dashboard-toolbar > div {
+    min-width: 0;
+    flex: 1 1 200px;
+  }
+
+  .dashboard-toolbar > .form-input,
+  .dashboard-toolbar > select {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .dashboard-toolbar > .management-actions {
+    width: 100%;
+  }
+
+  .fees-filters .student-filter-bar,
+  .fees-filters select {
+    flex: 1 1 100%;
+    max-width: 100%;
   }
 
   .dashboard-action-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .dashboard-action-card {
-    grid-template-columns: auto minmax(0, 1fr);
-    min-height: 132px;
-    padding: 14px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .dashboard-action-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dashboard-action-label {
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-action-value {
+    font-size: clamp(20px, 5.5vw, 24px);
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-action-detail {
+    overflow-wrap: anywhere;
   }
 
   .dashboard-action-arrow {
     display: none;
+  }
+
+  .demo-banner,
+  .impersonation-banner {
+    padding: 10px 12px;
+    gap: 8px 10px;
+  }
+
+  .demo-banner-text {
+    flex: 1 1 100%;
+  }
+
+  .demo-banner-actions {
+    width: 100%;
+  }
+
+  .demo-banner-actions .btn,
+  .impersonation-banner .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .child-card--row {
+    min-width: min(260px, 82vw);
+    padding: 12px 14px;
+    gap: 12px;
   }
 
   .parent-primary-nav {
@@ -1816,7 +1915,7 @@ html[dir='rtl'] .dashboard-action-arrow {
 
   .teacher-attendance-actionbar {
     position: sticky;
-    top: 8px;
+    top: calc(62px + env(safe-area-inset-top, 0px));
     z-index: 5;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
@@ -1993,6 +2092,19 @@ html[dir='rtl'] .dashboard-action-arrow {
 
   .teacher-save-feedback {
     align-items: flex-start;
+  }
+
+  .dashboard-action-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-action-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .parent-schoolwork-filter {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

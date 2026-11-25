@@ -103,7 +103,7 @@ export default function DirectMessagingPanel({ scopeKey, classes }: DirectMessag
   const { t, locale } = useLocale();
   const queryClient = useQueryClient();
   const currentUserId = useMemo(() => readCurrentUserId(), []);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [typedMessage, setTypedMessage] = useState('');
@@ -206,7 +206,9 @@ export default function DirectMessagingPanel({ scopeKey, classes }: DirectMessag
   });
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container || messages.length === 0) return;
+    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
   const handleSend = (event: FormEvent) => {
@@ -306,7 +308,7 @@ export default function DirectMessagingPanel({ scopeKey, classes }: DirectMessag
         )}
 
         <div className="chat-sim-container" aria-label={t('messages.messagesAria')}>
-          <div className="chat-sim-messages">
+          <div ref={messagesContainerRef} className="chat-sim-messages">
             {messagesQuery.isLoading && <p className="empty-list-copy">{t('common.loading')}</p>}
             {!messagesQuery.isLoading && messages.length === 0 && (
               <p className="empty-list-copy">
@@ -328,7 +330,6 @@ export default function DirectMessagingPanel({ scopeKey, classes }: DirectMessag
                 </div>
               );
             })}
-            <div ref={chatEndRef} />
           </div>
 
           <form onSubmit={handleSend} className="chat-sim-input-bar">

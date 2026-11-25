@@ -577,12 +577,16 @@ class _CreateClassScreenState extends ConsumerState<CreateClassScreen> {
                                   Icon(Icons.add_circle_outline_rounded,
                                       size: 22),
                                   SizedBox(width: 12),
-                                  Text(
-                                    'Créer la classe',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 0.5),
+                                  Flexible(
+                                    child: Text(
+                                      'Créer la classe',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.5),
+                                    ),
                                   ),
                                 ],
                               ),

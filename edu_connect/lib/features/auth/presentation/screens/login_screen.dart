@@ -503,23 +503,23 @@ class _DemoEntry extends StatelessWidget {
         const SizedBox(height: 4),
         Text(text.copy, style: theme.textTheme.bodySmall),
         const SizedBox(height: 8),
-        Row(children: [
-          Expanded(
-            child: TextButton.icon(
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          alignment: WrapAlignment.spaceEvenly,
+          children: [
+            TextButton.icon(
               onPressed: busy ? null : () => onOpen('parent'),
               icon: const Icon(Icons.family_restroom),
               label: Text(text.asParent),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextButton.icon(
+            TextButton.icon(
               onPressed: busy ? null : () => onOpen('teacher'),
               icon: const Icon(Icons.co_present_outlined),
               label: Text(text.asTeacher),
             ),
-          ),
-        ]),
+          ],
+        ),
       ],
     );
   }
