@@ -436,29 +436,31 @@ export default function DirectorStudentsTab({
             {linkedParentsQuery.isLoading && <p className="dashboard-section-copy">{t('common.loading')}</p>}
             {linkedParentsQuery.data?.map((parent) => (
               <div key={parent.id} className="link-audit-item">
-                <div>
+                <div className="link-audit-info">
                   <strong>{parent.full_name}</strong>
                   <span>{parent.email}</span>
                 </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-compact"
-                  onClick={() => resetParentAccess(parent)}
-                  disabled={resetParentAccessMutation.isPending}
-                >
-                  <KeyRound size={14} />
-                  {t('director.team.resetAccess')}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-compact"
-                  aria-label={t('director.signOut')}
-                  title={t('director.signOut')}
-                  onClick={() => signOutUser(parent.id, parent.full_name)}
-                  disabled={isSigningOut}
-                >
-                  <LogOut size={14} />
-                </button>
+                <div className="link-audit-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-compact"
+                    onClick={() => resetParentAccess(parent)}
+                    disabled={resetParentAccessMutation.isPending}
+                  >
+                    <KeyRound size={14} />
+                    {t('director.team.resetAccess')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-compact"
+                    aria-label={t('director.signOut')}
+                    title={t('director.signOut')}
+                    onClick={() => signOutUser(parent.id, parent.full_name)}
+                    disabled={isSigningOut}
+                  >
+                    <LogOut size={14} />
+                  </button>
+                </div>
               </div>
             ))}
             {selectedStudent && !linkedParentsQuery.isLoading && (linkedParentsQuery.data?.length ?? 0) === 0 && (
@@ -480,7 +482,7 @@ export default function DirectorStudentsTab({
             {linkAuditQuery.isLoading && <p className="dashboard-section-copy">{t('common.loading')}</p>}
             {linkAuditQuery.data?.map((link) => (
               <div key={link.id} className="link-audit-item">
-                <div>
+                <div className="link-audit-info">
                   <strong>{parentLinkLabel(link.label)}</strong>
                   <span>
                     {link.parent_name

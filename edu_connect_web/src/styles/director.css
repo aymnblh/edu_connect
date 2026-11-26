@@ -172,6 +172,11 @@
   font-weight: 800;
 }
 
+.selected-student-panel > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .selected-student-panel strong,
 .selected-student-panel span {
   display: block;
@@ -200,9 +205,11 @@
 .assignment-item,
 .semester-card {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
   padding: 12px;
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
@@ -216,6 +223,7 @@
 .semester-card strong,
 .semester-card span {
   display: block;
+  overflow-wrap: anywhere;
 }
 
 .link-audit-item span,
@@ -224,6 +232,25 @@
   color: var(--text-muted);
   font-size: 12px;
   margin-top: 3px;
+}
+
+.link-audit-info,
+.assignment-item > div:first-child,
+.semester-card > div:first-child {
+  min-width: 0;
+  flex: 1 1 170px;
+}
+
+.link-audit-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.link-audit-actions .btn {
+  max-width: 100%;
 }
 
 .stacked-form {
@@ -412,6 +439,20 @@
   .table-actions .btn,
   .management-actions .btn {
     flex: 1;
+  }
+
+  .link-audit-item,
+  .assignment-item,
+  .semester-card {
+    align-items: stretch;
+  }
+
+  .link-audit-actions {
+    width: 100%;
+  }
+
+  .link-audit-actions .btn:first-child {
+    flex: 1 1 auto;
   }
 }
 

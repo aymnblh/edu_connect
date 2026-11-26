@@ -90,6 +90,11 @@
 .badge-danger { background: rgba(214, 64, 64, 0.1); color: #A12B2B; border-color: rgba(214, 64, 64, 0.25); }
 .badge-warning { background: rgba(212, 150, 10, 0.12); color: #7A4F00; border-color: rgba(212, 150, 10, 0.3); }
 
+.status-badge--active { background: rgba(26, 154, 107, 0.12); color: #146C4B; }
+.status-badge--expired,
+.status-badge--danger { background: rgba(214, 64, 64, 0.12); color: #A12B2B; }
+.status-badge--warning { background: rgba(212, 150, 10, 0.14); color: #7A4F00; }
+
 /* Report cards */
 .clickable-row {
   cursor: pointer;

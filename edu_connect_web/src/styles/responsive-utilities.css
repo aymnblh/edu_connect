@@ -84,13 +84,6 @@
     padding-top: calc(4.25rem + env(safe-area-inset-top, 0px));
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
   }
-  .pending-attendance-row {
-    grid-template-columns: 1fr;
-  }
-  .pending-attendance-action {
-    width: 100%;
-    justify-content: center;
-  }
   .teacher-homework-form-row {
     grid-template-columns: 1fr;
   }
@@ -573,11 +566,13 @@
   color: var(--text-muted);
   font-size: 13px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .pending-attendance-approval {
   display: grid;
   gap: 8px;
+  min-width: 0;
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 700;
@@ -624,6 +619,25 @@
 .pending-attendance-empty--error {
   color: #fca5a5;
   border-color: rgba(239, 68, 68, 0.24);
+}
+
+@media (max-width: 900px) {
+  .pending-attendance-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .pending-attendance-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .pending-attendance-row {
+    padding: 14px;
+  }
 }
 
 .dashboard-toolbar--spacious {
