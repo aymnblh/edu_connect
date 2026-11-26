@@ -12,7 +12,9 @@ import 'core/routing/app_router.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/widgets/adaptive_scroll_behavior.dart';
+import 'core/widgets/app_lock_gate.dart';
 import 'core/widgets/demo_banner.dart';
+import 'features/auth/presentation/providers/app_lock_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,9 +66,12 @@ class _WaselEduAppState extends ConsumerState<WaselEduApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(NtfyService.instance.initialize());
+      ref.read(appLockProvider.notifier).onAppResumed();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      NtfyService.instance.suspend();
+      ref.read(appLockProvider.notifier).onAppPaused();
     } else if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused ||
-        state == AppLifecycleState.hidden ||
         state == AppLifecycleState.detached) {
       NtfyService.instance.suspend();
     }
@@ -102,7 +107,9 @@ class _WaselEduAppState extends ConsumerState<WaselEduApp>
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          child: DemoBanner(child: child ?? const SizedBox.shrink()),
+          child: AppLockGate(
+            child: DemoBanner(child: child ?? const SizedBox.shrink()),
+          ),
         );
       },
     );

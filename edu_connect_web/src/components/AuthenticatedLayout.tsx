@@ -3,12 +3,13 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { useLocale } from '../lib/i18n';
 import { Menu } from 'lucide-react';
+import BiometricLockGate from './BiometricLockGate';
 import DemoBanner from './DemoBanner';
 import ImpersonationBanner from './ImpersonationBanner';
 import Sidebar from './Sidebar';
 
 export default function AuthenticatedLayout() {
-  const { isAuthenticated } = useWorkspace();
+  const { isAuthenticated, isRestoring } = useWorkspace();
   const { t } = useLocale();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -64,60 +65,70 @@ export default function AuthenticatedLayout() {
     };
   }, [sidebarOpen]);
 
+  if (isRestoring) {
+    return (
+      <div className="flex-center app-loader">
+        {t('common.loading')}
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   return (
-    <div className="layout">
-      {/* Skip to content link for keyboard/screen-reader users */}
-      <a href="#main-content" className="skip-link">
-        {t('layout.skipContent')}
-      </a>
+    <BiometricLockGate>
+      <div className="layout">
+        {/* Skip to content link for keyboard/screen-reader users */}
+        <a href="#main-content" className="skip-link">
+          {t('layout.skipContent')}
+        </a>
 
-      {/* Visual Ambient Background */}
-      <div className="ambient-bg">
-        <div className="ambient-blob-1"></div>
-        <div className="ambient-blob-2"></div>
-      </div>
-
-      {/* Mobile top bar */}
-      <div className="mobile-topbar">
-        <button
-          ref={menuButtonRef}
-          type="button"
-          className="hamburger-btn"
-          onClick={() => setSidebarOpen(true)}
-          aria-label={t('layout.openMenu')}
-          aria-expanded={sidebarOpen}
-          aria-controls="app-sidebar"
-        >
-          <Menu size={20} />
-        </button>
-        <div className="mobile-topbar-brand">
-          <img src="/wasel-edu-logo.png" alt="" aria-hidden="true" />
-          <span>{t('common.appName')}</span>
+        {/* Visual Ambient Background */}
+        <div className="ambient-bg">
+          <div className="ambient-blob-1"></div>
+          <div className="ambient-blob-2"></div>
         </div>
-      </div>
 
-      {/* Sidebar overlay for mobile */}
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-      
-      {/* Premium Sidebar */}
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-      
-      {/* Content Canvas */}
-      <main id="main-content" className="layout-content-wrapper">
-        <ImpersonationBanner />
-        <DemoBanner />
-        <Outlet />
-      </main>
-    </div>
+        {/* Mobile top bar */}
+        <div className="mobile-topbar">
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="hamburger-btn"
+            onClick={() => setSidebarOpen(true)}
+            aria-label={t('layout.openMenu')}
+            aria-expanded={sidebarOpen}
+            aria-controls="app-sidebar"
+          >
+            <Menu size={20} />
+          </button>
+          <div className="mobile-topbar-brand">
+            <img src="/wasel-edu-logo.png" alt="" aria-hidden="true" />
+            <span>{t('common.appName')}</span>
+          </div>
+        </div>
+
+        {/* Sidebar overlay for mobile */}
+        {sidebarOpen && (
+          <div
+            className="sidebar-overlay"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+        
+        {/* Premium Sidebar */}
+        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        
+        {/* Content Canvas */}
+        <main id="main-content" className="layout-content-wrapper">
+          <ImpersonationBanner />
+          <DemoBanner />
+          <Outlet />
+        </main>
+      </div>
+    </BiometricLockGate>
   );
 }

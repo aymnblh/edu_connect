@@ -20,14 +20,18 @@ final publicDemoAvailableProvider =
   }
 });
 
+/// True only when the current session was restored from persisted storage on app startup.
+final sessionRestoredFromCacheProvider = StateProvider<bool>((ref) => false);
+
 // ── Auth notifier ──────────────────────────────────────────────────────────
 class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   final AuthRepository _repo;
+  final Ref _ref;
   bool _handlingUnauthorized = false;
 
-  AuthNotifier(this._repo, Ref ref) : super(const AsyncValue.loading()) {
+  AuthNotifier(this._repo, this._ref) : super(const AsyncValue.loading()) {
     ApiService.unauthorizedEvents.addListener(_handleUnauthorized);
-    ref.onDispose(() {
+    _ref.onDispose(() {
       ApiService.unauthorizedEvents.removeListener(_handleUnauthorized);
     });
     _init();
@@ -36,6 +40,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   void _handleUnauthorized() {
     if (_handlingUnauthorized || state.valueOrNull == null) return;
     _handlingUnauthorized = true;
+    _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
     state = const AsyncValue.data(null);
     unawaited(_repo.signOut().whenComplete(() {
       _handlingUnauthorized = false;
@@ -46,16 +51,21 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     try {
       final user = await _repo.getCachedUser();
       if (user != null) {
+        _ref.read(sessionRestoredFromCacheProvider.notifier).state = true;
         // ✅ Show cached data IMMEDIATELY — router unblocks, splash disappears
         state = AsyncValue.data(user);
         // Background refresh: don't await, never block the UI
         _repo.refreshToken().then((success) {
           if (!success && !_repo.lastFailWasNetwork) {
             // Server explicitly rejected the token (e.g. 401) — log out
-            if (mounted) state = const AsyncValue.data(null);
+            if (mounted) {
+              _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
+              state = const AsyncValue.data(null);
+            }
           }
         });
       } else {
+        _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
         state = const AsyncValue.data(null);
       }
     } catch (e, st) {
@@ -86,6 +96,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     state = const AsyncValue.loading();
     try {
       final user = await _repo.login(email: email, password: password);
+      _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
       state = AsyncValue.data(user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -97,6 +108,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     state = const AsyncValue.loading();
     try {
       final user = await _repo.demoLogin(role);
+      _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
       state = AsyncValue.data(user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -118,6 +130,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
         name: name,
         role: role.name,
       );
+      _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
       state = AsyncValue.data(user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -129,6 +142,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     // BUG FIX: await the server revocation BEFORE clearing local state.
     // The previous unawaited() meant the refresh token could remain valid
     // on the server if the request was still in-flight when the app closed.
+    _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
     try {
       await _repo.signOut();
     } catch (_) {
@@ -142,6 +156,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   /// cleared once the server confirmed, so a failure is never hidden.
   Future<void> deleteAccount() async {
     await _repo.deleteAccount();
+    _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
     try {
       await _repo.signOut();
     } catch (_) {
@@ -156,7 +171,10 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   Future<void> checkAuth() async {
     try {
       final user = await _repo.getCachedUser();
-      if (mounted) state = AsyncValue.data(user);
+      if (mounted) {
+        _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
+        state = AsyncValue.data(user);
+      }
     } catch (e, st) {
       if (mounted) state = AsyncValue.error(e, st);
     }
@@ -164,6 +182,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
 
   /// Directly sets a logged-in user (e.g., after invite-based registration).
   void setUser(UserModel user) {
+    _ref.read(sessionRestoredFromCacheProvider.notifier).state = false;
     state = AsyncValue.data(user);
   }
 }

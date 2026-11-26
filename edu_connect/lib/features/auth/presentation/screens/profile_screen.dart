@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/services/biometric_auth_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
+import '../providers/app_lock_provider.dart';
 import '../providers/auth_provider.dart';
 import 'devices_screen.dart';
 import '../../data/models/user_model.dart';
@@ -114,6 +116,10 @@ class ProfileScreen extends ConsumerWidget {
                                   builder: (_) => const _ChangePasswordDialog(),
                                 ),
                               ),
+                              if (!user.isDemo) ...[
+                                const Divider(height: 1),
+                                _BiometricLockRow(text: text),
+                              ],
                             ],
                           ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.2),
                           const SizedBox(height: 16),
@@ -707,6 +713,41 @@ class _ProfileText {
       : _fr
           ? 'Avatar de $name'
           : '$name avatar';
+  String get biometricTitle => _ar
+      ? 'القفل البيومتري (البصمة / Face ID)'
+      : _fr
+          ? 'Verrouillage biométrique (Empreinte / Face ID)'
+          : 'Biometric lock (Fingerprint / Face ID)';
+  String get biometricActive => _ar
+      ? 'مفعّل — مطلوب عند فتح التطبيق'
+      : _fr
+          ? 'Activé — demandé à la réouverture'
+          : 'Enabled — required when reopening the app';
+  String get biometricInactive => _ar
+      ? 'غير مفعّل — فتح مباشر'
+      : _fr
+          ? 'Désactivé — accès direct'
+          : 'Disabled — direct access';
+  String get biometricUnavailable => _ar
+      ? 'غير متوفر على هذا الجهاز (لا يوجد قفل شاشة)'
+      : _fr
+          ? 'Indisponible sur cet appareil (aucun verrouillage configuré)'
+          : 'Unavailable on this device (no screen lock set)';
+  String get biometricPromptTitle => _ar
+      ? 'تأكيد الهوية'
+      : _fr
+          ? 'Confirmer votre identité'
+          : 'Verify your identity';
+  String get biometricPromptSubtitle => _ar
+      ? 'تأكيد تعديل إعداد القفل البيومتري'
+      : _fr
+          ? 'Confirmez la modification du verrouillage biométrique'
+          : 'Confirm changing biometric lock setting';
+  String get biometricVerifyFailed => _ar
+      ? 'لم يتم التحقق من الهوية.'
+      : _fr
+          ? 'Vérification biométrique annulée ou échouée.'
+          : 'Biometric verification was cancelled or failed.';
 }
 
 class _InfoCard extends StatelessWidget {
@@ -798,6 +839,56 @@ class _ActionRow extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _BiometricLockRow extends ConsumerWidget {
+  final _ProfileText text;
+
+  const _BiometricLockRow({required this.text});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lockState = ref.watch(appLockProvider);
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final available = lockState.isReady && lockState.availability.available;
+    final icon = lockState.availability.biometryType == BiometryType.faceId
+        ? Icons.face_rounded
+        : lockState.availability.biometryType == BiometryType.deviceCredential
+            ? Icons.lock_outline_rounded
+            : Icons.fingerprint_rounded;
+
+    final subtitle = !available
+        ? text.biometricUnavailable
+        : (lockState.enabled ? text.biometricActive : text.biometricInactive);
+
+    return SwitchListTile.adaptive(
+      value: available && lockState.enabled,
+      onChanged: (!available || lockState.isAuthenticating)
+          ? null
+          : (nextValue) async {
+              final ok = await ref.read(appLockProvider.notifier).setEnabled(
+                    nextValue,
+                    title: text.biometricPromptTitle,
+                    subtitle: text.biometricPromptSubtitle,
+                  );
+              if (!ok && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(text.biometricVerifyFailed)),
+                );
+              }
+            },
+      secondary: Icon(icon, color: colors.subtitleText, size: 20),
+      title: Text(
+        text.biometricTitle,
+        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(color: colors.mutedText, fontSize: 12),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
 }

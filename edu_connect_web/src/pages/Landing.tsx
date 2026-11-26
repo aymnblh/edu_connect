@@ -18,6 +18,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import InstallAppButton from '../components/InstallAppButton';
 import LocaleSwitcher from '../components/LocaleSwitcher';
 import {
   DirectorFaqSection,
@@ -106,6 +107,7 @@ export default function Landing() {
             <a href="#tarifs" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.pricing')}</a>
             <a href="#faq" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.faq')}</a>
             <div className="landing-nav-mobile-actions">
+              <InstallAppButton variant="nav" onAfterClick={() => setMobileMenuOpen(false)} />
               <Link to="/login" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
                 {t('landing.nav.login')}
               </Link>
@@ -117,6 +119,7 @@ export default function Landing() {
 
           <div className="landing-nav-actions">
             <LocaleSwitcher />
+            <InstallAppButton variant="nav" className="landing-desktop-only" />
             <Link to="/login" className="btn btn-secondary btn-compact landing-desktop-only">
               {t('landing.nav.login')}
             </Link>
@@ -173,6 +176,7 @@ export default function Landing() {
                   <FileText size={16} aria-hidden="true" />
                   {t('pricing.brochure')}
                 </a>
+                <InstallAppButton variant="hero" />
               </div>
 
               {demoQuery.isPending && (
@@ -375,6 +379,7 @@ export default function Landing() {
                   {t('pricing.brochure')}
                 </a>
               </li>
+              <li><InstallAppButton variant="footer" /></li>
               <li><Link to="/policies">{t('landing.footer.policies')}</Link></li>
               {SALES_EMAIL && (
                 <li><a href={`mailto:${SALES_EMAIL}`}>{SALES_EMAIL}</a></li>

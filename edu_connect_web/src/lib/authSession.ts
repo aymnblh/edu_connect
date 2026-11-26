@@ -1,4 +1,5 @@
 import { api, storeSessionTokens } from './api';
+import { markFreshWebSignIn } from './biometricLock';
 import {
   clearWorkspaceStorage,
   getInitialActiveRole,
@@ -18,9 +19,11 @@ export async function establishUserSession(
   tokens: AuthTokens,
   remember: boolean,
   refreshWorkspace: () => void,
+  persistPreference = true,
 ): Promise<string | null> {
   clearWorkspaceStorage();
-  storeSessionTokens(tokens.access_token, tokens.refresh_token, remember);
+  storeSessionTokens(tokens.access_token, tokens.refresh_token, remember, persistPreference);
+  markFreshWebSignIn();
 
   const profileRes = await api.get('/users/me');
   const user = profileRes.data;

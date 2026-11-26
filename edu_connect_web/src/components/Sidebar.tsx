@@ -9,6 +9,7 @@ import {
   LogOut, 
   KeyRound,
   MonitorSmartphone,
+  Fingerprint,
   ScrollText,
   BookOpen,
   HeartHandshake,
@@ -27,9 +28,11 @@ import { useWorkspace } from '../contexts/useWorkspace';
 import { logoutSession } from '../lib/api';
 import { useSchoolBranding } from '../lib/branding';
 import { useLocale } from '../lib/i18n';
-import { readWorkspaceSessionItem } from '../lib/workspace';
+import { decodeJwtPayload, readWorkspaceSessionItem } from '../lib/workspace';
+import BiometricLockModal from './BiometricLockModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import DevicesModal from './DevicesModal';
+import InstallAppButton from './InstallAppButton';
 import LocaleSwitcher from './LocaleSwitcher';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 
@@ -42,6 +45,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [devicesModalOpen, setDevicesModalOpen] = useState(false);
+  const [biometricModalOpen, setBiometricModalOpen] = useState(false);
 
   useEffect(() => {
     const mobile = window.matchMedia('(max-width: 768px)');
@@ -62,11 +66,12 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
     const raw = readWorkspaceSessionItem('user');
     if (!raw) return null;
     try {
-      return JSON.parse(raw) as { name?: string } | null;
+      return JSON.parse(raw) as { name?: string; is_demo?: boolean } | null;
     } catch {
       return null;
     }
   })();
+  const isDemo = Boolean(user?.is_demo || decodeJwtPayload(readWorkspaceSessionItem('access_token'))?.demo);
 
   const handleLogout = async () => {
     await logoutSession();
@@ -220,6 +225,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
           </div>
         )}
 
+        <InstallAppButton variant="sidebar" collapsed={collapsed} onAfterClick={handleNavClick} />
+
         {/* User Card */}
         <div className={`sidebar-user-card ${collapsed ? 'sidebar-user-card--collapsed' : ''}`}>
           <div className="sidebar-user-main">
@@ -237,6 +244,17 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
               </div>
             )}
           </div>
+          {!collapsed && !isDemo && (
+            <button
+              type="button"
+              onClick={() => setBiometricModalOpen(true)}
+              className="logout-btn"
+              title={t('biometric.modalTitle')}
+              aria-label={t('biometric.modalTitle')}
+            >
+              <Fingerprint size={16} />
+            </button>
+          )}
           {!collapsed && (
             <button
               type="button"
@@ -273,6 +291,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
       </div>
       {passwordModalOpen && <ChangePasswordModal onClose={() => setPasswordModalOpen(false)} />}
       {devicesModalOpen && <DevicesModal onClose={() => setDevicesModalOpen(false)} />}
+      {biometricModalOpen && <BiometricLockModal onClose={() => setBiometricModalOpen(false)} />}
     </aside>
   );
 }

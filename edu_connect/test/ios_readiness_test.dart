@@ -12,16 +12,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('iOS project includes CocoaPods and foreground notification setup', () {
+  test('iOS project includes CocoaPods, Face ID usage, and foreground setup',
+      () {
     final debugConfig = File('ios/Flutter/Debug.xcconfig').readAsStringSync();
     final releaseConfig =
         File('ios/Flutter/Release.xcconfig').readAsStringSync();
     final appDelegate = File('ios/Runner/AppDelegate.swift').readAsStringSync();
+    final infoPlist = File('ios/Runner/Info.plist').readAsStringSync();
 
     expect(debugConfig, contains('Pods-Runner.debug.xcconfig'));
     expect(releaseConfig, contains('Pods-Runner.release.xcconfig'));
     expect(
         appDelegate, contains('UNUserNotificationCenter.current().delegate'));
+    expect(appDelegate, contains('LocalAuthentication'));
+    expect(appDelegate, contains('dz.waseledu.app/biometric_auth'));
+    expect(infoPlist, contains('NSFaceIDUsageDescription'));
   });
 
   test('every modal bottom sheet opts into the iOS safe area', () {

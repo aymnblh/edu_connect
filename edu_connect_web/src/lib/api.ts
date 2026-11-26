@@ -33,8 +33,9 @@ export function storeSessionTokens(
   accessToken: string,
   refreshToken: string,
   rememberDevice = getCurrentSessionPersistence(),
+  persistPreference = true,
 ): void {
-  setRememberDevicePreference(rememberDevice);
+  setRememberDevicePreference(rememberDevice, persistPreference);
   storeWorkspaceSessionItem('access_token', accessToken, rememberDevice);
   if (rememberDevice) {
     removeWorkspaceSessionItem('refresh_token');

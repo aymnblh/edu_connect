@@ -16,6 +16,92 @@ class ApiService {
   late final Dio _dio;
   final _storage = appSecureStorage;
   static const Duration _preRequestTimeout = Duration(seconds: 2);
+  Future<String?>? _refreshFuture;
+  bool lastRefreshFailedByNetwork = false;
+  bool _sessionSignedOut = false;
+
+  void markSignedIn() {
+    _sessionSignedOut = false;
+  }
+
+  void markSignedOut() {
+    _sessionSignedOut = true;
+  }
+
+  /// Single-flight refresh token rotation shared by startup and 401 retry.
+  Future<String?> refreshAccessToken() {
+    if (_refreshFuture != null) {
+      return _refreshFuture!;
+    }
+    final future = _performRefresh().whenComplete(() {
+      _refreshFuture = null;
+    });
+    _refreshFuture = future;
+    return future;
+  }
+
+  Future<String?> _performRefresh() async {
+    lastRefreshFailedByNetwork = false;
+    String? refresh;
+    try {
+      refresh = await _storage
+          .read(key: 'refresh_token')
+          .timeout(_preRequestTimeout);
+    } catch (_) {
+      lastRefreshFailedByNetwork = true;
+      return null;
+    }
+    if (refresh == null || refresh.isEmpty) {
+      return null;
+    }
+
+    try {
+      final res = await _dio.post(
+        '/auth/refresh',
+        data: {'refresh_token': refresh},
+        options: Options(extra: {'_skipAuthRefresh': true}),
+      );
+      if (_sessionSignedOut) {
+        return null;
+      }
+      final data = res.data;
+      if (data is Map &&
+          data['access_token'] is String &&
+          data['refresh_token'] is String) {
+        final accessToken = data['access_token'] as String;
+        final refreshToken = data['refresh_token'] as String;
+        await _storage.write(key: 'access_token', value: accessToken);
+        await _storage.write(key: 'refresh_token', value: refreshToken);
+        return accessToken;
+      }
+      return null;
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.connectionError ||
+          e.response == null) {
+        lastRefreshFailedByNetwork = true;
+        return null;
+      }
+      // Server explicitly rejected the refresh token (401/403) — clear local session.
+      await _clearSessionStorage();
+      return null;
+    } catch (_) {
+      lastRefreshFailedByNetwork = true;
+      return null;
+    }
+  }
+
+  Future<void> _clearSessionStorage() async {
+    try {
+      await _storage.delete(key: 'access_token').timeout(_preRequestTimeout);
+      await _storage.delete(key: 'refresh_token').timeout(_preRequestTimeout);
+      await _storage.delete(key: 'user_profile').timeout(_preRequestTimeout);
+    } catch (_) {
+      // Best effort cleanup.
+    }
+  }
 
   void initialize() {
     _validateRuntimeConfig();
@@ -49,7 +135,7 @@ class ApiService {
 
         handler.next(options);
       },
-      onError: (err, handler) {
+      onError: (err, handler) async {
         // Handle 403 password_setup_required
         if (err.response?.statusCode == 403) {
           final data = err.response?.data;
@@ -60,8 +146,24 @@ class ApiService {
         }
 
         if (err.response?.statusCode == 401 &&
-            !_isAuthEndpoint(err.requestOptions.path)) {
-          unauthorizedEvents.value++;
+            !_isAuthEndpoint(err.requestOptions.path) &&
+            err.requestOptions.extra['_skipAuthRefresh'] != true &&
+            err.requestOptions.extra['_retried'] != true) {
+          final newToken = await refreshAccessToken();
+          if (newToken != null) {
+            err.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+            err.requestOptions.extra['_retried'] = true;
+            try {
+              final retryResponse = await _dio.fetch(err.requestOptions);
+              handler.resolve(retryResponse);
+              return;
+            } on DioException catch (retryErr) {
+              handler.next(retryErr);
+              return;
+            }
+          } else if (!lastRefreshFailedByNetwork && !_sessionSignedOut) {
+            unauthorizedEvents.value++;
+          }
         }
 
         handler.next(err);

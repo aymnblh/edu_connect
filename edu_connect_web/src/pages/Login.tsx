@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert, GraduationCap, BookOpen, HeartHandshake, ShieldCheck, Eye, Building2, Presentation, Users } from 'lucide-react';
+import InstallAppButton from '../components/InstallAppButton';
 import LocaleSwitcher from '../components/LocaleSwitcher';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { api } from '../lib/api';
@@ -40,8 +41,12 @@ export default function Login() {
     setError(typeof detail === 'string' ? detail : detail?.message || t('auth.connectionError'));
   };
 
-  const completeSignIn = async (tokens: { access_token: string; refresh_token: string }, remember: boolean) => {
-    const targetRoute = await establishUserSession(tokens, remember, refreshWorkspace);
+  const completeSignIn = async (
+    tokens: { access_token: string; refresh_token: string },
+    remember: boolean,
+    persistPreference = true,
+  ) => {
+    const targetRoute = await establishUserSession(tokens, remember, refreshWorkspace, persistPreference);
     if (targetRoute) {
       navigate(targetRoute);
     } else {
@@ -60,7 +65,7 @@ export default function Login() {
         password,
         remember_device: rememberDevice,
       });
-      await completeSignIn(res.data, rememberDevice);
+      await completeSignIn(res.data, rememberDevice, true);
     } catch (err: unknown) {
       showError(err);
     } finally {
@@ -73,8 +78,8 @@ export default function Login() {
     setDemoLoading(role);
     try {
       const res = await api.post('/auth/demo-login', { role });
-      // A demo visit never outlives the browser tab.
-      await completeSignIn(res.data, false);
+      // A demo visit never outlives the browser tab and never overwrites remember-device preference.
+      await completeSignIn(res.data, false, false);
     } catch (err: unknown) {
       showError(err);
     } finally {
@@ -145,6 +150,7 @@ export default function Login() {
       <div className="login-form-side">
         <div className="glass-card animate-fade-in login-card">
           <div className="login-card-actions">
+            <InstallAppButton variant="login" />
             <LocaleSwitcher />
           </div>
 

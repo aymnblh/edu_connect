@@ -34,7 +34,7 @@ function safeSessionStorage(): Storage | null {
 }
 
 function preferredRememberDevice(): boolean {
-  return safeLocalStorage()?.getItem?.(rememberDevicePreferenceKey) === 'true';
+  return safeLocalStorage()?.getItem?.(rememberDevicePreferenceKey) !== 'false';
 }
 
 export function hasRememberedSessionHint(): boolean {
@@ -52,8 +52,10 @@ export function getCurrentSessionPersistence(): boolean {
   return preferredRememberDevice();
 }
 
-export function setRememberDevicePreference(rememberDevice: boolean): void {
-  safeLocalStorage()?.setItem?.(rememberDevicePreferenceKey, rememberDevice ? 'true' : 'false');
+export function setRememberDevicePreference(rememberDevice: boolean, persistPreference = true): void {
+  if (persistPreference) {
+    safeLocalStorage()?.setItem?.(rememberDevicePreferenceKey, rememberDevice ? 'true' : 'false');
+  }
   if (rememberDevice) {
     safeLocalStorage()?.setItem?.(rememberedSessionHintKey, '1');
   } else {

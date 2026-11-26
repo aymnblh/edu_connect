@@ -32,9 +32,12 @@ vm.runInNewContext(compiled, sandbox);
 const {
   clearWorkspaceStorage,
   getInitialActiveRole,
+  hasRememberedSessionHint,
   normalizeWorkspaceRoles,
+  readRememberDevicePreference,
   readWorkspaceSessionItem,
   routeForRole,
+  setRememberDevicePreference,
   storeWorkspaceSessionItem,
   workspaceRolesFromSession,
 } = sandbox.module.exports;
@@ -65,5 +68,16 @@ assert.equal(readWorkspaceSessionItem('access_token'), 'jwt-secret-token');
 clearWorkspaceStorage();
 assert.equal(readWorkspaceSessionItem('access_token'), null);
 assert.equal(localStore.has('wasel_driver_offline_events'), false);
+
+// Remember-device defaults to true so non-demo users remain connected,
+// while demo visits (persistPreference = false) do not overwrite the preference.
+assert.equal(readRememberDevicePreference(), true);
+setRememberDevicePreference(true, true);
+assert.equal(hasRememberedSessionHint(), true);
+setRememberDevicePreference(false, false);
+assert.equal(hasRememberedSessionHint(), false);
+assert.equal(readRememberDevicePreference(), true);
+setRememberDevicePreference(false, true);
+assert.equal(readRememberDevicePreference(), false);
 
 console.log('workspace role logic passed');

@@ -1,0 +1,25 @@
+{
+  "name": "WaselEdu",
+  "short_name": "WaselEdu",
+  "description": "Plateforme éducative pour la gestion scolaire",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f1eb",
+  "theme_color": "#087F6F",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/wasel-edu-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -61,5 +61,7 @@
 	<string>WaselEdu uses the camera to scan student QR codes for account linking.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>WaselEdu accesses your photo library only when you choose a file or image to attach.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>WaselEdu uses Face ID to protect quick access to your active account.</string>
 </dict>
 </plist>

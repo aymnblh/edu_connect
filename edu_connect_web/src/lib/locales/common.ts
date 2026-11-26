@@ -267,9 +267,9 @@ export const commonTranslations: TranslationMap = {
     en: 'Signing in...',
   },
   'login.rememberDevice': {
-    fr: 'Se souvenir de cet appareil',
-    ar: 'تذكر هذا الجهاز',
-    en: 'Remember this device',
+    fr: 'Rester connecté sur cet appareil',
+    ar: 'البقاء متصلاً على هذا الجهاز',
+    en: 'Stay signed in on this device',
   },
   'login.policiesLink': {
     fr: 'Mentions légales et confidentialité',
@@ -785,5 +785,155 @@ export const commonTranslations: TranslationMap = {
     fr: 'Transport',
     ar: 'النقل المدرسي',
     en: 'Transport',
+  },
+  'pwa.download': {
+    fr: 'Télécharger',
+    ar: 'تحميل',
+    en: 'Download',
+  },
+  'pwa.downloadApp': {
+    fr: 'Télécharger l’application',
+    ar: 'تحميل التطبيق',
+    en: 'Download app',
+  },
+  'pwa.modalTitle': {
+    fr: 'Installer WaselEdu sur votre appareil',
+    ar: 'تثبيت WaselEdu على جهازك',
+    en: 'Install WaselEdu on your device',
+  },
+  'pwa.modalSubtitle': {
+    fr: 'Ouvrez WaselEdu directement depuis votre bureau ou écran d’accueil, dans sa propre fenêtre.',
+    ar: 'افتح WaselEdu مباشرة من سطح المكتب أو الشاشة الرئيسية في نافذة مستقلة.',
+    en: 'Open WaselEdu directly from your desktop or home screen in its own window.',
+  },
+  'pwa.desktopTitle': {
+    fr: 'Ordinateur (Chrome / Edge)',
+    ar: 'الحاسوب (Chrome / Edge)',
+    en: 'Desktop (Chrome / Edge)',
+  },
+  'pwa.desktopStep': {
+    fr: 'Cliquez sur l’icône d’installation dans la barre d’adresse, ou ouvrez le menu du navigateur (⋮) → « Installer WaselEdu ».',
+    ar: 'اضغط على أيقونة التثبيت في شريط العنوان، أو افتح قائمة المتصفح (⋮) ← « تثبيت WaselEdu ».',
+    en: 'Click the install icon in the address bar, or open the browser menu (⋮) → "Install WaselEdu".',
+  },
+  'pwa.macSafariTitle': {
+    fr: 'Mac (Safari)',
+    ar: 'ماك (Safari)',
+    en: 'Mac (Safari)',
+  },
+  'pwa.macSafariStep': {
+    fr: 'Dans la barre de menu Safari, cliquez sur Fichier → « Ajouter au Dock ».',
+    ar: 'من شريط قوائم Safari، اضغط على ملف ← « إضافة إلى شريط الأيقونات ».',
+    en: 'In Safari’s menu bar, click File → "Add to Dock".',
+  },
+  'pwa.iosTitle': {
+    fr: 'iPhone / iPad (Safari)',
+    ar: 'آيفون / آيباد (Safari)',
+    en: 'iPhone / iPad (Safari)',
+  },
+  'pwa.iosStep': {
+    fr: 'Appuyez sur Partager puis choisissez « Sur l’écran d’accueil ».',
+    ar: 'اضغط على مشاركة ثم اختر « إضافة إلى الشاشة الرئيسية ».',
+    en: 'Tap Share, then choose "Add to Home Screen".',
+  },
+  'pwa.androidTitle': {
+    fr: 'Android (Chrome)',
+    ar: 'أندرويد (Chrome)',
+    en: 'Android (Chrome)',
+  },
+  'pwa.androidStep': {
+    fr: 'Ouvrez le menu (⋮) puis appuyez sur « Installer l’application ».',
+    ar: 'افتح القائمة (⋮) ثم اضغط على « تثبيت التطبيق ».',
+    en: 'Open the menu (⋮) and tap "Install app".',
+  },
+  'biometric.modalTitle': {
+    fr: 'Accès par empreinte / Face ID',
+    ar: 'الدخول بالبصمة / Face ID',
+    en: 'Fingerprint / Face ID access',
+  },
+  'biometric.modalCopy': {
+    fr: 'Restez connecté sur cet appareil tout en protégeant l’ouverture de votre session avec votre empreinte, Face ID ou code appareil.',
+    ar: 'ابقَ متصلاً على هذا الجهاز مع حماية فتح الجلسة بالبصمة أو Face ID أو رمز الجهاز.',
+    en: 'Stay signed in on this device while protecting session access with your fingerprint, Face ID, or device PIN.',
+  },
+  'biometric.unavailableTitle': {
+    fr: 'Biométrie non disponible ici',
+    ar: 'المصادقة البيومترية غير متوفرة هنا',
+    en: 'Biometrics unavailable here',
+  },
+  'biometric.unavailableCopy': {
+    fr: 'Cet appareil ou ce navigateur ne prend pas en charge le verrouillage biométrique local (HTTPS requis).',
+    ar: 'هذا الجهاز أو المتصفح لا يدعم القفل البيومتري المحلي (يتطلب HTTPS).',
+    en: 'This device or browser does not support local biometric lock (HTTPS required).',
+  },
+  'biometric.statusEnabled': {
+    fr: 'Verrouillage biométrique activé',
+    ar: 'القفل البيومتري مفعّل',
+    en: 'Biometric lock enabled',
+  },
+  'biometric.statusEnabledCopy': {
+    fr: 'Votre empreinte ou Face ID sera demandé à la réouverture ou après une pause.',
+    ar: 'سيُطلب التحقق بالبصمة أو Face ID عند إعادة فتح التطبيق أو بعد فترة توقف.',
+    en: 'Your fingerprint or Face ID will be requested when reopening or after being away.',
+  },
+  'biometric.enableButton': {
+    fr: 'Activer Empreinte / Face ID',
+    ar: 'تفعيل البصمة / Face ID',
+    en: 'Enable Fingerprint / Face ID',
+  },
+  'biometric.disableButton': {
+    fr: 'Désactiver le verrouillage',
+    ar: 'تعطيل القفل البيومتري',
+    en: 'Disable biometric lock',
+  },
+  'biometric.forceDisableButton': {
+    fr: 'Désactiver sans biométrie',
+    ar: 'تعطيل بدون بصمة',
+    en: 'Disable without biometrics',
+  },
+  'biometric.lockNow': {
+    fr: 'Verrouiller maintenant',
+    ar: 'قفل الجلسة الآن',
+    en: 'Lock session now',
+  },
+  'biometric.lockTitle': {
+    fr: 'Session protégée',
+    ar: 'الجلسة محمية',
+    en: 'Session locked',
+  },
+  'biometric.lockSubtitle': {
+    fr: 'Confirmez votre identité avec votre empreinte, Face ID ou code appareil pour accéder à votre espace.',
+    ar: 'تأكد من هويتك بالبصمة أو Face ID أو رمز الجهاز للوصول إلى فضائك.',
+    en: 'Verify your identity with fingerprint, Face ID, or device PIN to access your workspace.',
+  },
+  'biometric.unlockButton': {
+    fr: 'Déverrouiller (Empreinte / Face ID)',
+    ar: 'فتح بالبصمة / Face ID',
+    en: 'Unlock (Fingerprint / Face ID)',
+  },
+  'biometric.switchAccount': {
+    fr: 'Changer de compte / Se déconnecter',
+    ar: 'تبديل الحساب / تسجيل الخروج',
+    en: 'Switch account / Sign out',
+  },
+  'biometric.unlockFailed': {
+    fr: 'Vérification biométrique annulée ou échouée. Réessayez.',
+    ar: 'تم إلغاء التحقق البيومتري أو فشل. حاول مرة أخرى.',
+    en: 'Biometric verification was cancelled or failed. Please try again.',
+  },
+  'biometric.enrollFailed': {
+    fr: 'Impossible d’enregistrer la biométrie sur cet appareil.',
+    ar: 'تعذر تفعيل البصمة أو Face ID على هذا الجهاز.',
+    en: 'Could not enable biometrics on this device.',
+  },
+  'biometric.bannerTitle': {
+    fr: 'Déverrouillage rapide activable',
+    ar: 'تفعيل الفتح السريع بالبصمة',
+    en: 'Quick biometric unlock available',
+  },
+  'biometric.bannerCopy': {
+    fr: 'Protégez votre compte connecté avec votre empreinte ou Face ID.',
+    ar: 'احمِ حسابك المتصل باستخدام البصمة أو Face ID.',
+    en: 'Protect your active session with your fingerprint or Face ID.',
   },
 };

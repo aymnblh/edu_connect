@@ -5,6 +5,7 @@ import { CheckCircle2, KeyRound, Loader2, ShieldAlert, Sparkles } from 'lucide-r
 import LocaleSwitcher from '../components/LocaleSwitcher';
 import { useWorkspace } from '../contexts/useWorkspace';
 import { api, storeSessionTokens } from '../lib/api';
+import { markFreshWebSignIn } from '../lib/biometricLock';
 import { useLocale } from '../lib/i18n';
 import {
   clearWorkspaceStorage,
@@ -86,6 +87,7 @@ export default function ActivateAccount() {
       const rememberDevice = readRememberDevicePreference();
       clearWorkspaceStorage();
       storeSessionTokens(res.data.access_token, res.data.refresh_token, rememberDevice);
+      markFreshWebSignIn();
 
       const profileRes = await api.get('/users/me');
       const user = profileRes.data;

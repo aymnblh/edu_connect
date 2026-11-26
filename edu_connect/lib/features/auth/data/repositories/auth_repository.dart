@@ -28,6 +28,7 @@ class AuthRepository {
     required String password,
   }) async {
     _signedOut = false;
+    _api.markSignedIn();
     final response = await _api.post('/auth/login', data: {
       'email': email,
       'password': password,
@@ -50,6 +51,7 @@ class AuthRepository {
   /// ('teacher' or 'parent'), without an account.
   Future<UserModel> demoLogin(String role) async {
     _signedOut = false;
+    _api.markSignedIn();
     final response = await _api.post('/auth/demo-login', data: {'role': role});
     final data = response as Map<String, dynamic>;
     await _saveTokens(data['access_token'], data['refresh_token']);
@@ -63,6 +65,7 @@ class AuthRepository {
     required String role,
   }) async {
     _signedOut = false;
+    _api.markSignedIn();
     final response = await _api.post('/auth/register', data: {
       'email': email,
       'password': password,
@@ -135,6 +138,7 @@ class AuthRepository {
     String? pin,
   }) async {
     _signedOut = false;
+    _api.markSignedIn();
     final response = await _api.post('/auth/register-parent-code', data: {
       'full_name': fullName,
       'email': email,
@@ -155,6 +159,7 @@ class AuthRepository {
     required bool termsAccepted,
   }) async {
     _signedOut = false;
+    _api.markSignedIn();
     final response = await _api.post('/auth/complete-teacher-code', data: {
       'invite_code': inviteCode,
       'password': password,
@@ -165,39 +170,11 @@ class AuthRepository {
     return _fetchAndSaveProfile();
   }
 
-  /// Exchange refresh token for a new access token.
+  /// Exchange refresh token for a new access token (single-flight via ApiService).
   Future<bool> refreshToken() async {
-    lastFailWasNetwork = false;
-    final refresh = await _storage.read(key: _refreshTokenKey);
-    if (refresh == null) return false;
-
-    try {
-      final response = await _api.post('/auth/refresh', data: {
-        'refresh_token': refresh,
-      });
-
-      final data = response as Map<String, dynamic>;
-      if (_signedOut) return false;
-      await _saveTokens(data['access_token'], data['refresh_token']);
-      return true;
-    } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout ||
-          e.type == DioExceptionType.sendTimeout ||
-          e.type == DioExceptionType.connectionError ||
-          e.response == null) {
-        // Network unreachable — keep the cached session alive
-        lastFailWasNetwork = true;
-        return false;
-      }
-      // Server explicitly rejected the token (401/403) — clear local tokens
-      await _clearTokensLocally();
-      return false;
-    } catch (e) {
-      // Unknown error — treat as network fault, keep session
-      lastFailWasNetwork = true;
-      return false;
-    }
+    final token = await _api.refreshAccessToken();
+    lastFailWasNetwork = _api.lastRefreshFailedByNetwork;
+    return token != null;
   }
 
   Future<UserModel> _fetchAndSaveProfile() async {
@@ -258,6 +235,7 @@ class AuthRepository {
   /// Sign out — always clears local storage; attempts backend logout in background.
   Future<void> signOut() async {
     _signedOut = true;
+    _api.markSignedOut();
     final refresh = await _storage.read(key: _refreshTokenKey);
     // This phone must stop receiving the account's alerts (needs the session, so first).
     try {

@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "RS256"
     platform_secret: str
     access_token_expire_minutes: int = 30
-    refresh_token_expire_days: int = 30
+    refresh_token_expire_days: int = 90
     max_active_session_families: int = 5
     audit_retention_days: int = 2555
     security_alert_status_codes: str = "401,403,429"

@@ -3,6 +3,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <application
         android:label="WaselEdu"
         android:name="${applicationName}"
